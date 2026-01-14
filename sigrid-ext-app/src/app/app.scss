@@ -1,0 +1,15 @@
+.sigrid-tabs {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.sigrid-tab {
+  padding: 10px 20px;
+  cursor: pointer;
+
+
+  &.active {
+    border-bottom: 1px solid;
+  }
+}
