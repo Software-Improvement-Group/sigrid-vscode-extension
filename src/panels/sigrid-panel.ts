@@ -4,33 +4,35 @@ import { AngularApp } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
 
 export class SigridPanel {
-    static currentPanel: SigridPanel | undefined;
-    private disposables: Disposable[] = [];
+  static currentPanel: SigridPanel | undefined;
+  private disposables: Disposable[] = [];
 
-    private constructor(private readonly panel: WebviewPanel, extensionUri: Uri) {
-        this.panel = panel;
-        this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
-        this.panel.webview.html = this.getWebviewContent(this.panel.webview, extensionUri);
-        this.setWebviewMessageListener(this.panel.webview);
-    }
+  private constructor(private readonly panel: WebviewPanel, extensionUri: Uri) {
+    this.panel = panel;
+    this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
+    this.panel.webview.html = this.getWebviewContent(this.panel.webview, extensionUri);
+    this.setWebviewMessageListener(this.panel.webview);
+  }
 
-   /**
-   * Renders the current webview panel if it exists otherwise a new webview panel
-   * will be created and displayed.
-   *
-   * @param extensionUri The URI of the directory containing the extension.
-   */
+  /**
+  * Renders the current webview panel if it exists otherwise a new webview panel
+  * will be created and displayed.
+  *
+  * @param extensionUri The URI of the directory containing the extension.
+  */
   public static render(extensionUri: Uri) {
     if (SigridPanel.currentPanel) {
+      console.log("Revealing existing panel");
       // If the webview panel already exists reveal it
       SigridPanel.currentPanel.panel.reveal(ViewColumn.One);
     } else {
       // If a webview panel does not already exist create and show a new one
+      console.log("Creating new panel");
       const panel = window.createWebviewPanel(
         // Panel view type
-        "showHelloWorld",
+        "showSigrid",
         // Panel title
-        "Hello World",
+        "Sigrid",
         // The editor column the panel should be displayed in
         ViewColumn.One,
         // Extra panel configurations
@@ -39,6 +41,7 @@ export class SigridPanel {
           enableScripts: true,
           // Restrict the webview to only load resources from the `out` and `webview-ui/build` directories
           localResourceRoots: [Uri.joinPath(extensionUri, "out"), Uri.joinPath(extensionUri, AngularApp.appFolder, AngularApp.outputFolder)],
+          retainContextWhenHidden: true,
         }
       );
 
@@ -46,29 +49,30 @@ export class SigridPanel {
     }
   }
 
-    dispose() {
-        SigridPanel.currentPanel = undefined;
+  dispose() {
+    console.log("Disposing panel");
+    SigridPanel.currentPanel = undefined;
 
-        // Dispose the current webview panel
-        this.panel.dispose();
+    // Dispose the current webview panel
+    this.panel.dispose();
 
-        // Dispose all disposables (i.e. commands) for the current webview panel
-        while (this.disposables.length) {
-            const disposable = this.disposables.pop();
-            if (disposable) {
-                disposable.dispose();
-            }
-        }
+    // Dispose all disposables (i.e. commands) for the current webview panel
+    while (this.disposables.length) {
+      const disposable = this.disposables.pop();
+      if (disposable) {
+        disposable.dispose();
+      }
     }
+  }
 
-    private getWebviewContent(webview: Webview, extensionUri: Uri) {
-        const styleUri = getUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'styles.css']);
-        const scriptUri = getUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'main.js']);
+  private getWebviewContent(webview: Webview, extensionUri: Uri) {
+    const styleUri = getUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'styles.css']);
+    const scriptUri = getUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'main.js']);
 
-        // Use a nonce to whitelist which scripts can be run
-        const nonce = getNonce();
+    // Use a nonce to whitelist which scripts can be run
+    const nonce = getNonce();
 
-        return /*html*/`
+    return /*html*/`
         <!doctype html>
         <html lang="en" data-beasties-container>
         <head>
@@ -84,25 +88,25 @@ export class SigridPanel {
         </body>
         </html>
         `;
-    }
+  }
 
-    private setWebviewMessageListener(webview: Webview) {
-        webview.onDidReceiveMessage(
-            (message: any) => {
-                const command = message.command;
-                const text = message.text;
+  private setWebviewMessageListener(webview: Webview) {
+    webview.onDidReceiveMessage(
+      (message: any) => {
+        const command = message.command;
+        const text = message.text;
 
-                switch (command) {
-                    case "hello":
-                        // Code that should run in response to the hello message command
-                        window.showInformationMessage(text);
-                        return;
-                    // Add more switch case statements here as more webview message commands
-                    // are created within the webview context (i.e. inside media/main.js)
-                }
-            },
-            undefined,
-            this.disposables
-        );
-    }
+        switch (command) {
+          case "hello":
+            // Code that should run in response to the hello message command
+            window.showInformationMessage(text);
+            return;
+          // Add more switch case statements here as more webview message commands
+          // are created within the webview context (i.e. inside media/main.js)
+        }
+      },
+      undefined,
+      this.disposables
+    );
+  }
 }

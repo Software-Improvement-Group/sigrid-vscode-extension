@@ -1,6 +1,6 @@
-# sigrid-vs-code README
+# sigrid-vscode README
 
-This is the README for your extension "sigrid-vs-code". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "sigrid-vscode". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 

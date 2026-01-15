@@ -1,5 +1,5 @@
 {
-  "name": "sigrid-vs-code",
+  "name": "sigrid-vscode",
   "displayName": "Sigrid",
   "description": "Placeholder for description.",
   "version": "0.0.1",
@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "sigrid-vs-code.helloWorld",
-        "title": "Hello World"
+        "command": "sigrid-vscode.sigrid",
+        "title": "Sigrid: Show Findings"
       }
     ]
   },

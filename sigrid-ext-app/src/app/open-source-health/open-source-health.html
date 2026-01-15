@@ -1,0 +1,24 @@
+<table>
+  <tr>
+    <th>Risk</th>
+    <th>Library</th>
+    <th>Version</th>
+    <th>Transitive</th>
+    <th>License</th>
+    <th>Vulnerabilities</th>
+    <th>Freshness</th>
+    <th>Activity</th>
+  </tr>
+  @for (item of data; track item.id) {
+    <tr>
+      <td class="text-center">{{ item.risk }}</td>
+      <td>{{ item.library }}</td>
+      <td>{{ item.version }}</td>
+      <td>{{ item.transitive }}</td>
+      <td class="text-center">{{ item.license }}</td>
+      <td class="text-center">{{ item.vulnerabilities }}</td>
+      <td class="text-center">{{ item.freshness }}</td>
+      <td class="text-center">{{ item.activity }}</td>
+    </tr>
+  }
+</table>
