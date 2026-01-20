@@ -1,4 +1,4 @@
-import { Disposable, Uri, ViewColumn, Webview, WebviewPanel, window } from "vscode";
+import { Disposable, Uri, ViewColumn, Webview, WebviewPanel, window, workspace } from "vscode";
 import { getUri } from "../utilities/get-uri";
 import { AngularApp } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
@@ -46,6 +46,9 @@ export class SigridPanel {
       );
 
       SigridPanel.currentPanel = new SigridPanel(panel, extensionUri);
+      console.log(workspace.getConfiguration().get("sigrid-vscode"));
+      
+      panel.webview.postMessage({ command: "init", data: workspace.getConfiguration().get("sigrid-vscode")} );
     }
   }
 

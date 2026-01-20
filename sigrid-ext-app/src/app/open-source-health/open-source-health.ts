@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import {SEVERITY_SYMBOLS} from '../severity-symbols';
 
 @Component({
-  selector: 'app-open-source-health',
+  selector: 'sigrid-open-source-health',
   imports: [],
   templateUrl: './open-source-health.html',
   styleUrl: './open-source-health.scss',

@@ -17,7 +17,28 @@
         "command": "sigrid-vscode.sigrid",
         "title": "Sigrid: Show Findings"
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Sigrid",
+      "properties": {
+        "sigrid-vscode.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your Sigrid API Key."
+        },
+        "sigrid-vscode.customer": {
+          "type": "string",
+          "default": "",
+          "description": "Your Sigrid Customer ID."
+        },
+        "sigrid-vscode.system": {
+          "type": "string",
+          "default": "",
+          "description": "Your Sigrid System ID."
+        }
+      }
+    }
   },
   "scripts": {
     "install:all": "npm install && cd sigrid-ext-app && npm install",
