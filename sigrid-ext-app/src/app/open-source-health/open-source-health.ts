@@ -1,8 +1,9 @@
-import {Component, effect, inject} from '@angular/core';
-import {SEVERITY_SYMBOLS} from '../severity-symbols';
+import {Component, effect, inject, signal} from '@angular/core';
 import {SigridConfiguration} from '../services/sigrid-configuration';
 import {SigridApi} from '../services/sigrid-api';
 import {DataState} from '../models/data-state';
+import {OpenSourceHealthDependency} from '../models/open-source-health-dependency';
+import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
 
 @Component({
   selector: 'sigrid-open-source-health',
@@ -13,9 +14,8 @@ import {DataState} from '../models/data-state';
 export class OpenSourceHealth {
   protected isConfigValid: boolean = false;
   protected dataState = DataState.Loading;
-  protected findings: any = {};
 
-  protected data = [
+  /*protected data = [
     {
       id: 'os-1',
       risk: SEVERITY_SYMBOLS['HIGH'],
@@ -49,7 +49,9 @@ export class OpenSourceHealth {
       freshness: SEVERITY_SYMBOLS['NONE'],
       activity: SEVERITY_SYMBOLS['MEDIUM']
     }
-  ]
+  ]*/
+
+  protected oshDependencies = signal<OpenSourceHealthDependency[]>([]);
 
   private sigridApi = inject(SigridApi);
 
@@ -66,9 +68,12 @@ export class OpenSourceHealth {
   }
 
   private loadData() {
+    this.dataState = DataState.Loading;
     this.sigridApi.getOpenSourceHealth().subscribe({
       next: findings => {
-        this.findings = findings;
+        this.oshDependencies.set(OpenSourceHealthMapper.map(findings));
+        console.log(this.oshDependencies());
+        this.dataState = DataState.Success;
       },
       error: error => {
         this.dataState = DataState.Error;

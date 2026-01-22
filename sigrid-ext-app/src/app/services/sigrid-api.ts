@@ -4,6 +4,7 @@ import {SigridConfiguration} from './sigrid-configuration';
 import {Configuration} from '../models/configuration';
 import {SIGRID_API_BASE_URL} from '../utilities/constants';
 import {joinUrl} from '../utilities/join-url';
+import {OpenSourceHealthResponse} from '../models/open-source-health-dependency';
 
 @Injectable({
   providedIn: 'root',
@@ -23,6 +24,6 @@ export class SigridApi {
   }
 
   getOpenSourceHealth() {
-    return this.http.get<any>(joinUrl(SIGRID_API_BASE_URL, 'osh-findings', this.configuration.customer, this.configuration.system));
+    return this.http.get<OpenSourceHealthResponse>(joinUrl(SIGRID_API_BASE_URL, 'osh-findings', this.configuration.customer, this.configuration.system));
   }
 }

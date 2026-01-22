@@ -9,16 +9,16 @@
     <th>Freshness</th>
     <th>Activity</th>
   </tr>
-  @for (item of data; track item.id) {
+  @for (dependency of oshDependencies(); track dependency.purl) {
     <tr>
-      <td class="text-center">{{ item.risk }}</td>
-      <td>{{ item.library }}</td>
-      <td>{{ item.version }}</td>
-      <td>{{ item.transitive }}</td>
-      <td class="text-center">{{ item.license }}</td>
-      <td class="text-center">{{ item.vulnerabilities }}</td>
-      <td class="text-center">{{ item.freshness }}</td>
-      <td class="text-center">{{ item.activity }}</td>
+      <td class="text-center">{{ dependency.riskIcon }}</td>
+      <td>{{ dependency.displayName }}</td>
+      <td>{{ dependency.version }}</td>
+      <td>{{ dependency.dependencyType }}</td>
+      <td class="text-center">{{ dependency.licenseRiskIcon }}</td>
+      <td class="text-center">{{ dependency.vulnerabilityRiskIcon }}</td>
+      <td class="text-center">{{ dependency.freshnessRiskIcon }}</td>
+      <td class="text-center">{{ dependency.activityRiskIcon }}</td>
     </tr>
   }
 </table>
