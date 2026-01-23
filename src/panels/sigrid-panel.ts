@@ -22,12 +22,10 @@ export class SigridPanel {
   */
   public static render(extensionUri: Uri) {
     if (SigridPanel.currentPanel) {
-      console.log("Revealing existing panel");
       // If the webview panel already exists reveal it
       SigridPanel.currentPanel.panel.reveal(ViewColumn.One);
     } else {
       // If a webview panel does not already exist create and show a new one
-      console.log("Creating new panel");
       const panel = window.createWebviewPanel(
         // Panel view type
         "showSigrid",
@@ -46,14 +44,12 @@ export class SigridPanel {
       );
 
       SigridPanel.currentPanel = new SigridPanel(panel, extensionUri);
-      console.log(workspace.getConfiguration().get("sigrid-vscode"));
       
       panel.webview.postMessage({ command: "init", data: workspace.getConfiguration().get("sigrid-vscode")} );
     }
   }
 
   dispose() {
-    console.log("Disposing panel");
     SigridPanel.currentPanel = undefined;
 
     // Dispose the current webview panel
