@@ -33,7 +33,7 @@ export class OpenSourceHealth {
 
   private loadData() {
     this.dataState = DataState.Loading;
-    this.sigridApi.getOpenSourceHealth().subscribe({
+    this.sigridApi.getOpenSourceHealthFindings().subscribe({
       next: findings => {
         this.oshDependencies.set(OpenSourceHealthMapper.map(findings));
         this.dataState = DataState.Success;
