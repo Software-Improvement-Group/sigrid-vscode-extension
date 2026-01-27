@@ -1,1 +1,16 @@
-<p>security works!</p>
+<table>
+  <tr>
+    <th>Risk</th>
+    <th class="text-left">Location</th>
+    <th class="text-left">Description</th>
+    <th>Status</th>
+  </tr>
+  @for (finding of securityFindings(); track finding.id) {
+    <tr>
+      <td>{{ finding.severity }}</td>
+      <td><span [title]="finding.filePath"> {{ finding.displayFilePath }} </span></td>
+      <td>{{ finding.type }}</td>
+      <td class="text-center">{{ finding.status }}</td>
+    </tr>
+  }
+</table>

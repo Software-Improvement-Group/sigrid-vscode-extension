@@ -32,4 +32,8 @@ export class SecurityFinding {
   id: string = '';
   href: string = '';
   severity: RiskSeverity = RiskSeverity.Unknown;
+  filePath: string = '';
+  displayFilePath: string = '';
+  type: string = '';
+  status: string = '';
 }
