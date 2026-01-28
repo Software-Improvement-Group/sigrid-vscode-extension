@@ -12,6 +12,8 @@ export class SecurityFindingMapper {
       finding.severity = toRiskSeverity(response.severity);
       finding.filePath = response.filePath ?? '';
       finding.displayFilePath = toDisplayFilePath(response.filePath);
+      finding.startLine = response.startLine ?? 0;
+      finding.endLine = response.endLine ?? 0;
       finding.type = response.type;
       finding.status = snakeCaseToTitleCase(response.status);
 

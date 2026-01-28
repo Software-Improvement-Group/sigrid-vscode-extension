@@ -3,10 +3,13 @@ import {SigridConfiguration} from '../services/sigrid-configuration';
 import {DataState} from '../models/data-state';
 import {SigridData} from '../services/sigrid-data';
 import {SecurityFinding} from '../models/security-finding';
+import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 
 @Component({
   selector: 'app-security',
-  imports: [],
+  imports: [
+    SeverityIcon
+  ],
   templateUrl: './security.html',
   styleUrl: './security.scss',
 })

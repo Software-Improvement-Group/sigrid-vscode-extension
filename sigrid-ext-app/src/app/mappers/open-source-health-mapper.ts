@@ -41,7 +41,7 @@ export class OpenSourceHealthMapper {
         oshDependency.riskIcon = SEVERITY_SYMBOLS[oshDependency.risk]
 
         return oshDependency;
-      })/*.sort((a, b) => a.displayName.localeCompare(b.displayName))*/.sort((a, b) => {
+      }).sort((a, b) => {
         if (b.risk > a.risk) return 1;
         if (b.risk < a.risk) return -1;
         return a.displayName.localeCompare(b.displayName);

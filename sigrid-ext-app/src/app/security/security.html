@@ -7,7 +7,7 @@
   </tr>
   @for (finding of securityFindings(); track finding.id) {
     <tr>
-      <td>{{ finding.severity }}</td>
+      <td class="text-center"><sigrid-severity-icon [severity]="finding.severity" /></td>
       <td><span [title]="finding.filePath"> {{ finding.displayFilePath }} </span></td>
       <td>{{ finding.type }}</td>
       <td class="text-center">{{ finding.status }}</td>
