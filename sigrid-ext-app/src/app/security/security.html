@@ -5,7 +5,7 @@
     <th class="text-left">Description</th>
     <th>Status</th>
   </tr>
-  @for (finding of securityFindings(); track finding.id) {
+  @for (finding of findings(); track finding.id) {
     <tr>
       <td class="text-center"><sigrid-severity-icon [severity]="finding.severity" /></td>
       <td><span [title]="finding.filePath"> {{ finding.displayFilePath }} </span></td>

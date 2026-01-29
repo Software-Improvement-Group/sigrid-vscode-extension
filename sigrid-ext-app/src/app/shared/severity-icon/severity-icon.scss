@@ -1,9 +1,17 @@
+:host {
+  display: flex;
+  justify-content: center;
+  height: 1.25em;
+}
+
 .circle {
   width: 1.25em;
   height: 1.25em;
   border-radius: 50%;
-  color: lightgray;
-  display: inline-block;
+  background-color: lightgray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .none {
@@ -11,11 +19,11 @@
 }
 
 .low {
-  background-color: yellow;
+  background-color: #ffd700;
 }
 
 .medium {
-  background-color: orange;
+  background-color: #ff9900;
 }
 
 .high {

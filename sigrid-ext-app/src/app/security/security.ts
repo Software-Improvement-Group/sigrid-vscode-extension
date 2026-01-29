@@ -1,9 +1,8 @@
-import {Component, effect, inject, signal} from '@angular/core';
-import {SigridConfiguration} from '../services/sigrid-configuration';
-import {DataState} from '../models/data-state';
+import {Component, inject, OnInit} from '@angular/core';
 import {SigridData} from '../services/sigrid-data';
-import {SecurityFinding} from '../models/security-finding';
 import {SeverityIcon} from '../shared/severity-icon/severity-icon';
+import {FindingComponent} from '../shared/finding-component';
+import {SecurityFinding} from '../models/security-finding';
 
 @Component({
   selector: 'app-security',
@@ -13,32 +12,17 @@ import {SeverityIcon} from '../shared/severity-icon/severity-icon';
   templateUrl: './security.html',
   styleUrl: './security.scss',
 })
-export class Security {
-  protected dataState = DataState.Loading;
-  protected securityFindings = signal<SecurityFinding[]>([]);
-  private sigridData = inject(SigridData);
+export class Security extends FindingComponent<SecurityFinding[]> implements OnInit {
+  private sigridData!: SigridData;
 
   constructor() {
-    const sigridConfiguration = inject(SigridConfiguration);
-    effect(() => {
-      const findings = this.sigridData.securityFindings();
-      if (!findings) {
-        this.dataState = DataState.Loading;
-      }
-      else if (findings.data) {
-        this.securityFindings.set(findings.data);
-        this.dataState = DataState.Success;
-      } else {
-        this.dataState = DataState.Error;
-      }
+    const sigridData = inject(SigridData);
+    super(sigridData.securityFindings);
+    this.sigridData = sigridData;
+  }
 
-      const isValidConfig = sigridConfiguration.isConfigurationValid();
-      if (isValidConfig) {
-        this.sigridData.loadSecurityFindings();
-      } else {
-        this.dataState = DataState.Error;
-      }
-    });
+  protected override loadData() {
+    this.sigridData.loadSecurityFindings();
   }
 
 }
