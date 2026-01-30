@@ -1,0 +1,5 @@
+<div class="filter-panel">
+  @for (severity of severities; track severity) {
+    <div class="toggle-button"> <sigrid-severity-icon [severity]="severity.value" /> {{ severity.key }}</div>
+  }
+</div>

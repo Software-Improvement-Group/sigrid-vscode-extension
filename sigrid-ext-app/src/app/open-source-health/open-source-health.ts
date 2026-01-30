@@ -3,11 +3,13 @@ import {OpenSourceHealthDependency} from '../models/open-source-health-dependenc
 import {FindingComponent} from '../shared/finding-component';
 import {SigridData} from '../services/sigrid-data';
 import {SeverityIcon} from '../shared/severity-icon/severity-icon';
+import {SeverityFilter} from '../shared/severity-filter/severity-filter';
 
 @Component({
   selector: 'sigrid-open-source-health',
   imports: [
-    SeverityIcon
+    SeverityIcon,
+    SeverityFilter
   ],
   templateUrl: './open-source-health.html',
   styleUrl: './open-source-health.scss',
