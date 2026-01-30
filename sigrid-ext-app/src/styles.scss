@@ -42,3 +42,18 @@ html, body {
 .text-left {
   text-align: left;
 }
+
+.findings-table {
+  &, td, th {
+    border: 1px solid var(--vscode-panelSection-border);
+    border-collapse: collapse;
+  }
+
+  td, th {
+    padding: 0.25rem 0.5rem;
+  }
+
+  th {
+    text-align: left;
+  }
+}
