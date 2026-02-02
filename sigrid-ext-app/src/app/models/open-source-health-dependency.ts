@@ -45,11 +45,4 @@ export class OpenSourceHealthDependency {
   activityRisk: RiskSeverity = RiskSeverity.Unknown;
   stabilityRisk: RiskSeverity = RiskSeverity.Unknown;
   managementRisk: RiskSeverity = RiskSeverity.Unknown;
-  riskIcon: string = '';
-  licenseRiskIcon: string = '';
-  vulnerabilityRiskIcon: string = '';
-  freshnessRiskIcon: string = '';
-  activityRiskIcon: string = '';
-  stabilityRiskIcon: string = '';
-  managementRiskIcon: string = '';
 }

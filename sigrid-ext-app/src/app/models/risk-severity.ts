@@ -27,13 +27,3 @@ export function toRiskSeverity(severityStr: string): RiskSeverity {
         return RiskSeverity.Unknown;
   }
 }
-
-export const SEVERITY_SYMBOLS: Record<RiskSeverity, string> = {
-  [RiskSeverity.Critical]: '🟣',
-  [RiskSeverity.High]: '🔴' ,
-  [RiskSeverity.Medium]: '🟠',
-  [RiskSeverity.Low]: '🟡',
-  [RiskSeverity.None]: '🟢',
-  [RiskSeverity.Information]: '🔵',
-  [RiskSeverity.Unknown]: '⚪️',
-}

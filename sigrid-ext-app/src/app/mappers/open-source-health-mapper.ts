@@ -1,7 +1,7 @@
 import {OpenSourceHealthDependency, OpenSourceHealthResponse} from '../models/open-source-health-dependency';
 import {asStringOrDefault, snakeCaseToTitleCase} from '../utilities/string';
 import {asRecord} from '../utilities/as-record';
-import {RiskSeverity, SEVERITY_SYMBOLS, toRiskSeverity} from '../models/risk-severity';
+import {RiskSeverity, toRiskSeverity} from '../models/risk-severity';
 import {findMaxValue} from '../utilities/find-max-value';
 
 export class OpenSourceHealthMapper {
@@ -31,14 +31,7 @@ export class OpenSourceHealthMapper {
         oshDependency.activityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.activityRiskKey]);
         oshDependency.stabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.stabilityRiskKey]);
         oshDependency.managementRisk = toRiskSeverity(properties[OpenSourceHealthMapper.managementRiskKey]);
-        oshDependency.licenseRiskIcon = SEVERITY_SYMBOLS[oshDependency.licenseRisk];
-        oshDependency.vulnerabilityRiskIcon = SEVERITY_SYMBOLS[oshDependency.vulnerabilityRisk];
-        oshDependency.freshnessRiskIcon = SEVERITY_SYMBOLS[oshDependency.freshnessRisk];
-        oshDependency.activityRiskIcon = SEVERITY_SYMBOLS[oshDependency.activityRisk];
-        oshDependency.stabilityRiskIcon = SEVERITY_SYMBOLS[oshDependency.stabilityRisk];
-        oshDependency.managementRiskIcon = SEVERITY_SYMBOLS[oshDependency.managementRisk];
         oshDependency.risk = findMaxValue(oshDependency.licenseRisk, oshDependency.vulnerabilityRisk, oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk, oshDependency.managementRisk) ?? RiskSeverity.Unknown;
-        oshDependency.riskIcon = SEVERITY_SYMBOLS[oshDependency.risk]
 
         return oshDependency;
       }).sort((a, b) => {

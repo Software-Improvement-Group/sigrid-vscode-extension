@@ -6,14 +6,21 @@ import {SigridFinding} from '../models/sigrid-finding';
 import {SecurityFindingMapper} from '../mappers/security-finding-mapper';
 import {Observable} from 'rxjs';
 import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
+import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
+import {RefactoringCandidate} from '../models/refactoring-candidate';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SigridData {
+  private readonly _refactoringCandidates = signal<SigridFinding<RefactoringCandidate[]> | null>(null);
   private readonly _openSourceHealthFindings = signal<SigridFinding<OpenSourceHealthDependency[]> | null>(null);
   private readonly _securityFindings = signal<SigridFinding<SecurityFinding[]> | null>(null);
   private readonly sigridApi = inject(SigridApi);
+
+  get refactoringCandidates() {
+    return this._refactoringCandidates.asReadonly();
+  }
 
   get securityFindings() {
     return this._securityFindings.asReadonly();
@@ -23,22 +30,12 @@ export class SigridData {
     return this._openSourceHealthFindings.asReadonly();
   }
 
+  loadRefactoringCandidates() {
+    this.fetchFindings(() => this.sigridApi.getAllRefactoringCandidates(), this._refactoringCandidates, RefactoringCandidateMapper.map, 'refactoring candidates');
+  }
+
   loadSecurityFindings(forceRefresh?: boolean) {
-    // if (!forceRefresh && this.securityFindings()) {
-    //   return;
-    // }
-
     this.fetchFindings(() => this.sigridApi.getSecurityFindings(), this._securityFindings, SecurityFindingMapper.map, 'security');
-
-    // this.sigridApi.getSecurityFindings().subscribe({
-    //   next: result => {
-    //     this._securityFindings.set({data: SecurityFindingMapper.map(result)} as SigridFinding<SecurityFinding[]>)
-    //   },
-    //   error: error => {
-    //     console.error(error);
-    //     this._securityFindings.set({error: 'Error occurred while fetching security findings.'} as SigridFinding<SecurityFinding[]>);
-    //   }
-    // });
   }
 
   loadOpenSourceHealthFindings(forceRefresh?: boolean) {
@@ -53,6 +50,7 @@ export class SigridData {
     httpFn().subscribe({
       next: (data) => {
         try {
+          console.log(data);
           const mappedData = mapperFn(data);
           findingSignal.set({data: mappedData} as SigridFinding<Finding>);
         } catch (mapperError) {
