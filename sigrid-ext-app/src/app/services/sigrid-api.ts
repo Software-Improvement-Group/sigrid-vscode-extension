@@ -6,7 +6,7 @@ import {joinUrl} from '../utilities/join-url';
 import {OpenSourceHealthResponse} from '../models/open-source-health-dependency';
 import {SecurityFindingResponse} from '../models/security-finding';
 import {RefactoringCategory} from '../models/refactoring-category';
-import {RefactoringCandidateResponse} from '../models/refactoring-candidate';
+import {RefactoringCandidatesResponse} from '../models/refactoring-candidate';
 import {forkJoin, map} from 'rxjs';
 
 @Injectable({
@@ -32,7 +32,7 @@ export class SigridApi {
 
   getRefactoringCandidates(category: RefactoringCategory) {
     const configuration = this.configuration();
-    return this.http.get<RefactoringCandidateResponse>(joinUrl(SIGRID_API_BASE_URL, 'refactoring-candidates', configuration.customer, configuration.system, category));
+    return this.http.get<RefactoringCandidatesResponse>(joinUrl(SIGRID_API_BASE_URL, 'refactoring-candidates', configuration.customer, configuration.system, category));
   }
 
   getAllRefactoringCandidates() {
@@ -44,7 +44,7 @@ export class SigridApi {
       map((responses) =>
         Object.fromEntries(
           categories.map((category, i) => [category, responses[i]])
-        ) as Record<string, RefactoringCandidateResponse>
+        ) as Record<string, RefactoringCandidatesResponse>
       )
     );
   }

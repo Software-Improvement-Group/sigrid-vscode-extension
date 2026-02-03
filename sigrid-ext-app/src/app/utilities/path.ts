@@ -1,7 +1,7 @@
-export function toDisplayFilePath(path: string | null | undefined): string {
+export function toDisplayFilePath(path: string | null | undefined, prefix = '.../'): string {
   if (!path) return '';
 
   const lastPathSegment = path.split('/').at(-1) ?? '';
 
-  return lastPathSegment ? `.../${lastPathSegment}` : '';
+  return lastPathSegment ? `${prefix}${lastPathSegment}` : '';
 }
