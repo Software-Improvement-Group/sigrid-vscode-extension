@@ -2,10 +2,13 @@ import {Component, inject} from '@angular/core';
 import {FindingComponent} from '../shared/finding-component';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {SigridData} from '../services/sigrid-data';
+import {MaintainabilitySeverityIcon} from './maintainability-severity-icon/maintainability-severity-icon.component';
 
 @Component({
   selector: 'app-maintainability',
-  imports: [],
+  imports: [
+    MaintainabilitySeverityIcon
+  ],
   templateUrl: './maintainability.html',
   styleUrl: './maintainability.scss',
 })

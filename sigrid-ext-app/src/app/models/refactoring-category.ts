@@ -4,6 +4,7 @@ export enum RefactoringCategory {
   UnitComplexity = 'unitComplexity',
   UnitInterfacing = 'unitInterfacing',
   ModuleCoupling = 'moduleCoupling',
-  ComponentIndependence = 'componentIndependence',
-  ComponentEntanglement = 'componentEntanglement',
+  // Not supported yet:
+  // ComponentIndependence = 'componentIndependence',
+  // ComponentEntanglement = 'componentEntanglement',
 }
