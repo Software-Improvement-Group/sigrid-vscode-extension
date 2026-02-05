@@ -1,11 +1,1 @@
-@let risk = severity();
-
-<span class="circle"
-      [class.none]="risk === RiskSeverity.None"
-      [class.low]="risk === RiskSeverity.Low"
-      [class.information]="risk === RiskSeverity.Information"
-      [class.medium]="risk === RiskSeverity.Medium"
-      [class.high]="risk === RiskSeverity.High"
-      [class.critical]="risk === RiskSeverity.Critical"
->
-</span>
+<span class="circle" [ngClass]="severityClass()"></span>

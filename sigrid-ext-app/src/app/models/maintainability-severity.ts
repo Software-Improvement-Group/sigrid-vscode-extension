@@ -1,10 +1,10 @@
 export enum MaintainabilitySeverity {
-  VeryHigh,
-  High,
-  Moderate,
-  Medium,
+  Unknown,
   Low,
-  Unknown
+  Medium,
+  Moderate,
+  High,
+  VeryHigh
 }
 
 export function toMaintainabilitySeverity(severityStr: string): MaintainabilitySeverity {
