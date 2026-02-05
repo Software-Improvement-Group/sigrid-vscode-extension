@@ -5,5 +5,5 @@ export function snakeCaseToTitleCase(str: string): string {
 }
 
 export function asStringOrDefault(value: any, defaultValue: string = 'N/A'): string {
-  return value != null || value !== '' ? String(value) : defaultValue;
+  return value != null && value !== '' ? String(value) : defaultValue;
 }

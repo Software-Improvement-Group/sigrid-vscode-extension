@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, signal} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {SigridConfiguration} from './services/sigrid-configuration';
 import {Configuration} from './models/configuration';
@@ -11,7 +11,6 @@ import {WebviewMessage} from './models/webview-message';
   styleUrl: './app.scss'
 })
 export class App implements OnInit {
-  protected readonly title = signal('sigrid-ext-app');
   private router = inject(Router);
   private sigridConfig = inject(SigridConfiguration);
 
