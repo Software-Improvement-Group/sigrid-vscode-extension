@@ -50,7 +50,6 @@ export class SigridData {
     httpFn().subscribe({
       next: (data) => {
         try {
-          console.log(data);
           const mappedData = mapperFn(data);
           findingSignal.set({data: mappedData} as SigridFinding<Finding>);
         } catch (mapperError) {
