@@ -1,7 +1,11 @@
-<div class="sigrid-tabs">
-  <div class="sigrid-tab" routerLink="/maintainability" routerLinkActive="active">Maintainability</div>
-  <div class="sigrid-tab" routerLink="/security" routerLinkActive="active">Security</div>
-  <div class="sigrid-tab" routerLink="/open-source-health" routerLinkActive="active">Open Source Health</div>
-</div>
+@if (this.isConfigValid()) {
+  <div class="sigrid-tabs">
+    <div class="sigrid-tab" routerLink="/maintainability" routerLinkActive="active">Maintainability</div>
+    <div class="sigrid-tab" routerLink="/security" routerLinkActive="active">Security</div>
+    <div class="sigrid-tab" routerLink="/open-source-health" routerLinkActive="active">Open Source Health</div>
+  </div>
 
-<router-outlet />
+  <router-outlet/>
+} @else {
+  <p>The extension is not configured.<br/>Please configure Sigrid API key, Customer and System in the settings.</p>
+}

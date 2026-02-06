@@ -13,6 +13,7 @@ import {WebviewMessage} from './models/webview-message';
 export class App implements OnInit {
   private router = inject(Router);
   private sigridConfig = inject(SigridConfiguration);
+  protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
 
   constructor() {
     window.addEventListener('message', this.onMessageReceived.bind(this));
@@ -25,7 +26,6 @@ export class App implements OnInit {
   }
 
   onMessageReceived(message: MessageEvent<WebviewMessage>) {
-
     let command = message.data.command ?? '';
 
     if (command === 'init') {
