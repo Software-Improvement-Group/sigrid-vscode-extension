@@ -1,5 +1,5 @@
 name: unittests
-on: [push, pull_request]
+on: [push]
 jobs:
   unittests:
     name: "Unit tests"
