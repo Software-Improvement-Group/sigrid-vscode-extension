@@ -1,0 +1,16 @@
+<table class="findings-table">
+  <tr>
+    <th class="text-center">Risk</th>
+    <th>Location</th>
+    <th>Description</th>
+    <th class="text-center">Status</th>
+  </tr>
+  @for (finding of findings(); track finding.id) {
+    <tr>
+      <td class="text-center"><sigrid-maintainability-severity-icon [severity]="finding.severity" /></td>
+      <td>{{finding.displayLocation}}</td>
+      <td>{{finding.description}}</td>
+      <td class="text-center">{{finding.status}}</td>
+    </tr>
+  }
+</table>

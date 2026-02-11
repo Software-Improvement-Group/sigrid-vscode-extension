@@ -1,0 +1,41 @@
+:host {
+  display: flex;
+  justify-content: center;
+  height: 1.25em;
+}
+
+.circle {
+  width: 1.25em;
+  height: 1.25em;
+  border-radius: 50%;
+  background-color: lightgray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.none {
+  background-color: #5cb85c;
+}
+
+.low {
+  background-color: #ffd700;
+}
+
+.medium {
+  background-color: #ff9900;
+}
+
+.high {
+  background-color: red;
+}
+
+.critical {
+  background-color: darkred;
+}
+
+.information {
+  background-color: #007cc3;
+}
+
+

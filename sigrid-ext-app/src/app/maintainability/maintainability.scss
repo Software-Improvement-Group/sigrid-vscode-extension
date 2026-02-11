@@ -1,0 +1,13 @@
+table {
+  width: 100%;
+}
+
+td:nth-child(2) {
+  width: 25%;
+  line-break: anywhere;
+}
+
+td:nth-child(3) {
+  width: 60%;
+  line-break: anywhere;
+}

@@ -1,0 +1,24 @@
+<table class="findings-table">
+  <tr>
+    <th>Risk</th>
+    <th>Library</th>
+    <th>Version</th>
+    <th>Transitive</th>
+    <th>License</th>
+    <th>Vulnerabilities</th>
+    <th>Freshness</th>
+    <th>Activity</th>
+  </tr>
+  @for (dependency of findings(); track dependency.purl) {
+    <tr>
+      <td class="text-center"><sigrid-severity-icon [severity]="dependency.risk" /></td>
+      <td>{{ dependency.displayName }}</td>
+      <td>{{ dependency.version }}</td>
+      <td class="text-center">{{ dependency.dependencyType }}</td>
+      <td class="text-center"><sigrid-severity-icon [severity]="dependency.licenseRisk" /></td>
+      <td class="text-center"><sigrid-severity-icon [severity]="dependency.vulnerabilityRisk" /> </td>
+      <td class="text-center"><sigrid-severity-icon [severity]="dependency.freshnessRisk" /></td>
+      <td class="text-center"><sigrid-severity-icon [severity]="dependency.activityRisk" /></td>
+    </tr>
+  }
+</table>
