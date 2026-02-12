@@ -1,7 +1,9 @@
 import { Disposable, Uri, ViewColumn, Webview, WebviewPanel, window, workspace } from "vscode";
-import { getUri } from "../utilities/get-uri";
+import { getWebviewUri } from "../utilities/get-webview-uri";
 import { AngularApp } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
+import { VsCodeCommandEvent } from "../commands/vscode-command-event";
+import { COMMANDS } from "../commands/command-registry";
 
 export class SigridPanel {
   static currentPanel: SigridPanel | undefined;
@@ -65,8 +67,8 @@ export class SigridPanel {
   }
 
   private getWebviewContent(webview: Webview, extensionUri: Uri) {
-    const styleUri = getUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'styles.css']);
-    const scriptUri = getUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'main.js']);
+    const styleUri = getWebviewUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'styles.css']);
+    const scriptUri = getWebviewUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'main.js']);
 
     // Use a nonce to whitelist which scripts can be run
     const nonce = getNonce();
@@ -91,18 +93,8 @@ export class SigridPanel {
 
   private setWebviewMessageListener(webview: Webview) {
     webview.onDidReceiveMessage(
-      (message: any) => {
-        const command = message.command;
-        const text = message.text;
-
-        switch (command) {
-          case "hello":
-            // Code that should run in response to the hello message command
-            window.showInformationMessage(text);
-            return;
-          // Add more switch case statements here as more webview message commands
-          // are created within the webview context (i.e. inside media/main.js)
-        }
+      (message: VsCodeCommandEvent) => {
+        COMMANDS[message.command]?.execute(message.data);
       },
       undefined,
       this.disposables
