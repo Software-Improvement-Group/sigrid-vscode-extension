@@ -44,6 +44,11 @@ export class SigridPanel {
           retainContextWhenHidden: true,
         }
       );
+      
+      panel.iconPath = {
+        light: Uri.joinPath(extensionUri, AngularApp.appFolder, AngularApp.outputFolder, 'sigrid-light.svg'),
+        dark: Uri.joinPath(extensionUri, AngularApp.appFolder, AngularApp.outputFolder, 'favicon.ico')
+      };
 
       SigridPanel.currentPanel = new SigridPanel(panel, extensionUri);
       
@@ -67,8 +72,8 @@ export class SigridPanel {
   }
 
   private getWebviewContent(webview: Webview, extensionUri: Uri) {
-    const styleUri = getWebviewUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'styles.css']);
-    const scriptUri = getWebviewUri(webview, extensionUri, [AngularApp.appFolder, AngularApp.outputFolder, 'main.js']);
+    const styleUri = getWebviewUri(webview, extensionUri, AngularApp.appFolder, AngularApp.outputFolder, 'styles.css');
+    const scriptUri = getWebviewUri(webview, extensionUri, AngularApp.appFolder, AngularApp.outputFolder, 'main.js');
 
     // Use a nonce to whitelist which scripts can be run
     const nonce = getNonce();
