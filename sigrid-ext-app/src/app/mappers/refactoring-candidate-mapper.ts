@@ -7,6 +7,7 @@ import {RefactoringCategory} from '../models/refactoring-category';
 import {snakeCaseToTitleCase} from '../utilities/string';
 import {toMaintainabilitySeverity} from '../models/maintainability-severity';
 import {toDisplayFilePath} from '../utilities/path';
+import {FileLocation} from '../models/file-location';
 
 export class RefactoringCandidateMapper {
   static map(response: Record<string, RefactoringCandidatesResponse>): RefactoringCandidate[] {
@@ -31,8 +32,7 @@ export class RefactoringCandidateMapper {
         refactoringCandidate.status = snakeCaseToTitleCase(response.status);
         refactoringCandidate.technology = response.technology;
         refactoringCandidate.snapshotDate = response.snapshotDate;
-        refactoringCandidate.locations = response.locations;
-        refactoringCandidate.lineRanges = response.lineRanges;
+        refactoringCandidate.fileLocations = RefactoringCandidateMapper.getFileLocations(category, response);
         refactoringCandidate.name = response.name ?? '';
         refactoringCandidate.mcCabe = response.mcCabe;
         refactoringCandidate.fanIn = response.fanIn;
@@ -87,5 +87,24 @@ export class RefactoringCandidateMapper {
     }
 
     return '';
+  }
+
+  private static getFileLocations(category: RefactoringCategory, response: RefactoringCandidateResponse): FileLocation[] {
+    switch (category) {
+      case RefactoringCategory.Duplication:
+        return response.locations?.map(location => {
+          return {filePath: location.file, startLine: location.startLine, endLine: location.endLine} as FileLocation
+        }) ?? [];
+      case RefactoringCategory.ModuleCoupling:
+        return [{filePath: response.file, startLine: 0, endLine: response.loc ?? 0} as FileLocation];
+      case RefactoringCategory.UnitSize:
+      case RefactoringCategory.UnitComplexity:
+      case RefactoringCategory.UnitInterfacing:
+        return response.lineRanges?.map(range => {
+          return {filePath: response.file, startLine: range.startLine, endLine: range.endLine} as FileLocation
+        }) ?? [];
+      default:
+        return [];
+    }
   }
 }

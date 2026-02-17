@@ -3,6 +3,7 @@ import {WebviewApi} from 'vscode-webview';
 import {VsCommand} from '../models/vs-command';
 import {VsCommandType} from '../models/vs-command-type';
 import {VsMessageData, VsMessageSeverity} from '../models/vs-message-data';
+import {FileLocation} from '../models/file-location';
 
 @Injectable({
   providedIn: 'root',
@@ -22,8 +23,8 @@ export class VsCode {
     this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.Message, new VsMessageData(message, severity)));
   }
 
-  openFile(filePath: string) {
-    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.OpenFile, {filePath: filePath}));
+  openFile(location: FileLocation) {
+    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.OpenFile, location));
   }
 
 }

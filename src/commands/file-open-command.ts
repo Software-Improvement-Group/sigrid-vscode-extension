@@ -1,7 +1,7 @@
 import { window, workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 
-export class FileOpenCommand implements VsCodeCommand<{ filePath: string }> {
+export class FileOpenCommand implements VsCodeCommand<FileOpenPayload> {
     async execute(payload: FileOpenPayload) {
         const { filePath } = payload;
 
@@ -22,4 +22,6 @@ export class FileOpenCommand implements VsCodeCommand<{ filePath: string }> {
 
 interface FileOpenPayload {
     filePath: string;
+    startLine?: number;
+    endLine?: number;
 }
