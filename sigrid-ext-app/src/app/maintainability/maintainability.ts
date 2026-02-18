@@ -3,11 +3,13 @@ import {FindingComponent} from '../shared/finding-component';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {SigridData} from '../services/sigrid-data';
 import {MaintainabilitySeverityIcon} from './maintainability-severity-icon/maintainability-severity-icon.component';
+import {FindingNavigator} from '../shared/finding-navigator';
 
 @Component({
   selector: 'app-maintainability',
   imports: [
-    MaintainabilitySeverityIcon
+    MaintainabilitySeverityIcon,
+    FindingNavigator
   ],
   templateUrl: './maintainability.html',
   styleUrl: './maintainability.scss',

@@ -1,0 +1,12 @@
+<div cdkTrapFocus>
+  <ul tabindex="0" (keydown)="onKeydown($event)">
+    @for (item of items(); track item) {
+      <li sigridFocusable #menuItem tabindex="-1" (click)="selectItem(item)">
+        <span class="label">{{ item.label }}</span>
+        @if (item.description) {
+          <span class="description">{{ item.description }}</span>
+        }
+      </li>
+    }
+  </ul>
+</div>

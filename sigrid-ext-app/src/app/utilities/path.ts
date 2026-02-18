@@ -5,3 +5,9 @@ export function toDisplayFilePath(path: string | null | undefined, prefix = '...
 
   return lastPathSegment ? `${prefix}${lastPathSegment}` : '';
 }
+
+export function getParentDirectory(path: string | null | undefined): string {
+  if (!path) return '';
+
+  return path.substring(0, path.lastIndexOf('/'));
+}
