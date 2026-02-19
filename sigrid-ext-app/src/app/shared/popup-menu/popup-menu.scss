@@ -2,7 +2,8 @@
   background-color: var(--vscode-quickInput-background);
   border: 1px solid var(--vscode-widget-border);
   box-shadow: 0 0 8px 2px var(--vscode-widget-shadow);
-  max-width: 70%;
+  min-width: 200px;
+  max-width: 600px;
 }
 
 ul {
@@ -16,7 +17,7 @@ ul {
 }
 
 li {
-  padding: 6px 12px;
+  padding: 4px 12px;
   cursor: pointer;
   color: var(--vscode-quickInputList-foreground);
   display: flex;
@@ -45,8 +46,6 @@ li:focus {
   font-size: 0.9em;
   opacity: 0.7;
   white-space: nowrap;
-
-  //display: flex;
   overflow: hidden;
   text-overflow: ellipsis;
 }

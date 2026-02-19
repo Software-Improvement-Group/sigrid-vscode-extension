@@ -4,7 +4,7 @@
       <li sigridFocusable #menuItem tabindex="-1" (click)="selectItem(item)">
         <span class="label">{{ item.label }}</span>
         @if (item.description) {
-          <span class="description">{{ item.description }}</span>
+          <span class="description" title="{{item.description}}">{{ item.description }}</span>
         }
       </li>
     }

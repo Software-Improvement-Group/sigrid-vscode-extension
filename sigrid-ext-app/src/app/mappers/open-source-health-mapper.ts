@@ -23,7 +23,7 @@ export class OpenSourceHealthMapper {
         oshDependency.displayName = !!component.group ? `${component.group}/${component.name}` : component.name;
         oshDependency.version = asStringOrDefault(component.version);
         oshDependency.group = component.group;
-        oshDependency.dependencyType = snakeCaseToTitleCase(properties[OpenSourceHealthMapper.dependencyTypeKey]);
+        oshDependency.dependencyType = properties[OpenSourceHealthMapper.dependencyTypeKey] ? snakeCaseToTitleCase(properties[OpenSourceHealthMapper.dependencyTypeKey]) : 'Unknown';
         oshDependency.purl = component.purl;
         oshDependency.licenseRisk = toRiskSeverity(properties[OpenSourceHealthMapper.licenseRiskKey]);
         oshDependency.vulnerabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.vulnerabilityRiskKey]);
