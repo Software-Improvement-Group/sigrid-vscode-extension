@@ -1,5 +1,6 @@
 import {Property} from './property';
 import {RiskSeverity} from './risk-severity';
+import {FileLocation} from './file-location';
 
 export interface OpenSourceHealthResponse {
   bomFormat: string;
@@ -23,12 +24,17 @@ export interface OshDependencyResponse {
   purl: string;
   properties: Property[];
   licenses: OshLicenseResponse[];
+  evidence?: OshEvidenceResponse;
 }
 
 export interface OshLicenseResponse {
   license: {
     name: string;
   }
+}
+
+export interface OshEvidenceResponse {
+  occurrences?: { location?: string }[];
 }
 
 export class OpenSourceHealthDependency {
@@ -45,4 +51,5 @@ export class OpenSourceHealthDependency {
   activityRisk: RiskSeverity = RiskSeverity.Unknown;
   stabilityRisk: RiskSeverity = RiskSeverity.Unknown;
   managementRisk: RiskSeverity = RiskSeverity.Unknown;
+  fileLocations: FileLocation[] = [];
 }

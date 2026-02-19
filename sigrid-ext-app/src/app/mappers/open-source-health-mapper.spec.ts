@@ -70,6 +70,79 @@ describe('OpenSourceHealthMapper', () => {
     expect(dep.risk).toBe(RiskSeverity.High);
   });
 
+  it('maps OshDependencyResponse.evidence.occurrences to OpenSourceHealthDependency.fileLocations (by location)', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-evidence',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-evidence@1.0.0',
+          properties: [],
+          licenses: [],
+          evidence: {
+            occurrences: [
+              { location: 'package-lock.json' },
+              { location: 'frontend/package.json' },
+            ],
+          },
+        } as any,
+      ],
+    });
+
+    const [dep] = OpenSourceHealthMapper.map(response);
+
+    expect(dep.fileLocations).toEqual([
+      { filePath: 'package-lock.json' },
+      { filePath: 'frontend/package.json' },
+    ]);
+  });
+
+  it('sets fileLocations to [] when evidence.occurrences is missing/undefined', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-no-evidence',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-no-evidence@1.0.0',
+          properties: [],
+          licenses: [],
+          evidence: {}, // occurrences absent
+        } as any,
+      ],
+    });
+
+    const [dep] = OpenSourceHealthMapper.map(response);
+
+    expect(dep.fileLocations).toEqual([]);
+  });
+
+  it('maps missing occurrence.location to empty filePath', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-empty-location',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-empty-location@1.0.0',
+          properties: [],
+          licenses: [],
+          evidence: {
+            occurrences: [{}, { location: undefined }],
+          },
+        } as any,
+      ],
+    });
+
+    const [dep] = OpenSourceHealthMapper.map(response);
+
+    expect(dep.fileLocations).toEqual([{ filePath: '' }, { filePath: '' }]);
+  });
+
   it('uses component.name as displayName when group is empty and sorts by risk desc then displayName asc', () => {
     const response = baseResponse({
       components: [

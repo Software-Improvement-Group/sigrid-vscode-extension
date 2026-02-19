@@ -23,7 +23,8 @@ export class OpenSourceHealthMapper {
         oshDependency.displayName = !!component.group ? `${component.group}/${component.name}` : component.name;
         oshDependency.version = asStringOrDefault(component.version);
         oshDependency.group = component.group;
-        oshDependency.dependencyType = properties[OpenSourceHealthMapper.dependencyTypeKey] ? snakeCaseToTitleCase(properties[OpenSourceHealthMapper.dependencyTypeKey]) : 'Unknown';
+        oshDependency.dependencyType = properties[OpenSourceHealthMapper.dependencyTypeKey] ?
+          snakeCaseToTitleCase(properties[OpenSourceHealthMapper.dependencyTypeKey]) : 'Unknown';
         oshDependency.purl = component.purl;
         oshDependency.licenseRisk = toRiskSeverity(properties[OpenSourceHealthMapper.licenseRiskKey]);
         oshDependency.vulnerabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.vulnerabilityRiskKey]);
@@ -31,7 +32,11 @@ export class OpenSourceHealthMapper {
         oshDependency.activityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.activityRiskKey]);
         oshDependency.stabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.stabilityRiskKey]);
         oshDependency.managementRisk = toRiskSeverity(properties[OpenSourceHealthMapper.managementRiskKey]);
-        oshDependency.risk = findMaxValue(oshDependency.licenseRisk, oshDependency.vulnerabilityRisk, oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk, oshDependency.managementRisk) ?? RiskSeverity.Unknown;
+        oshDependency.risk = findMaxValue(oshDependency.licenseRisk, oshDependency.vulnerabilityRisk,
+          oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk,
+          oshDependency.managementRisk) ?? RiskSeverity.Unknown;
+        oshDependency.fileLocations = component.evidence?.occurrences?.map(evidence =>
+          ({filePath: evidence.location ?? ''})) ?? [];
 
         return oshDependency;
       }).sort((a, b) => {
