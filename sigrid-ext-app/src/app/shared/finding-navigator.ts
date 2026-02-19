@@ -1,5 +1,5 @@
 import {Directive, HostListener, inject, Injector, input} from '@angular/core';
-import {VsCode} from '../services/vs-code.service';
+import {VsCode} from '../services/vs-code';
 import {FileLocation} from '../models/file-location';
 import {Overlay, OverlayRef} from '@angular/cdk/overlay';
 import {ComponentPortal} from '@angular/cdk/portal';

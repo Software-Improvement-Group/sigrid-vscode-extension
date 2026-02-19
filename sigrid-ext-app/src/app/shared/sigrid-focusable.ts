@@ -8,7 +8,6 @@ export class SigridFocusable implements FocusableOption {
   constructor(private element: ElementRef<HTMLElement>) {}
 
   focus(): void {
-    console.log(this.element);
     this.element.nativeElement.focus();
   }
 }
