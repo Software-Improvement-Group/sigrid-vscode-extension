@@ -16,6 +16,8 @@ html, body {
 }
 
 .findings-table {
+  user-select: none;
+
   &, td, th {
     border: 1px solid var(--vscode-panelSection-border);
     border-collapse: collapse;

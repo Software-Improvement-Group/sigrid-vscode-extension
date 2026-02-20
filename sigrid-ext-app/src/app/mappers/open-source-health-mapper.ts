@@ -3,6 +3,7 @@ import {asStringOrDefault, snakeCaseToTitleCase} from '../utilities/string';
 import {asRecord} from '../utilities/as-record';
 import {RiskSeverity, toRiskSeverity} from '../models/risk-severity';
 import {findMaxValue} from '../utilities/find-max-value';
+import {sortFileLocations} from '../utilities/sort-file-locations';
 
 export class OpenSourceHealthMapper {
   private static readonly dependencyTypeKey = 'sigrid:transitive';
@@ -23,7 +24,8 @@ export class OpenSourceHealthMapper {
         oshDependency.displayName = !!component.group ? `${component.group}/${component.name}` : component.name;
         oshDependency.version = asStringOrDefault(component.version);
         oshDependency.group = component.group;
-        oshDependency.dependencyType = snakeCaseToTitleCase(properties[OpenSourceHealthMapper.dependencyTypeKey]);
+        oshDependency.dependencyType = properties[OpenSourceHealthMapper.dependencyTypeKey] ?
+          snakeCaseToTitleCase(properties[OpenSourceHealthMapper.dependencyTypeKey]) : 'Unknown';
         oshDependency.purl = component.purl;
         oshDependency.licenseRisk = toRiskSeverity(properties[OpenSourceHealthMapper.licenseRiskKey]);
         oshDependency.vulnerabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.vulnerabilityRiskKey]);
@@ -31,7 +33,11 @@ export class OpenSourceHealthMapper {
         oshDependency.activityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.activityRiskKey]);
         oshDependency.stabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.stabilityRiskKey]);
         oshDependency.managementRisk = toRiskSeverity(properties[OpenSourceHealthMapper.managementRiskKey]);
-        oshDependency.risk = findMaxValue(oshDependency.licenseRisk, oshDependency.vulnerabilityRisk, oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk, oshDependency.managementRisk) ?? RiskSeverity.Unknown;
+        oshDependency.risk = findMaxValue(oshDependency.licenseRisk, oshDependency.vulnerabilityRisk,
+          oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk,
+          oshDependency.managementRisk) ?? RiskSeverity.Unknown;
+        oshDependency.fileLocations = sortFileLocations(component.evidence?.occurrences?.map(evidence =>
+          ({filePath: evidence.location ?? ''})) ?? []);
 
         return oshDependency;
       }).sort((a, b) => {

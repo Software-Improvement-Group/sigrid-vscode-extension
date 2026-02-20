@@ -12,16 +12,15 @@ export class SecurityFindingMapper {
       finding.severity = toRiskSeverity(response.severity);
       finding.filePath = response.filePath ?? '';
       finding.displayFilePath = toDisplayFilePath(response.filePath);
-      finding.startLine = response.startLine ?? 0;
-      finding.endLine = response.endLine ?? 0;
       finding.type = response.type;
       finding.status = snakeCaseToTitleCase(response.status);
+      finding.fileLocations = [{filePath: finding.filePath, startLine: response.startLine ?? 0, endLine: response.endLine ?? 0}];
 
       return finding;
     }).sort((a, b) => {
       if (b.severity > a.severity) return 1;
       if (b.severity < a.severity) return -1;
-      return a.displayFilePath.localeCompare(b.filePath);
+      return a.displayFilePath.localeCompare(b.fileLocations[0]?.filePath ?? '');
     });
   }
 }
