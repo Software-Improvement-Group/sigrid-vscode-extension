@@ -45,8 +45,6 @@ export class RefactoringCandidate {
   weight: number = 0;
   technology: string = '';
   snapshotDate: string = '';
-  //locations?: Location[];
-  //lineRanges?: LineRange[];
   fileLocations: FileLocation[] = [];
   displayLocation: string = '';
   description: string = '';
