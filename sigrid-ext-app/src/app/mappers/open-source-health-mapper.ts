@@ -3,6 +3,7 @@ import {asStringOrDefault, snakeCaseToTitleCase} from '../utilities/string';
 import {asRecord} from '../utilities/as-record';
 import {RiskSeverity, toRiskSeverity} from '../models/risk-severity';
 import {findMaxValue} from '../utilities/find-max-value';
+import {sortFileLocations} from '../utilities/sort-file-locations';
 
 export class OpenSourceHealthMapper {
   private static readonly dependencyTypeKey = 'sigrid:transitive';
@@ -35,8 +36,8 @@ export class OpenSourceHealthMapper {
         oshDependency.risk = findMaxValue(oshDependency.licenseRisk, oshDependency.vulnerabilityRisk,
           oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk,
           oshDependency.managementRisk) ?? RiskSeverity.Unknown;
-        oshDependency.fileLocations = component.evidence?.occurrences?.map(evidence =>
-          ({filePath: evidence.location ?? ''})) ?? [];
+        oshDependency.fileLocations = sortFileLocations(component.evidence?.occurrences?.map(evidence =>
+          ({filePath: evidence.location ?? ''})) ?? []);
 
         return oshDependency;
       }).sort((a, b) => {

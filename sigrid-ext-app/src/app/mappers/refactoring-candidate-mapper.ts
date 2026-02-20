@@ -8,6 +8,7 @@ import {snakeCaseToTitleCase} from '../utilities/string';
 import {toMaintainabilitySeverity} from '../models/maintainability-severity';
 import {toDisplayFilePath} from '../utilities/path';
 import {FileLocation} from '../models/file-location';
+import {sortFileLocations} from '../utilities/sort-file-locations';
 
 export class RefactoringCandidateMapper {
   static map(response: Record<string, RefactoringCandidatesResponse>): RefactoringCandidate[] {
@@ -32,7 +33,7 @@ export class RefactoringCandidateMapper {
         refactoringCandidate.status = snakeCaseToTitleCase(response.status);
         refactoringCandidate.technology = response.technology;
         refactoringCandidate.snapshotDate = response.snapshotDate;
-        refactoringCandidate.fileLocations = RefactoringCandidateMapper.getFileLocations(category, response);
+        refactoringCandidate.fileLocations = sortFileLocations(RefactoringCandidateMapper.getFileLocations(category, response));
         refactoringCandidate.name = response.name ?? '';
         refactoringCandidate.mcCabe = response.mcCabe;
         refactoringCandidate.fanIn = response.fanIn;

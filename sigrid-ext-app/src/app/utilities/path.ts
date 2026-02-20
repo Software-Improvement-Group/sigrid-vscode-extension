@@ -6,6 +6,10 @@ export function toDisplayFilePath(path: string | null | undefined, prefix = '...
   return lastPathSegment ? `${prefix}${lastPathSegment}` : '';
 }
 
+export function getFileName(path: string | null | undefined): string {
+  return toDisplayFilePath(path, '');
+}
+
 export function getParentDirectory(path: string | null | undefined): string {
   if (!path) return '';
 
