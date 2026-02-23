@@ -1,8 +1,8 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {SigridConfiguration} from './services/sigrid-configuration';
-import {Configuration} from './models/configuration';
 import {WebviewMessage} from './models/webview-message';
+import {VsCommandRegistry} from './commands/vs-command-registry';
 
 @Component({
   selector: 'app-root',
@@ -13,6 +13,7 @@ import {WebviewMessage} from './models/webview-message';
 export class App implements OnInit {
   private router = inject(Router);
   private sigridConfig = inject(SigridConfiguration);
+  private commandRegistry = inject(VsCommandRegistry);
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
 
   constructor() {
@@ -27,11 +28,6 @@ export class App implements OnInit {
 
   onMessageReceived(message: MessageEvent<WebviewMessage>) {
     let command = message.data.command ?? '';
-
-    if (command === 'init') {
-      const configuration = message.data.data as Configuration;
-
-      this.sigridConfig.setConfiguration(configuration)
-    }
+    this.commandRegistry.execute(command, message.data.data);
   }
 }

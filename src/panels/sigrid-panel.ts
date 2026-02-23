@@ -4,6 +4,7 @@ import { AngularApp } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
 import { VsCodeCommandEvent } from "../commands/vscode-command-event";
 import { COMMANDS } from "../commands/command-registry";
+import { getRelativePath } from "../utilities/workspace";
 
 export class SigridPanel {
   static currentPanel: SigridPanel | undefined;
@@ -14,6 +15,7 @@ export class SigridPanel {
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
     this.panel.webview.html = this.getWebviewContent(this.panel.webview, extensionUri);
     this.setWebviewMessageListener(this.panel.webview);
+    this.setActiveEditorListener(this.panel.webview);
   }
 
   /**
@@ -52,7 +54,7 @@ export class SigridPanel {
 
       SigridPanel.currentPanel = new SigridPanel(panel, extensionUri);
       
-      panel.webview.postMessage({ command: "init", data: workspace.getConfiguration().get("sigrid-vscode")} );
+      panel.webview.postMessage({ command: "initialize", data: workspace.getConfiguration().get("sigrid-vscode")} );
     }
   }
 
@@ -104,5 +106,16 @@ export class SigridPanel {
       undefined,
       this.disposables
     );
+  }
+
+  private setActiveEditorListener(webview: Webview) {
+    window.onDidChangeActiveTextEditor(editor => {
+      if (editor) {
+        const fullPath = editor.document.uri.fsPath;
+        if (fullPath) {
+          webview.postMessage({ command: "activeEditorChanged", data: { filePath: getRelativePath(fullPath) } });
+        }
+      }
+    }, undefined, this.disposables);
   }
 }

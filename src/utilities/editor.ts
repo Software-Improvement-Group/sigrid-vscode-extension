@@ -1,4 +1,4 @@
-import { Position, Range, Selection, TextEditor, window } from "vscode";
+import { Position, Range, Selection, TextEditor } from "vscode";
 
 export function moveCursor(editor: TextEditor, line: number, column: number = 0) {
     if (!editor || line < 0) {
