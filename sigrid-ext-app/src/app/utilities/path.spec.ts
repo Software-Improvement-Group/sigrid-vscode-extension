@@ -1,4 +1,4 @@
-import { toDisplayFilePath } from './path';
+import {getParentDirectory, toDisplayFilePath} from './path';
 
 describe('utilities/path', () => {
   describe('toDisplayFilePath', () => {
@@ -26,6 +26,33 @@ describe('utilities/path', () => {
 
     it('handles multiple consecutive slashes', () => {
       expect(toDisplayFilePath('a//b///c.ts')).toBe('.../c.ts');
+    });
+  });
+
+  describe('getParentDirectory', () => {
+    it('returns empty string for nullish or empty path', () => {
+      expect(getParentDirectory(undefined)).toBe('');
+      expect(getParentDirectory(null)).toBe('');
+      expect(getParentDirectory('')).toBe('');
+    });
+
+    it('returns empty string if there is no slash in the path', () => {
+      expect(getParentDirectory('file')).toBe('');
+      expect(getParentDirectory('anotherfile')).toBe('');
+    });
+
+    it('returns parent directory for valid paths', () => {
+      expect(getParentDirectory('/repo/src/app/file.ts')).toBe('/repo/src/app');
+      expect(getParentDirectory('/repo/src/app/')).toBe('/repo/src/app');
+      expect(getParentDirectory('a/b/c')).toBe('a/b');
+    });
+
+    it('handles paths with multiple consecutive slashes', () => {
+      expect(getParentDirectory('a//b///c')).toBe('a//b//');
+    });
+
+    it('returns empty string when only a single slash is provided', () => {
+      expect(getParentDirectory('/')).toBe('');
     });
   });
 });

@@ -3,11 +3,13 @@ import {SigridData} from '../services/sigrid-data';
 import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 import {FindingComponent} from '../shared/finding-component';
 import {SecurityFinding} from '../models/security-finding';
+import {FindingNavigator} from '../shared/finding-navigator';
 
 @Component({
   selector: 'app-security',
   imports: [
-    SeverityIcon
+    SeverityIcon,
+    FindingNavigator
   ],
   templateUrl: './security.html',
   styleUrl: './security.scss',

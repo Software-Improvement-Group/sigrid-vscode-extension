@@ -1,5 +1,6 @@
 import {RefactoringCategory} from './refactoring-category';
 import {MaintainabilitySeverity} from './maintainability-severity';
+import {FileLocation} from './file-location';
 
 export interface RefactoringCandidatesResponse {
   refactoringCandidates: RefactoringCandidateResponse[];
@@ -16,6 +17,7 @@ export interface RefactoringCandidateResponse {
   sameFile?: boolean;
   mcCabe?: number;
   fanIn?: number;
+  loc?: number;
   parameters?: number;
   locations?: Location[],
   component?: string;
@@ -43,8 +45,7 @@ export class RefactoringCandidate {
   weight: number = 0;
   technology: string = '';
   snapshotDate: string = '';
-  locations?: Location[];
-  lineRanges?: LineRange[];
+  fileLocations: FileLocation[] = [];
   displayLocation: string = '';
   description: string = '';
   mcCabe?: number;

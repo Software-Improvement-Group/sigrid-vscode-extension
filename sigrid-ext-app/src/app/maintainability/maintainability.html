@@ -6,7 +6,7 @@
     <th class="text-center">Status</th>
   </tr>
   @for (finding of findings(); track finding.id) {
-    <tr>
+    <tr sigridFindingNavigator [locations]="finding.fileLocations">
       <td class="text-center"><sigrid-maintainability-severity-icon [severity]="finding.severity" /></td>
       <td>{{finding.displayLocation}}</td>
       <td>{{finding.description}}</td>

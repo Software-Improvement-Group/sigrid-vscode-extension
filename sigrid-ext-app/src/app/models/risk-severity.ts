@@ -8,8 +8,8 @@ export enum RiskSeverity {
   Critical
 }
 
-export function toRiskSeverity(severityStr: string): RiskSeverity {
-  switch (severityStr.toLowerCase()) {
+export function toRiskSeverity(severityStr: string | undefined | null): RiskSeverity {
+  switch (severityStr?.toLowerCase() ?? '') {
     case 'none':
       return RiskSeverity.None;
     case 'information':

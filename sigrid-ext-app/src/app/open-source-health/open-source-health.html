@@ -10,7 +10,7 @@
     <th>Activity</th>
   </tr>
   @for (dependency of findings(); track dependency.purl) {
-    <tr>
+    <tr sigridFindingNavigator [locations]="dependency.fileLocations">
       <td class="text-center"><sigrid-severity-icon [severity]="dependency.risk" /></td>
       <td>{{ dependency.displayName }}</td>
       <td>{{ dependency.version }}</td>

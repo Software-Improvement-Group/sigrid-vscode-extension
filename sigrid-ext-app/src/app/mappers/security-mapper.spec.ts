@@ -54,8 +54,11 @@ describe('SecurityFindingMapper', () => {
     expect(mapped.filePath).toBe('');
     expect(mapped.displayFilePath).toBe('');
 
-    expect(mapped.startLine).toBe(0);
-    expect(mapped.endLine).toBe(0);
+    expect(mapped.fileLocations).toBeDefined();
+    expect(mapped.fileLocations.length).toBe(1);
+    expect(mapped.fileLocations[0].filePath).toBe('');
+    expect(mapped.fileLocations[0].startLine).toBe(0);
+    expect(mapped.fileLocations[0].endLine).toBe(0);
 
     expect(mapped.type).toBe('sql_injection');
     expect(mapped.status).toBe('False Positive');
