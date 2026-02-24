@@ -1,6 +1,7 @@
 import {Property} from './property';
 import {RiskSeverity} from './risk-severity';
 import {FileLocation} from './file-location';
+import {FindingLocation} from './finding-location';
 
 export interface OpenSourceHealthResponse {
   bomFormat: string;
@@ -37,7 +38,7 @@ export interface OshEvidenceResponse {
   occurrences?: { location?: string }[];
 }
 
-export class OpenSourceHealthDependency {
+export class OpenSourceHealthDependency implements FindingLocation {
   name: string = '';
   group: string = '';
   displayName: string = '';

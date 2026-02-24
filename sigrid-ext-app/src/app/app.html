@@ -1,8 +1,11 @@
 @if (this.isConfigValid()) {
-  <div class="sigrid-tabs">
-    <div class="sigrid-tab" routerLink="/maintainability" routerLinkActive="active">Maintainability</div>
-    <div class="sigrid-tab" routerLink="/security" routerLinkActive="active">Security</div>
-    <div class="sigrid-tab" routerLink="/open-source-health" routerLinkActive="active">Open Source Health</div>
+  <div class="sigrid-header">
+    <div class="sigrid-tabs">
+      <div class="sigrid-tab" routerLink="/maintainability" routerLinkActive="active">Maintainability</div>
+      <div class="sigrid-tab" routerLink="/security" routerLinkActive="active">Security</div>
+      <div class="sigrid-tab" routerLink="/open-source-health" routerLinkActive="active">Open Source Health</div>
+    </div>
+    <sigrid-select-button [options]="fileFilterOptions" (change)="onFileFilterChange($event)"></sigrid-select-button>
   </div>
 
   <router-outlet/>

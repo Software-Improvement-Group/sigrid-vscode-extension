@@ -3,10 +3,13 @@ import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/route
 import {SigridConfiguration} from './services/sigrid-configuration';
 import {WebviewMessage} from './models/webview-message';
 import {VsCommandRegistry} from './commands/vs-command-registry';
+import {SelectButton} from './shared/select-button/select-button';
+import {SigridData} from './services/sigrid-data';
+import {FileFilterMode} from './models/file-filter-mode';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SelectButton],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -14,7 +17,12 @@ export class App implements OnInit {
   private router = inject(Router);
   private sigridConfig = inject(SigridConfiguration);
   private commandRegistry = inject(VsCommandRegistry);
+  private sigridData = inject(SigridData);
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
+  fileFilterOptions = [
+    {label: 'All', value: FileFilterMode.All},
+    {label: 'Active', value: FileFilterMode.Active},
+  ]
 
   constructor() {
     window.addEventListener('message', this.onMessageReceived.bind(this));
@@ -29,5 +37,9 @@ export class App implements OnInit {
   onMessageReceived(message: MessageEvent<WebviewMessage>) {
     let command = message.data.command ?? '';
     this.commandRegistry.execute(command, message.data.data);
+  }
+
+  protected onFileFilterChange(mode: FileFilterMode) {
+    this.sigridData.setFileFilter(mode);
   }
 }
