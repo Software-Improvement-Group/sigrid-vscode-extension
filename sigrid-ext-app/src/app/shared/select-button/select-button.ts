@@ -18,11 +18,6 @@ export class SelectButton implements OnInit, ControlValueAccessor {
   protected value: any;
   protected isDisabled = false;
 
-
-  // Callbacks provided by Angular forms
-  private onChange: (value: any) => void = () => {};
-  private onTouched: () => void = () => {};
-
   ngOnInit() {
     this.value = this.options()[0]?.[this.optionValue()];
   }
@@ -32,11 +27,11 @@ export class SelectButton implements OnInit, ControlValueAccessor {
   }
 
   registerOnChange(fn: any): void {
-    this.onChange = fn;
+    // do nothing
   }
 
   registerOnTouched(fn: any): void {
-    this.onTouched = fn;
+    // do nothing
   }
 
   setDisabledState?(isDisabled: boolean): void {

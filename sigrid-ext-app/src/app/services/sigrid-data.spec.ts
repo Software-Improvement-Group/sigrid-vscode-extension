@@ -1,24 +1,25 @@
-import { TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import {TestBed} from '@angular/core/testing';
+import {signal} from '@angular/core';
+import {provideHttpClient} from '@angular/common/http';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { SigridData } from './sigrid-data';
-import { SigridApi } from './sigrid-api';
-import { SigridConfiguration } from './sigrid-configuration';
+import {SigridData} from './sigrid-data';
+import {SigridApi} from './sigrid-api';
+import {SigridConfiguration} from './sigrid-configuration';
 
-import { SIGRID_API_BASE_URL } from '../utilities/constants';
-import { joinUrl } from '../utilities/join-url';
-import { RefactoringCategory } from '../models/refactoring-category';
+import {SIGRID_API_BASE_URL} from '../utilities/constants';
+import {joinUrl} from '../utilities/join-url';
+import {RefactoringCategory} from '../models/refactoring-category';
 
-import { SecurityFindingMapper } from '../mappers/security-finding-mapper';
-import { OpenSourceHealthMapper } from '../mappers/open-source-health-mapper';
-import { RefactoringCandidateMapper } from '../mappers/refactoring-candidate-mapper';
+import {SecurityFindingMapper} from '../mappers/security-finding-mapper';
+import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
+import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
 
-import { SecurityFindingResponse } from '../models/security-finding';
-import { OpenSourceHealthResponse } from '../models/open-source-health-dependency';
-import { RefactoringCandidatesResponse } from '../models/refactoring-candidate';
+import {SecurityFindingResponse} from '../models/security-finding';
+import {OpenSourceHealthResponse} from '../models/open-source-health-dependency';
+import {RefactoringCandidatesResponse} from '../models/refactoring-candidate';
+import {FileFilterMode} from '../models/file-filter-mode';
 
 describe('SigridData', () => {
   let service: SigridData;
@@ -70,12 +71,160 @@ describe('SigridData', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
     httpMock.verify();
-    //vi.resetModules();
-    // vi.resetAllMocks();
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+
+  it('filteredSecurityFindings: returns unfiltered findings when FileFilterMode.All', () => {
+    const mapped = [
+      {id: 'a', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
+      {id: 'b', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
+    ];
+    vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mapped as any);
+
+    service.setActiveFilePath('/repo/a.ts');
+    service.setFileFilter(FileFilterMode.All);
+
+    service.loadSecurityFindings();
+    httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+
+    const finding = service.securityFindings()!;
+    expect(finding.data).toBe(mapped as any);
+    expect(finding.data).toHaveLength(2);
+  });
+
+  it('filteredSecurityFindings: filters by activeFilePath when FileFilterMode.Active', () => {
+    const mapped = [
+      {id: 'match-1', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
+      {id: 'nope', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
+      {id: 'match-2', fileLocations: [{filePath: '/repo/a.ts'}, {filePath: '/repo/c.ts'}]} as any,
+    ];
+    vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mapped as any);
+
+    service.setActiveFilePath('/repo/a.ts');
+    service.setFileFilter(FileFilterMode.Active);
+
+    service.loadSecurityFindings();
+    httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+
+    const finding = service.securityFindings()!;
+    expect(finding.data?.map((x: any) => x.id)).toEqual(['match-1', 'match-2']);
+  });
+
+  it('filteredOpenSourceHealthFindings: filters by activeFilePath when FileFilterMode.Active', () => {
+    const mapped = [
+      {name: 'dep-a', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
+      {name: 'dep-b', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
+    ];
+    vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue(mapped as any);
+
+    service.setActiveFilePath('/repo/b.ts');
+    service.setFileFilter(FileFilterMode.Active);
+
+    service.loadOpenSourceHealthFindings();
+    httpMock.expectOne(findingEndpoint('osh-findings')).flush({
+      bomFormat: 'CycloneDX',
+      specVersion: '1.5',
+      version: 1,
+      metadata: {timestamp: '2026-01-01T00:00:00Z', properties: []},
+      components: [],
+      vulnerabilities: [],
+    } satisfies OpenSourceHealthResponse);
+
+    const finding = service.openSourceHealthFindings()!;
+    expect(finding.data?.map((x: any) => x.name)).toEqual(['dep-b']);
+  });
+
+  it('filteredRefactoringCandidates: filters by activeFilePath when FileFilterMode.Active', () => {
+    const mapped = [
+      {id: 'rc-1', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
+      {id: 'rc-2', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
+      {id: 'rc-3', fileLocations: [{filePath: '/repo/other.ts'}]} as any,
+    ];
+    vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue(mapped as any);
+
+    service.setActiveFilePath('/repo/a.ts');
+    service.setFileFilter(FileFilterMode.Active);
+
+    service.loadRefactoringCandidates();
+
+    const categories = Object.values(RefactoringCategory);
+    for (const category of categories) {
+      httpMock
+        .expectOne(refactoringEndpoint(category))
+        .flush({refactoringCandidates: []} satisfies RefactoringCandidatesResponse);
+    }
+
+    const finding = service.refactoringCandidates()!;
+    expect(finding.data?.map((x: any) => x.id)).toEqual(['rc-1', 'rc-2']);
+  });
+
+  it('filtered* signals: when Active filter is set but activeFilePath is undefined, data becomes empty (documents current behavior)', () => {
+    const mappedSecurity = [{id: 's1', fileLocations: [{filePath: '/repo/a.ts'}]} as any];
+    const mappedOsh = [{name: 'd1', fileLocations: [{filePath: '/repo/a.ts'}]} as any];
+    const mappedRc = [{id: 'rc1', fileLocations: [{filePath: '/repo/a.ts'}]} as any];
+
+    vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mappedSecurity as any);
+    vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue(mappedOsh as any);
+    vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue(mappedRc as any);
+
+    service.setFileFilter(FileFilterMode.Active);
+    expect(service.activeFilePath()).toBeUndefined();
+
+    service.loadSecurityFindings();
+    httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+    expect(service.securityFindings()?.data).toEqual([]);
+
+    service.loadOpenSourceHealthFindings();
+    httpMock.expectOne(findingEndpoint('osh-findings')).flush({
+      bomFormat: 'CycloneDX',
+      specVersion: '1.5',
+      version: 1,
+      metadata: {timestamp: '2026-01-01T00:00:00Z', properties: []},
+      components: [],
+      vulnerabilities: [],
+    } satisfies OpenSourceHealthResponse);
+    expect(service.openSourceHealthFindings()?.data).toEqual([]);
+
+    service.loadRefactoringCandidates();
+    const categories = Object.values(RefactoringCategory);
+    for (const category of categories) {
+      httpMock
+        .expectOne(refactoringEndpoint(category))
+        .flush({refactoringCandidates: []} satisfies RefactoringCandidatesResponse);
+    }
+    expect(service.refactoringCandidates()?.data).toEqual([]);
+  });
+
+  it('setActiveFilePath() updates the activeFilePath signal value', () => {
+    expect(service.activeFilePath()).toBeUndefined();
+
+    service.setActiveFilePath('/repo/src/app/a.ts');
+
+    expect(service.activeFilePath()).toBe('/repo/src/app/a.ts');
+  });
+
+  it('setFileFilter() toggles displayActivePath based on filter mode', () => {
+    service.setActiveFilePath('/repo/src/app/some-file.ts');
+
+    // Default is "All" => displayActivePath should be empty
+    expect(service.displayActivePath()).toBe('');
+
+    service.setFileFilter(FileFilterMode.Active);
+    expect(service.displayActivePath()).toBe('some-file.ts');
+
+    service.setFileFilter(FileFilterMode.All);
+    expect(service.displayActivePath()).toBe('');
+  });
+
+  it('when file filter is Active but activeFilePath is null/undefined, displayActivePath is empty', () => {
+    service.setFileFilter(FileFilterMode.Active);
+
+    expect(service.activeFilePath()).toBeUndefined();
+    expect(service.displayActivePath()).toBe('');
   });
 
   it('loadSecurityFindings() fetches via API, maps, and stores data', () => {
