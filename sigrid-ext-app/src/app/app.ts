@@ -19,10 +19,12 @@ export class App implements OnInit {
   private commandRegistry = inject(VsCommandRegistry);
   private sigridData = inject(SigridData);
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
-  fileFilterOptions = [
+  protected fileFilterOptions = [
     {label: 'All', value: FileFilterMode.All},
     {label: 'Active', value: FileFilterMode.Active},
-  ]
+  ];
+  protected readonly activeFilePath = this.sigridData.activeFilePath;
+  protected readonly displayActivePath = this.sigridData.displayActivePath;
 
   constructor() {
     window.addEventListener('message', this.onMessageReceived.bind(this));

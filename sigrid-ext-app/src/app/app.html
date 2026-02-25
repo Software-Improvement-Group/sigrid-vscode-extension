@@ -1,14 +1,30 @@
 @if (this.isConfigValid()) {
   <div class="sigrid-header">
     <div class="sigrid-tabs">
-      <div class="sigrid-tab" routerLink="/maintainability" routerLinkActive="active">Maintainability</div>
-      <div class="sigrid-tab" routerLink="/security" routerLinkActive="active">Security</div>
-      <div class="sigrid-tab" routerLink="/open-source-health" routerLinkActive="active">Open Source Health</div>
+      <div class="sigrid-tab" routerLink="/maintainability" routerLinkActive="active">
+        <div class="tab-label-wrapper"><span class="tab-label">Maintainability</span></div>
+      </div>
+      <div class="sigrid-tab" routerLink="/security" routerLinkActive="active">
+        <div class="tab-label-wrapper"><span class="tab-label">Security</span></div>
+      </div>
+      <div class="sigrid-tab" routerLink="/open-source-health" routerLinkActive="active">
+        <div class="tab-label-wrapper"><span class="tab-label">Open Source Health</span></div>
+      </div>
     </div>
-    <sigrid-select-button [options]="fileFilterOptions" (change)="onFileFilterChange($event)"></sigrid-select-button>
+    <div class="file-filter">
+      <sigrid-select-button [options]="fileFilterOptions" (change)="onFileFilterChange($event)"></sigrid-select-button>
+      @let filteredFileName = this.displayActivePath();
+      @if (filteredFileName) {
+        <span class="file-name" [title]="activeFilePath()">{{ filteredFileName }}</span>
+      }
+    </div>
   </div>
 
-  <router-outlet/>
+  <div class="main">
+    <router-outlet/>
+  </div>
 } @else {
-  <p>The extension is not configured.<br/>Please configure Sigrid API key, Customer and System in the settings.</p>
+  <div class="main">
+    <p>The extension is not configured.<br/>Please configure Sigrid API key, Customer and System in the settings.</p>
+  </div>
 }

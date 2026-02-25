@@ -10,6 +10,7 @@ import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mappe
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {FileFilterMode} from '../models/file-filter-mode';
 import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
+import {getFileName} from '../utilities/path';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +22,7 @@ export class SigridData {
   private readonly _fileFilter = signal<FileFilterMode>(FileFilterMode.All);
   private readonly _activeFilePath = signal<string | null | undefined>(undefined);
   private readonly sigridApi = inject(SigridApi);
+  readonly displayActivePath = computed(() => this._fileFilter() === FileFilterMode.Active ? getFileName(this._activeFilePath()) : '');
 
   private filteredRefactoringCandidates = computed(() => {
     return this._fileFilter() === FileFilterMode.All
@@ -92,5 +94,9 @@ export class SigridData {
 
   setActiveFilePath(filePath: string) {
     this._activeFilePath.set(filePath);
+  }
+
+  get activeFilePath() {
+    return this._activeFilePath;
   }
 }
