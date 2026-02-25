@@ -11,6 +11,7 @@
   justify-content: center;
   gap: 0.25rem;
   flex: 0;
+  padding-top: 0.25rem;
 }
 
 .main {
@@ -47,7 +48,8 @@
 
   &.active {
     .tab-label-wrapper {
-      border-bottom: 1px solid var(--vscode-tab-activeBorderTop);
+      border-bottom: 1px solid var(--vscode-focusBorder);
+      margin-bottom: -3px; // include border line width
     }
 
     .tab-label {
