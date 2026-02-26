@@ -15,8 +15,8 @@ describe('utilities/join-url', () => {
     );
   });
 
-  it('normalizes extra slashes coming from segments (URL will resolve them)', () => {
-    expect(joinUrl('https://example.com/', '/a/', '/b/', 'c/')).toBe('https://example.com/a//b//c/');
+  it('removes extra slashes coming from segments', () => {
+    expect(joinUrl('https://example.com/', '/a/', '/b/', 'c/')).toBe('https://example.com/a/b/c');
   });
 
   it('encodes characters that require encoding via URL resolution', () => {

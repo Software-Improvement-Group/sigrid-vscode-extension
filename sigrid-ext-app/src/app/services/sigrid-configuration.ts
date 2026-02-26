@@ -1,5 +1,6 @@
 import {computed, Injectable, signal} from '@angular/core';
 import {Configuration} from '../models/configuration';
+import {SIGRID_DEFAULT_URL} from '../utilities/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -25,6 +26,7 @@ export class SigridConfiguration {
       apiKey: '',
       customer: '',
       system: '',
+      sigridUrl: SIGRID_DEFAULT_URL
     };
   }
 }

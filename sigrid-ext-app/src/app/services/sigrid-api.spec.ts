@@ -5,7 +5,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 
 import { SigridApi } from './sigrid-api';
 import { SigridConfiguration } from './sigrid-configuration';
-import { SIGRID_API_BASE_URL } from '../utilities/constants';
+import {SIGRID_API_BASE_RELATIVE_URL, SIGRID_DEFAULT_URL} from '../utilities/constants';
 import { joinUrl } from '../utilities/join-url';
 import { RefactoringCategory } from '../models/refactoring-category';
 import { RefactoringCandidatesResponse } from '../models/refactoring-candidate';
@@ -17,29 +17,35 @@ describe('SigridApi', () => {
   let httpMock: HttpTestingController;
 
   class SigridConfigurationStub {
-    private readonly configSig = signal<{ apiKey: string; customer: string; system: string } | null>({
+    private readonly configSig = signal<{
+      apiKey: string;
+      customer: string;
+      system: string;
+      sigridUrl?: string;
+    } | null>({
       apiKey: 'placeholder-api-key',
       customer: 'cust',
       system: 'sys',
+      // sigridUrl intentionally omitted to exercise SIGRID_DEFAULT_URL fallback
     });
 
     getConfiguration() {
       return this.configSig.asReadonly();
     }
 
-    setConfiguration(config: { apiKey: string; customer: string; system: string }) {
+    setConfiguration(config: { apiKey: string; customer: string; system: string; sigridUrl?: string }) {
       this.configSig.set(config);
     }
 
     getEmptyConfiguration() {
-      return { apiKey: '', customer: '', system: '' };
+      return { apiKey: '', customer: '', system: '', sigridUrl: '' };
     }
   }
 
   let configStub: SigridConfigurationStub;
 
   const configuredUrl = (...paths: string[]) =>
-    joinUrl(SIGRID_API_BASE_URL, ...paths, 'cust', 'sys');
+    joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, ...paths, 'cust', 'sys');
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -106,7 +112,8 @@ describe('SigridApi', () => {
 
     const req = httpMock.expectOne(
       joinUrl(
-        SIGRID_API_BASE_URL,
+        SIGRID_DEFAULT_URL,
+        SIGRID_API_BASE_RELATIVE_URL,
         'refactoring-candidates',
         'cust',
         'sys',
@@ -130,7 +137,7 @@ describe('SigridApi', () => {
     // Expect one request per category and flush distinct payloads
     for (const category of categories) {
       const req = httpMock.expectOne(
-        joinUrl(SIGRID_API_BASE_URL, 'refactoring-candidates', 'cust', 'sys', category)
+        joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, 'refactoring-candidates', 'cust', 'sys', category)
       );
       expect(req.request.method).toBe('GET');
 
@@ -156,11 +163,11 @@ describe('SigridApi', () => {
   });
 
   it('uses empty configuration when SigridConfiguration has no configuration set', () => {
-    configStub.setConfiguration({ apiKey: '', customer: '', system: '' });
+    configStub.setConfiguration({ apiKey: '', customer: '', system: '', sigridUrl: '' });
 
     service.getSecurityFindings().subscribe();
 
-    const req = httpMock.expectOne(joinUrl(SIGRID_API_BASE_URL, 'security-findings', '', ''));
+    const req = httpMock.expectOne(joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, 'security-findings', '', ''));
     expect(req.request.method).toBe('GET');
     req.flush([] as SecurityFindingResponse[]);
   });

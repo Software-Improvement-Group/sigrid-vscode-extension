@@ -8,7 +8,7 @@ import {SigridData} from './sigrid-data';
 import {SigridApi} from './sigrid-api';
 import {SigridConfiguration} from './sigrid-configuration';
 
-import {SIGRID_API_BASE_URL} from '../utilities/constants';
+import {SIGRID_API_BASE_RELATIVE_URL, SIGRID_DEFAULT_URL} from '../utilities/constants';
 import {joinUrl} from '../utilities/join-url';
 import {RefactoringCategory} from '../models/refactoring-category';
 
@@ -26,30 +26,36 @@ describe('SigridData', () => {
   let httpMock: HttpTestingController;
 
   class SigridConfigurationStub {
-    private readonly configSig = signal<{ apiKey: string; customer: string; system: string } | null>({
+    private readonly configSig = signal<{
+      apiKey: string;
+      customer: string;
+      system: string;
+      sigridUrl?: string;
+    } | null>({
       apiKey: 'placeholder-api-key',
       customer: 'cust',
       system: 'sys',
+      // sigridUrl intentionally omitted to exercise SIGRID_DEFAULT_URL fallback
     });
 
     getConfiguration() {
       return this.configSig.asReadonly();
     }
 
-    setConfiguration(config: { apiKey: string; customer: string; system: string }) {
+    setConfiguration(config: { apiKey: string; customer: string; system: string; sigridUrl?: string }) {
       this.configSig.set(config);
     }
 
     getEmptyConfiguration() {
-      return { apiKey: '', customer: '', system: '' };
+      return { apiKey: '', customer: '', system: '', sigridUrl: SIGRID_DEFAULT_URL };
     }
   }
 
   const findingEndpoint = (...paths: string[]) =>
-    joinUrl(SIGRID_API_BASE_URL, ...paths, 'cust', 'sys');
+    joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, ...paths, 'cust', 'sys');
 
   const refactoringEndpoint = (category: RefactoringCategory) =>
-    joinUrl(SIGRID_API_BASE_URL, 'refactoring-candidates', 'cust', 'sys', category);
+    joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, 'refactoring-candidates', 'cust', 'sys', category);
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -76,7 +82,6 @@ describe('SigridData', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
 
   it('filteredSecurityFindings: returns unfiltered findings when FileFilterMode.All', () => {
     const mapped = [

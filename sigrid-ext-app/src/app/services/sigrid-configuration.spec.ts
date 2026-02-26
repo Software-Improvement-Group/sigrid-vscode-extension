@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SigridConfiguration } from './sigrid-configuration';
 import { Configuration } from '../models/configuration';
+import { SIGRID_DEFAULT_URL } from '../utilities/constants';
 
 describe('SigridConfiguration', () => {
   let service: SigridConfiguration;
@@ -29,6 +30,7 @@ describe('SigridConfiguration', () => {
       apiKey: '',
       customer: '',
       system: '',
+      sigridUrl: SIGRID_DEFAULT_URL,
     });
   });
 
@@ -37,6 +39,7 @@ describe('SigridConfiguration', () => {
       apiKey: 'placeholder-api-key',
       customer: 'customer-1',
       system: 'system-1',
+      sigridUrl: SIGRID_DEFAULT_URL,
     };
 
     service.setConfiguration(config);
@@ -45,16 +48,16 @@ describe('SigridConfiguration', () => {
   });
 
   it('isConfigurationValid becomes true only when apiKey, customer, and system are all non-empty', () => {
-    service.setConfiguration({ apiKey: '', customer: 'c', system: 's' });
+    service.setConfiguration({ apiKey: '', customer: 'c', system: 's', sigridUrl: SIGRID_DEFAULT_URL });
     expect(service.isConfigurationValid()).toBe(false);
 
-    service.setConfiguration({ apiKey: 'k', customer: '', system: 's' });
+    service.setConfiguration({ apiKey: 'k', customer: '', system: 's', sigridUrl: SIGRID_DEFAULT_URL });
     expect(service.isConfigurationValid()).toBe(false);
 
-    service.setConfiguration({ apiKey: 'k', customer: 'c', system: '' });
+    service.setConfiguration({ apiKey: 'k', customer: 'c', system: '', sigridUrl: SIGRID_DEFAULT_URL });
     expect(service.isConfigurationValid()).toBe(false);
 
-    service.setConfiguration({ apiKey: 'k', customer: 'c', system: 's' });
+    service.setConfiguration({ apiKey: 'k', customer: 'c', system: 's', sigridUrl: SIGRID_DEFAULT_URL });
     expect(service.isConfigurationValid()).toBe(true);
   });
 

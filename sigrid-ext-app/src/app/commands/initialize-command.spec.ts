@@ -15,6 +15,7 @@ describe('InitializeCommand', () => {
       apiKey: '<api-key>',
       customer: 'acme',
       system: 'my-system',
+      sigridUrl: 'https://example.invalid',
     };
 
     cmd.execute(cfg);
@@ -34,6 +35,7 @@ describe('InitializeCommand', () => {
       apiKey: '<api-key>',
       customer: 'acme',
       system: 'my-system',
+      sigridUrl: 'https://example.invalid',
     };
 
     cmd.execute(cfg);
