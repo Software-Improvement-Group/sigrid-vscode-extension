@@ -1,6 +1,7 @@
 import {RefactoringCategory} from './refactoring-category';
 import {MaintainabilitySeverity} from './maintainability-severity';
 import {FileLocation} from './file-location';
+import {FindingLocation} from './finding-location';
 
 export interface RefactoringCandidatesResponse {
   refactoringCandidates: RefactoringCandidateResponse[];
@@ -37,7 +38,7 @@ export interface Location {
   endLine: number;
 }
 
-export class RefactoringCandidate {
+export class RefactoringCandidate implements FindingLocation {
   id: string = '';
   category: RefactoringCategory = RefactoringCategory.Duplication;
   severity: MaintainabilitySeverity = MaintainabilitySeverity.Unknown;

@@ -1,0 +1,9 @@
+@let items = options();
+@if (items?.length && items.length > 0) {
+  @let label = optionLabel();
+  <div class="select-button">
+    @for (item of items; track item) {
+      <button (click)="select(item)" type="button" [class.selected]="item[optionValue()] === value">{{item[label]}}</button>
+    }
+  </div>
+}

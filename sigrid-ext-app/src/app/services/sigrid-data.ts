@@ -1,4 +1,4 @@
-import {inject, Injectable, signal, WritableSignal} from '@angular/core';
+import {computed, inject, Injectable, signal, WritableSignal} from '@angular/core';
 import {OpenSourceHealthDependency} from '../models/open-source-health-dependency';
 import {SecurityFinding} from '../models/security-finding';
 import {SigridApi} from './sigrid-api';
@@ -8,6 +8,9 @@ import {Observable} from 'rxjs';
 import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
 import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
+import {FileFilterMode} from '../models/file-filter-mode';
+import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
+import {getFileName} from '../utilities/path';
 
 @Injectable({
   providedIn: 'root',
@@ -16,18 +19,39 @@ export class SigridData {
   private readonly _refactoringCandidates = signal<SigridFinding<RefactoringCandidate[]> | null>(null);
   private readonly _openSourceHealthFindings = signal<SigridFinding<OpenSourceHealthDependency[]> | null>(null);
   private readonly _securityFindings = signal<SigridFinding<SecurityFinding[]> | null>(null);
+  private readonly _fileFilter = signal<FileFilterMode>(FileFilterMode.All);
+  private readonly _activeFilePath = signal<string | null | undefined>(undefined);
   private readonly sigridApi = inject(SigridApi);
+  readonly displayActivePath = computed(() => this._fileFilter() === FileFilterMode.Active ? getFileName(this._activeFilePath()) : '');
+
+  private filteredRefactoringCandidates = computed(() => {
+    return this._fileFilter() === FileFilterMode.All
+      ? this._refactoringCandidates()
+      : filterFindingsByPath(this._refactoringCandidates(), this._activeFilePath() ?? '') as SigridFinding<RefactoringCandidate[]>;
+  });
+
+  private filteredSecurityFindings = computed(() => {
+    return this._fileFilter() === FileFilterMode.All
+      ? this._securityFindings()
+      : filterFindingsByPath(this._securityFindings(), this._activeFilePath() ?? '') as SigridFinding<SecurityFinding[]>;
+  });
+
+  private filteredOpenSourceHealthFindings = computed(() => {
+    return this._fileFilter() === FileFilterMode.All
+      ? this._openSourceHealthFindings()
+      : filterFindingsByPath(this._openSourceHealthFindings(), this._activeFilePath() ?? '') as SigridFinding<OpenSourceHealthDependency[]>;
+  })
 
   get refactoringCandidates() {
-    return this._refactoringCandidates.asReadonly();
+    return this.filteredRefactoringCandidates;
   }
 
   get securityFindings() {
-    return this._securityFindings.asReadonly();
+    return this.filteredSecurityFindings;
   }
 
   get openSourceHealthFindings() {
-    return this._openSourceHealthFindings.asReadonly();
+    return this.filteredOpenSourceHealthFindings;
   }
 
   loadRefactoringCandidates(forceRefresh?: boolean) {
@@ -64,4 +88,15 @@ export class SigridData {
     });
   }
 
+  setFileFilter(fileFilter: FileFilterMode) {
+    this._fileFilter.set(fileFilter);
+  }
+
+  setActiveFilePath(filePath: string) {
+    this._activeFilePath.set(filePath);
+  }
+
+  get activeFilePath() {
+    return this._activeFilePath;
+  }
 }
