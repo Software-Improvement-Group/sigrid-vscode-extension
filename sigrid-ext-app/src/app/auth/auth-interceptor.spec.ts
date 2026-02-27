@@ -3,16 +3,16 @@ import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {provideHttpClientTesting, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {authInterceptor} from './auth.interceptor';
+import {authInterceptor} from './auth-interceptor';
 import {SigridConfiguration} from '../services/sigrid-configuration';
-import {SIGRID_API_BASE_URL} from '../utilities/constants';
 
 describe('authInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
 
-  function configure(token: string) {
+  function configure(token: string, sigridApiBaseUrl = 'https://sigrid.example.invalid') {
     const getConfiguration = vi.fn(() => (() => ({apiKey: token})) as unknown as () => {apiKey?: string});
+    const getSigridApiBaseUrl = vi.fn(() => sigridApiBaseUrl);
 
     TestBed.configureTestingModule({
       providers: [
@@ -20,7 +20,7 @@ describe('authInterceptor', () => {
         provideHttpClientTesting(),
         {
           provide: SigridConfiguration,
-          useValue: {getConfiguration},
+          useValue: {getConfiguration, getSigridApiBaseUrl},
         },
       ],
     });
@@ -28,7 +28,7 @@ describe('authInterceptor', () => {
     http = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
 
-    return {getConfiguration};
+    return {getConfiguration, getSigridApiBaseUrl, sigridApiBaseUrl};
   }
 
   beforeEach(() => {
@@ -37,11 +37,11 @@ describe('authInterceptor', () => {
   });
 
   it('adds Authorization header for SIGRID API requests when token exists', () => {
-    configure('test-token');
+    const {sigridApiBaseUrl} = configure('test-token');
 
-    http.get(`${SIGRID_API_BASE_URL}/ping`).subscribe();
+    http.get(`${sigridApiBaseUrl}/ping`).subscribe();
 
-    const req = httpMock.expectOne(`${SIGRID_API_BASE_URL}/ping`);
+    const req = httpMock.expectOne(`${sigridApiBaseUrl}/ping`);
     expect(req.request.headers.get('Authorization')).toBe('Bearer test-token');
 
     req.flush({});
@@ -49,11 +49,11 @@ describe('authInterceptor', () => {
   });
 
   it('does not add Authorization header for SIGRID API requests when token is empty', () => {
-    configure('');
+    const {sigridApiBaseUrl} = configure('');
 
-    http.get(`${SIGRID_API_BASE_URL}/ping`).subscribe();
+    http.get(`${sigridApiBaseUrl}/ping`).subscribe();
 
-    const req = httpMock.expectOne(`${SIGRID_API_BASE_URL}/ping`);
+    const req = httpMock.expectOne(`${sigridApiBaseUrl}/ping`);
     expect(req.request.headers.has('Authorization')).toBe(false);
 
     req.flush({});
@@ -61,7 +61,7 @@ describe('authInterceptor', () => {
   });
 
   it('does not add Authorization header for non-SIGRID requests (and does not query configuration)', () => {
-    const {getConfiguration} = configure('test-token');
+    const {getConfiguration, getSigridApiBaseUrl} = configure('test-token');
 
     const externalUrl = 'https://example.invalid/api';
     http.get(externalUrl).subscribe();
@@ -69,7 +69,8 @@ describe('authInterceptor', () => {
     const req = httpMock.expectOne(externalUrl);
     expect(req.request.headers.has('Authorization')).toBe(false);
 
-    // Interceptor should not even attempt to read config for non-SIGRID URLs
+    // Interceptor still needs the base URL to decide, but should not read the token/config for non-matching URLs.
+    expect(getSigridApiBaseUrl).toHaveBeenCalled();
     expect(getConfiguration).not.toHaveBeenCalled();
 
     req.flush({});

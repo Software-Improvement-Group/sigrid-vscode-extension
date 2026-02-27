@@ -40,6 +40,12 @@ describe('SigridApi', () => {
     getEmptyConfiguration() {
       return { apiKey: '', customer: '', system: '', sigridUrl: '' };
     }
+
+    getSigridApiBaseUrl(): string {
+      const configuration = this.configSig() ?? this.getEmptyConfiguration();
+      const base = !!configuration.sigridUrl ? configuration.sigridUrl : SIGRID_DEFAULT_URL;
+      return joinUrl(base, SIGRID_API_BASE_RELATIVE_URL);
+    }
   }
 
   let configStub: SigridConfigurationStub;

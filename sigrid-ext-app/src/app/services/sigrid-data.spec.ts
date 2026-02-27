@@ -49,6 +49,12 @@ describe('SigridData', () => {
     getEmptyConfiguration() {
       return { apiKey: '', customer: '', system: '', sigridUrl: SIGRID_DEFAULT_URL };
     }
+
+    getSigridApiBaseUrl(): string {
+      const configuration = this.configSig() ?? this.getEmptyConfiguration();
+      const base = !!configuration.sigridUrl ? configuration.sigridUrl : SIGRID_DEFAULT_URL;
+      return joinUrl(base, SIGRID_API_BASE_RELATIVE_URL);
+    }
   }
 
   const findingEndpoint = (...paths: string[]) =>
