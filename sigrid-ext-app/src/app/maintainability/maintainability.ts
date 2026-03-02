@@ -26,5 +26,4 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
   protected override loadData(): void {
     this.sigridData.loadRefactoringCandidates()
   }
-
 }

@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {signal} from '@angular/core';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, HttpErrorResponse} from '@angular/common/http';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
@@ -8,7 +8,7 @@ import {SigridData} from './sigrid-data';
 import {SigridApi} from './sigrid-api';
 import {SigridConfiguration} from './sigrid-configuration';
 
-import {SIGRID_API_BASE_URL} from '../utilities/constants';
+import {SIGRID_API_BASE_RELATIVE_URL, SIGRID_DEFAULT_URL} from '../utilities/constants';
 import {joinUrl} from '../utilities/join-url';
 import {RefactoringCategory} from '../models/refactoring-category';
 
@@ -26,30 +26,42 @@ describe('SigridData', () => {
   let httpMock: HttpTestingController;
 
   class SigridConfigurationStub {
-    private readonly configSig = signal<{ apiKey: string; customer: string; system: string } | null>({
+    private readonly configSig = signal<{
+      apiKey: string;
+      customer: string;
+      system: string;
+      sigridUrl?: string;
+    } | null>({
       apiKey: 'placeholder-api-key',
       customer: 'cust',
       system: 'sys',
+      // sigridUrl intentionally omitted to exercise SIGRID_DEFAULT_URL fallback
     });
 
     getConfiguration() {
       return this.configSig.asReadonly();
     }
 
-    setConfiguration(config: { apiKey: string; customer: string; system: string }) {
+    setConfiguration(config: { apiKey: string; customer: string; system: string; sigridUrl?: string }) {
       this.configSig.set(config);
     }
 
     getEmptyConfiguration() {
-      return { apiKey: '', customer: '', system: '' };
+      return { apiKey: '', customer: '', system: '', sigridUrl: SIGRID_DEFAULT_URL };
+    }
+
+    getSigridApiBaseUrl(): string {
+      const configuration = this.configSig() ?? this.getEmptyConfiguration();
+      const base = !!configuration.sigridUrl ? configuration.sigridUrl : SIGRID_DEFAULT_URL;
+      return joinUrl(base, SIGRID_API_BASE_RELATIVE_URL);
     }
   }
 
   const findingEndpoint = (...paths: string[]) =>
-    joinUrl(SIGRID_API_BASE_URL, ...paths, 'cust', 'sys');
+    joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, ...paths, 'cust', 'sys');
 
   const refactoringEndpoint = (category: RefactoringCategory) =>
-    joinUrl(SIGRID_API_BASE_URL, 'refactoring-candidates', 'cust', 'sys', category);
+    joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, 'refactoring-candidates', 'cust', 'sys', category);
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -76,7 +88,6 @@ describe('SigridData', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
 
   it('filteredSecurityFindings: returns unfiltered findings when FileFilterMode.All', () => {
     const mapped = [
@@ -356,7 +367,62 @@ describe('SigridData', () => {
 
     const finding = service.securityFindings()!;
     expect(finding.data).toBeUndefined();
-    expect(finding.error).toBe('Error occurred while fetching security findings.');
+    expect(finding.error).toBe('Server error (500) while fetching security findings. Please try again later.');
+  });
+
+  describe('toFetchErrorMessage()', () => {
+    it('returns the fallback message for non-HttpErrorResponse errors', () => {
+      const msg = (service as any).toFetchErrorMessage(new Error('boom'), 'security');
+      expect(msg).toBe('Error occurred while fetching security findings.');
+    });
+
+    it('returns a network/config hint message when status is 0', () => {
+      const err = new HttpErrorResponse({ status: 0, statusText: 'Unknown Error', error: 'Network error' });
+      const msg = (service as any).toFetchErrorMessage(err, 'security');
+      expect(msg).toBe(
+        'Could not reach the server while fetching security findings. Check your network connection and configuration.',
+      );
+    });
+
+    it('maps known HTTP status codes to specific messages', () => {
+      const cases: Array<{ status: number; expected: string }> = [
+        { status: 400, expected: 'Bad request while fetching security findings. Please check the configuration.' },
+        {
+          status: 401,
+          expected:
+            'Unauthorized while fetching security findings. Please verify your access token and other configuration settings.',
+        },
+        {
+          status: 403,
+          expected: 'Forbidden while fetching security findings. You do not have permission to access this resource.',
+        },
+        {
+          status: 404,
+          expected:
+            'Not found while fetching security findings. Please verify the server URL and configured customer/system.',
+        },
+        { status: 408, expected: 'Request timed out while fetching security findings. Please try again.' },
+        { status: 429, expected: 'Too many requests while fetching security findings. Please wait and try again.' },
+      ];
+
+      for (const { status, expected } of cases) {
+        const err = new HttpErrorResponse({ status, statusText: 'X', error: 'Y' });
+        const msg = (service as any).toFetchErrorMessage(err, 'security');
+        expect(msg).toBe(expected);
+      }
+    });
+
+    it('formats 5xx responses as a server error message (includes status code)', () => {
+      const err = new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable', error: 'nope' });
+      const msg = (service as any).toFetchErrorMessage(err, 'security');
+      expect(msg).toBe('Server error (503) while fetching security findings. Please try again later.');
+    });
+
+    it('formats other non-mapped statuses as a generic request failed message (includes status code)', () => {
+      const err = new HttpErrorResponse({ status: 418, statusText: "I'm a teapot", error: 'nope' });
+      const msg = (service as any).toFetchErrorMessage(err, 'security');
+      expect(msg).toBe('Request failed (418) while fetching security findings.');
+    });
   });
 
   it('stores a mapping error when the mapper throws', () => {
@@ -372,5 +438,51 @@ describe('SigridData', () => {
     const finding = service.securityFindings()!;
     expect(finding.data).toBeUndefined();
     expect(finding.error).toBe('Error occurred while mapping response to security findings.');
+  });
+
+  it('loadAllFindings() calls all three loaders with forceRefresh=true', () => {
+    const loadRefactoringSpy = vi.spyOn(service, 'loadRefactoringCandidates').mockImplementation(() => undefined);
+    const loadSecuritySpy = vi.spyOn(service, 'loadSecurityFindings').mockImplementation(() => undefined);
+    const loadOshSpy = vi.spyOn(service, 'loadOpenSourceHealthFindings').mockImplementation(() => undefined);
+
+    service.loadAllFindings();
+
+    expect(loadRefactoringSpy).toHaveBeenCalledTimes(1);
+    expect(loadRefactoringSpy).toHaveBeenCalledWith(true);
+
+    expect(loadSecuritySpy).toHaveBeenCalledTimes(1);
+    expect(loadSecuritySpy).toHaveBeenCalledWith(true);
+
+    expect(loadOshSpy).toHaveBeenCalledTimes(1);
+    expect(loadOshSpy).toHaveBeenCalledWith(true);
+
+    // No HTTP expectations here because we stubbed the loaders.
+  });
+
+  it('loadAllFindings() triggers HTTP fetches for refactoring, security, and open source health findings', () => {
+    vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue([] as any);
+    vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue([] as any);
+    vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue([] as any);
+
+    service.loadAllFindings();
+
+    // Security + OSH are single endpoints
+    httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+    httpMock.expectOne(findingEndpoint('osh-findings')).flush({
+      bomFormat: 'CycloneDX',
+      specVersion: '1.5',
+      version: 1,
+      metadata: {timestamp: '2026-01-01T00:00:00Z', properties: []},
+      components: [],
+      vulnerabilities: [],
+    } satisfies OpenSourceHealthResponse);
+
+    // Refactoring candidates fetch once per category
+    const categories = Object.values(RefactoringCategory);
+    for (const category of categories) {
+      httpMock
+        .expectOne(refactoringEndpoint(category))
+        .flush({refactoringCandidates: []} satisfies RefactoringCandidatesResponse);
+    }
   });
 });
