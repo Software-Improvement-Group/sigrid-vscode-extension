@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {signal} from '@angular/core';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, HttpErrorResponse} from '@angular/common/http';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
@@ -367,7 +367,62 @@ describe('SigridData', () => {
 
     const finding = service.securityFindings()!;
     expect(finding.data).toBeUndefined();
-    expect(finding.error).toBe('Error occurred while fetching security findings.');
+    expect(finding.error).toBe('Server error (500) while fetching security findings. Please try again later.');
+  });
+
+  describe('toFetchErrorMessage()', () => {
+    it('returns the fallback message for non-HttpErrorResponse errors', () => {
+      const msg = (service as any).toFetchErrorMessage(new Error('boom'), 'security');
+      expect(msg).toBe('Error occurred while fetching security findings.');
+    });
+
+    it('returns a network/config hint message when status is 0', () => {
+      const err = new HttpErrorResponse({ status: 0, statusText: 'Unknown Error', error: 'Network error' });
+      const msg = (service as any).toFetchErrorMessage(err, 'security');
+      expect(msg).toBe(
+        'Could not reach the server while fetching security findings. Check your network connection and configuration.',
+      );
+    });
+
+    it('maps known HTTP status codes to specific messages', () => {
+      const cases: Array<{ status: number; expected: string }> = [
+        { status: 400, expected: 'Bad request while fetching security findings. Please check the configuration.' },
+        {
+          status: 401,
+          expected:
+            'Unauthorized while fetching security findings. Please verify your access token and other configuration settings.',
+        },
+        {
+          status: 403,
+          expected: 'Forbidden while fetching security findings. You do not have permission to access this resource.',
+        },
+        {
+          status: 404,
+          expected:
+            'Not found while fetching security findings. Please verify the server URL and configured customer/system.',
+        },
+        { status: 408, expected: 'Request timed out while fetching security findings. Please try again.' },
+        { status: 429, expected: 'Too many requests while fetching security findings. Please wait and try again.' },
+      ];
+
+      for (const { status, expected } of cases) {
+        const err = new HttpErrorResponse({ status, statusText: 'X', error: 'Y' });
+        const msg = (service as any).toFetchErrorMessage(err, 'security');
+        expect(msg).toBe(expected);
+      }
+    });
+
+    it('formats 5xx responses as a server error message (includes status code)', () => {
+      const err = new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable', error: 'nope' });
+      const msg = (service as any).toFetchErrorMessage(err, 'security');
+      expect(msg).toBe('Server error (503) while fetching security findings. Please try again later.');
+    });
+
+    it('formats other non-mapped statuses as a generic request failed message (includes status code)', () => {
+      const err = new HttpErrorResponse({ status: 418, statusText: "I'm a teapot", error: 'nope' });
+      const msg = (service as any).toFetchErrorMessage(err, 'security');
+      expect(msg).toBe('Request failed (418) while fetching security findings.');
+    });
   });
 
   it('stores a mapping error when the mapper throws', () => {

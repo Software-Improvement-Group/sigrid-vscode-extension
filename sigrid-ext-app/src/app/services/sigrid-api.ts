@@ -20,11 +20,6 @@ export class SigridApi {
     return this.sigridConfiguration.getConfiguration()() ?? this.sigridConfiguration.getEmptyConfiguration();
   });
 
-  // private sigridApiBaseUrl = computed(() => {
-  //   const configuration = this.configuration();
-  //   return joinUrl(!!configuration.sigridUrl ? configuration.sigridUrl : SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL);
-  // });
-
   getOpenSourceHealthFindings() {
     const configuration = this.configuration();
     return this.http.get<OpenSourceHealthResponse>(joinUrl(this.sigridConfiguration.getSigridApiBaseUrl(), 'osh-findings', configuration.customer, configuration.system));

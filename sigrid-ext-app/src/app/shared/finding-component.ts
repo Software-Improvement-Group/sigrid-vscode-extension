@@ -7,8 +7,8 @@ import {toObservable} from '@angular/core/rxjs-interop';
 @Directive()
 export abstract class FindingComponent<T> implements OnInit {
   private sigridConfiguration = inject(SigridConfiguration);
-  protected isConfigValid = this.sigridConfiguration.isConfigurationValid;
   protected isConfigValid$ = toObservable<boolean>(this.sigridConfiguration.isConfigurationValid);
+  protected readonly DataState = DataState;
 
   protected findings = computed(() => {
     const findings = this.findingSignal();
@@ -28,6 +28,13 @@ export abstract class FindingComponent<T> implements OnInit {
     return DataState.Error;
   });
 
+  protected errorMessage = computed(() => {
+    const findings = this.findingSignal();
+    if (this.dataState() == DataState.Error) {
+      return findings?.error ?? 'Unknown error';
+    }
+    return '';
+  });
 
   protected constructor(private findingSignal: Signal<SigridFinding<T> | null>) {
   }
