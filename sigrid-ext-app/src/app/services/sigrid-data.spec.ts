@@ -384,4 +384,50 @@ describe('SigridData', () => {
     expect(finding.data).toBeUndefined();
     expect(finding.error).toBe('Error occurred while mapping response to security findings.');
   });
+
+  it('loadAllFindings() calls all three loaders with forceRefresh=true', () => {
+    const loadRefactoringSpy = vi.spyOn(service, 'loadRefactoringCandidates').mockImplementation(() => undefined);
+    const loadSecuritySpy = vi.spyOn(service, 'loadSecurityFindings').mockImplementation(() => undefined);
+    const loadOshSpy = vi.spyOn(service, 'loadOpenSourceHealthFindings').mockImplementation(() => undefined);
+
+    service.loadAllFindings();
+
+    expect(loadRefactoringSpy).toHaveBeenCalledTimes(1);
+    expect(loadRefactoringSpy).toHaveBeenCalledWith(true);
+
+    expect(loadSecuritySpy).toHaveBeenCalledTimes(1);
+    expect(loadSecuritySpy).toHaveBeenCalledWith(true);
+
+    expect(loadOshSpy).toHaveBeenCalledTimes(1);
+    expect(loadOshSpy).toHaveBeenCalledWith(true);
+
+    // No HTTP expectations here because we stubbed the loaders.
+  });
+
+  it('loadAllFindings() triggers HTTP fetches for refactoring, security, and open source health findings', () => {
+    vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue([] as any);
+    vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue([] as any);
+    vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue([] as any);
+
+    service.loadAllFindings();
+
+    // Security + OSH are single endpoints
+    httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+    httpMock.expectOne(findingEndpoint('osh-findings')).flush({
+      bomFormat: 'CycloneDX',
+      specVersion: '1.5',
+      version: 1,
+      metadata: {timestamp: '2026-01-01T00:00:00Z', properties: []},
+      components: [],
+      vulnerabilities: [],
+    } satisfies OpenSourceHealthResponse);
+
+    // Refactoring candidates fetch once per category
+    const categories = Object.values(RefactoringCategory);
+    for (const category of categories) {
+      httpMock
+        .expectOne(refactoringEndpoint(category))
+        .flush({refactoringCandidates: []} satisfies RefactoringCandidatesResponse);
+    }
+  });
 });

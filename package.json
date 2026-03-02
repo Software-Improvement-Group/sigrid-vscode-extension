@@ -14,7 +14,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "sigrid-vscode.sigrid",
+        "command": "sigrid-vscode.showFindings",
         "title": "Sigrid: Show Findings"
       }
     ],

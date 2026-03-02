@@ -66,6 +66,12 @@ export class SigridData {
     this.fetchFindings(() => this.sigridApi.getOpenSourceHealthFindings(), this._openSourceHealthFindings, OpenSourceHealthMapper.map, 'open source health', forceRefresh);
   }
 
+  loadAllFindings() {
+    this.loadRefactoringCandidates(true);
+    this.loadSecurityFindings(true);
+    this.loadOpenSourceHealthFindings(true);
+  }
+
   private fetchFindings<Response, Finding>(httpFn: () => Observable<Response>, findingSignal: WritableSignal<SigridFinding<Finding> | null>, mapperFn: (response: Response) => Finding, findingLabel: string, forceRefresh?: boolean) {
     if (!forceRefresh && findingSignal()) {
       return;
