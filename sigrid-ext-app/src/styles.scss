@@ -35,3 +35,18 @@ html, body {
 .error {
   color: var(--vscode-errorForeground);
 }
+
+.external-link-container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  & > :first-child {
+    flex: 1;
+    width: 100%;
+  }
+
+  sigrid-external-link {
+    flex: 0;
+  }
+}

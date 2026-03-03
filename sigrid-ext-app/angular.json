@@ -30,6 +30,7 @@
               }
             ],
             "styles": [
+              "node_modules/@vscode/codicons/dist/codicon.css",
               "src/styles.scss"
             ]
           },

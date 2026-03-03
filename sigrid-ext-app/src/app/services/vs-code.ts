@@ -27,4 +27,7 @@ export class VsCode {
     this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.OpenFile, location));
   }
 
+  openUrl(url: string) {
+    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.OpenUrl, url));
+  }
 }

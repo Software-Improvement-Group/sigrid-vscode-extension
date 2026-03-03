@@ -81,7 +81,9 @@ export class SigridData {
     httpFn().subscribe({
       next: (data) => {
         try {
+          console.log(data);
           const mappedData = mapperFn(data);
+          //console.log(`Successfully fetched ${findingLabel} findings:`, mappedData);
           findingSignal.set({data: mappedData} as SigridFinding<Finding>);
         } catch (mapperError) {
           console.error(`Error mapping response to ${findingLabel} findings:`, mapperError);

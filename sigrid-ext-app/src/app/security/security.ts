@@ -4,12 +4,14 @@ import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 import {FindingComponent} from '../shared/finding-component';
 import {SecurityFinding} from '../models/security-finding';
 import {FindingNavigator} from '../shared/finding-navigator';
+import {ExternalLink} from '../shared/external-link/external-link';
 
 @Component({
   selector: 'app-security',
   imports: [
     SeverityIcon,
-    FindingNavigator
+    FindingNavigator,
+    ExternalLink
   ],
   templateUrl: './security.html',
   styleUrl: './security.scss',

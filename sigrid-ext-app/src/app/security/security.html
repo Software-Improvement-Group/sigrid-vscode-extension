@@ -12,7 +12,10 @@
       <tr sigridFindingNavigator [locations]="finding.fileLocations">
         <td class="text-center"><sigrid-severity-icon [severity]="finding.severity" /></td>
         <td><span [title]="finding.filePath"> {{ finding.displayFilePath }} </span></td>
-        <td>{{ finding.type }}</td>
+        <td class="external-link-container">
+          <div>{{ finding.type }}</div>
+          <sigrid-external-link [href]="finding.href" />
+        </td>
         <td class="text-center">{{ finding.status }}</td>
       </tr>
     }

@@ -1,0 +1,8 @@
+.external-link {
+  cursor: pointer;
+  color: var(--vscode-icon-foreground);
+
+  &:hover {
+    color: var(--vscode-textLink-activeForeground);
+  }
+}
