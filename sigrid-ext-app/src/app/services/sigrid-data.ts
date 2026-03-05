@@ -4,7 +4,7 @@ import {SecurityFinding} from '../models/security-finding';
 import {SigridApi} from './sigrid-api';
 import {SigridFinding} from '../models/sigrid-finding';
 import {SecurityFindingMapper} from '../mappers/security-finding-mapper';
-import {Observable} from 'rxjs';
+import {firstValueFrom, Observable} from 'rxjs';
 import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
 import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
@@ -22,6 +22,7 @@ export class SigridData {
   private readonly _securityFindings = signal<SigridFinding<SecurityFinding[]> | null>(null);
   private readonly _fileFilter = signal<FileFilterMode>(FileFilterMode.All);
   private readonly _activeFilePath = signal<string | null | undefined>(undefined);
+  private readonly _isRefreshing = signal(false);
   private readonly sigridApi = inject(SigridApi);
   readonly displayActivePath = computed(() => this._fileFilter() === FileFilterMode.Active ? getFileName(this._activeFilePath()) : '');
 
@@ -55,46 +56,79 @@ export class SigridData {
     return this.filteredOpenSourceHealthFindings;
   }
 
-  loadRefactoringCandidates(forceRefresh?: boolean) {
-    this.fetchFindings(() => this.sigridApi.getAllRefactoringCandidates(), this._refactoringCandidates, RefactoringCandidateMapper.map, 'refactoring candidates', forceRefresh);
+  get isRefreshing() {
+    return this._isRefreshing;
   }
 
-  loadSecurityFindings(forceRefresh?: boolean) {
-    this.fetchFindings(() => this.sigridApi.getSecurityFindings(), this._securityFindings, SecurityFindingMapper.map, 'security', forceRefresh);
+  loadRefactoringCandidates(forceRefresh?: boolean): Promise<void> {
+    return this.fetchFindings(
+      () => this.sigridApi.getAllRefactoringCandidates(),
+      this._refactoringCandidates,
+      RefactoringCandidateMapper.map,
+      'refactoring candidates',
+      forceRefresh,
+    );
   }
 
-  loadOpenSourceHealthFindings(forceRefresh?: boolean) {
-    this.fetchFindings(() => this.sigridApi.getOpenSourceHealthFindings(), this._openSourceHealthFindings, OpenSourceHealthMapper.map, 'open source health', forceRefresh);
+  loadSecurityFindings(forceRefresh?: boolean): Promise<void> {
+    return this.fetchFindings(
+      () => this.sigridApi.getSecurityFindings(),
+      this._securityFindings,
+      SecurityFindingMapper.map,
+      'security',
+      forceRefresh,
+    );
   }
 
-  loadAllFindings() {
-    this.loadRefactoringCandidates(true);
-    this.loadSecurityFindings(true);
-    this.loadOpenSourceHealthFindings(true);
+  loadOpenSourceHealthFindings(forceRefresh?: boolean): Promise<void> {
+    return this.fetchFindings(
+      () => this.sigridApi.getOpenSourceHealthFindings(),
+      this._openSourceHealthFindings,
+      OpenSourceHealthMapper.map,
+      'open source health',
+      forceRefresh,
+    );
   }
 
-  private fetchFindings<Response, Finding>(httpFn: () => Observable<Response>, findingSignal: WritableSignal<SigridFinding<Finding> | null>, mapperFn: (response: Response) => Finding, findingLabel: string, forceRefresh?: boolean) {
+  async loadAllFindings(): Promise<void> {
+    this._isRefreshing.set(true);
+    try {
+      await Promise
+        .all([
+          this.loadRefactoringCandidates(true),
+          this.loadSecurityFindings(true),
+          this.loadOpenSourceHealthFindings(true),
+        ]);
+    } finally {
+      this._isRefreshing.set(false);
+    }
+  }
+
+  private async fetchFindings<Response, Finding>(
+    httpFn: () => Observable<Response>,
+    findingSignal: WritableSignal<SigridFinding<Finding> | null>,
+    mapperFn: (response: Response) => Finding,
+    findingLabel: string,
+    forceRefresh?: boolean,
+  ): Promise<void> {
     if (!forceRefresh && findingSignal()) {
       return;
     }
 
-    httpFn().subscribe({
-      next: (data) => {
-        try {
-          console.log(data);
-          const mappedData = mapperFn(data);
-          //console.log(`Successfully fetched ${findingLabel} findings:`, mappedData);
-          findingSignal.set({data: mappedData} as SigridFinding<Finding>);
-        } catch (mapperError) {
-          console.error(`Error mapping response to ${findingLabel} findings:`, mapperError);
-          findingSignal.set({error: `Error occurred while mapping response to ${findingLabel} findings.`} as SigridFinding<Finding>);
-        }
-      },
-      error: (error) => {
-        console.error(`Error occurred while fetching ${findingLabel} findings:`, error);
-        findingSignal.set({error: this.toFetchErrorMessage(error, findingLabel)} as SigridFinding<Finding>);
+    try {
+      const data = await firstValueFrom(httpFn());
+
+      try {
+        const mappedData = mapperFn(data);
+        findingSignal.set({data: mappedData} as SigridFinding<Finding>);
+      } catch (mapperError) {
+        console.error(`Error mapping response to ${findingLabel} findings:`, mapperError);
+        findingSignal.set({error: `Error occurred while mapping response to ${findingLabel} findings.`} as SigridFinding<Finding>);
       }
-    });
+    } catch (error) {
+      console.error(`Error occurred while fetching ${findingLabel} findings:`, error);
+      findingSignal.set({error: this.toFetchErrorMessage(error, findingLabel)} as SigridFinding<Finding>);
+    }
   }
 
   private toFetchErrorMessage(error: unknown, findingLabel: string) {
@@ -104,12 +138,9 @@ export class SigridData {
       return fallback;
     }
 
-    // status === 0 usually means network error / CORS / request aborted
-    if (error.status === 0) {
-      return `Could not reach the server while fetching ${findingLabel} findings. Check your network connection and configuration.`;
-    }
-
     switch (error.status) {
+      case 0: // status === 0 usually means network error / CORS / request aborted
+        return `Could not reach the server while fetching ${findingLabel} findings. Check your network connection and configuration.`;
       case 400:
         return `Bad request while fetching ${findingLabel} findings. Please check the configuration.`;
       case 401:

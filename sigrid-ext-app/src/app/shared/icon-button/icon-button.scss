@@ -1,0 +1,13 @@
+.icon-button {
+  cursor: pointer;
+  color: var(--vscode-icon-foreground);
+
+  &:hover {
+    color: var(--vscode-textLink-activeForeground);
+  }
+
+  &.disabled {
+    cursor: pointer;
+    color: var(--vscode-disabledForeground) !important;
+  }
+}

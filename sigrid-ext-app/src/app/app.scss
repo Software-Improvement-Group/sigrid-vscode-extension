@@ -19,11 +19,19 @@
   overflow: auto;
 }
 
+.sigrid-tabs-container {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+}
+
 .sigrid-tabs {
   display: flex;
   justify-content: flex-start;
   align-items: center;
   padding-bottom: 0.25rem;
+  flex: 1;
 }
 
 .sigrid-tab {
@@ -60,6 +68,13 @@
   &:hover {
     color: var(--vscode-tab-activeForeground);
   }
+}
+
+.header-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0;
 }
 
 .file-filter {

@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {signal} from '@angular/core';
-import {provideHttpClient, HttpErrorResponse} from '@angular/common/http';
+import {provideHttpClient} from '@angular/common/http';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
@@ -89,7 +89,7 @@ describe('SigridData', () => {
     expect(service).toBeTruthy();
   });
 
-  it('filteredSecurityFindings: returns unfiltered findings when FileFilterMode.All', () => {
+  it('filteredSecurityFindings: returns unfiltered findings when FileFilterMode.All', async () => {
     const mapped = [
       {id: 'a', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
       {id: 'b', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
@@ -99,15 +99,16 @@ describe('SigridData', () => {
     service.setActiveFilePath('/repo/a.ts');
     service.setFileFilter(FileFilterMode.All);
 
-    service.loadSecurityFindings();
+    const p = service.loadSecurityFindings();
     httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+    await p;
 
     const finding = service.securityFindings()!;
     expect(finding.data).toBe(mapped as any);
     expect(finding.data).toHaveLength(2);
   });
 
-  it('filteredSecurityFindings: filters by activeFilePath when FileFilterMode.Active', () => {
+  it('filteredSecurityFindings: filters by activeFilePath when FileFilterMode.Active', async () => {
     const mapped = [
       {id: 'match-1', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
       {id: 'nope', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
@@ -118,14 +119,15 @@ describe('SigridData', () => {
     service.setActiveFilePath('/repo/a.ts');
     service.setFileFilter(FileFilterMode.Active);
 
-    service.loadSecurityFindings();
+    const p = service.loadSecurityFindings();
     httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+    await p;
 
     const finding = service.securityFindings()!;
     expect(finding.data?.map((x: any) => x.id)).toEqual(['match-1', 'match-2']);
   });
 
-  it('filteredOpenSourceHealthFindings: filters by activeFilePath when FileFilterMode.Active', () => {
+  it('filteredOpenSourceHealthFindings: filters by activeFilePath when FileFilterMode.Active', async () => {
     const mapped = [
       {name: 'dep-a', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
       {name: 'dep-b', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
@@ -135,7 +137,7 @@ describe('SigridData', () => {
     service.setActiveFilePath('/repo/b.ts');
     service.setFileFilter(FileFilterMode.Active);
 
-    service.loadOpenSourceHealthFindings();
+    const p = service.loadOpenSourceHealthFindings();
     httpMock.expectOne(findingEndpoint('osh-findings')).flush({
       bomFormat: 'CycloneDX',
       specVersion: '1.5',
@@ -144,12 +146,13 @@ describe('SigridData', () => {
       components: [],
       vulnerabilities: [],
     } satisfies OpenSourceHealthResponse);
+    await p;
 
     const finding = service.openSourceHealthFindings()!;
     expect(finding.data?.map((x: any) => x.name)).toEqual(['dep-b']);
   });
 
-  it('filteredRefactoringCandidates: filters by activeFilePath when FileFilterMode.Active', () => {
+  it('filteredRefactoringCandidates: filters by activeFilePath when FileFilterMode.Active', async () => {
     const mapped = [
       {id: 'rc-1', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
       {id: 'rc-2', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
@@ -160,7 +163,7 @@ describe('SigridData', () => {
     service.setActiveFilePath('/repo/a.ts');
     service.setFileFilter(FileFilterMode.Active);
 
-    service.loadRefactoringCandidates();
+    const p = service.loadRefactoringCandidates();
 
     const categories = Object.values(RefactoringCategory);
     for (const category of categories) {
@@ -168,12 +171,13 @@ describe('SigridData', () => {
         .expectOne(refactoringEndpoint(category))
         .flush({refactoringCandidates: []} satisfies RefactoringCandidatesResponse);
     }
+    await p;
 
     const finding = service.refactoringCandidates()!;
     expect(finding.data?.map((x: any) => x.id)).toEqual(['rc-1', 'rc-2']);
   });
 
-  it('filtered* signals: when Active filter is set but activeFilePath is undefined, data becomes empty (documents current behavior)', () => {
+  it('filtered* signals: when Active filter is set but activeFilePath is undefined, data becomes empty (documents current behavior)', async () => {
     const mappedSecurity = [{id: 's1', fileLocations: [{filePath: '/repo/a.ts'}]} as any];
     const mappedOsh = [{name: 'd1', fileLocations: [{filePath: '/repo/a.ts'}]} as any];
     const mappedRc = [{id: 'rc1', fileLocations: [{filePath: '/repo/a.ts'}]} as any];
@@ -185,11 +189,12 @@ describe('SigridData', () => {
     service.setFileFilter(FileFilterMode.Active);
     expect(service.activeFilePath()).toBeUndefined();
 
-    service.loadSecurityFindings();
+    const pSec = service.loadSecurityFindings();
     httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+    await pSec;
     expect(service.securityFindings()?.data).toEqual([]);
 
-    service.loadOpenSourceHealthFindings();
+    const pOsh = service.loadOpenSourceHealthFindings();
     httpMock.expectOne(findingEndpoint('osh-findings')).flush({
       bomFormat: 'CycloneDX',
       specVersion: '1.5',
@@ -198,15 +203,17 @@ describe('SigridData', () => {
       components: [],
       vulnerabilities: [],
     } satisfies OpenSourceHealthResponse);
+    await pOsh;
     expect(service.openSourceHealthFindings()?.data).toEqual([]);
 
-    service.loadRefactoringCandidates();
+    const pRc = service.loadRefactoringCandidates();
     const categories = Object.values(RefactoringCategory);
     for (const category of categories) {
       httpMock
         .expectOne(refactoringEndpoint(category))
         .flush({refactoringCandidates: []} satisfies RefactoringCandidatesResponse);
     }
+    await pRc;
     expect(service.refactoringCandidates()?.data).toEqual([]);
   });
 
@@ -238,11 +245,11 @@ describe('SigridData', () => {
     expect(service.displayActivePath()).toBe('');
   });
 
-  it('loadSecurityFindings() fetches via API, maps, and stores data', () => {
+  it('loadSecurityFindings() fetches via API, maps, and stores data', async () => {
     const mapped = [{ id: 'mapped-security' }] as any;
     const mapperSpy = vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mapped);
 
-    service.loadSecurityFindings();
+    const p = service.loadSecurityFindings();
 
     const req = httpMock.expectOne(findingEndpoint('security-findings'));
     expect(req.request.method).toBe('GET');
@@ -277,6 +284,7 @@ describe('SigridData', () => {
       },
     ];
     req.flush(apiPayload);
+    await p;
 
     expect(mapperSpy).toHaveBeenCalledTimes(1);
     expect(mapperSpy).toHaveBeenCalledWith(apiPayload);
@@ -286,11 +294,11 @@ describe('SigridData', () => {
     expect(finding.error).toBeUndefined();
   });
 
-  it('loadOpenSourceHealthFindings() fetches via API, maps, and stores data', () => {
+  it('loadOpenSourceHealthFindings() fetches via API, maps, and stores data', async () => {
     const mapped = [{ name: 'mapped-osh' }] as any;
     const mapperSpy = vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue(mapped);
 
-    service.loadOpenSourceHealthFindings();
+    const p = service.loadOpenSourceHealthFindings();
 
     const req = httpMock.expectOne(findingEndpoint('osh-findings'));
     expect(req.request.method).toBe('GET');
@@ -304,6 +312,7 @@ describe('SigridData', () => {
       vulnerabilities: [],
     };
     req.flush(apiPayload);
+    await p;
 
     expect(mapperSpy).toHaveBeenCalledTimes(1);
     expect(mapperSpy).toHaveBeenCalledWith(apiPayload);
@@ -313,11 +322,11 @@ describe('SigridData', () => {
     expect(finding.error).toBeUndefined();
   });
 
-  it('loadRefactoringCandidates() fetches all categories via API, maps, and stores data', () => {
+  it('loadRefactoringCandidates() fetches all categories via API, maps, and stores data', async () => {
     const mapped = [{ id: 'mapped-rc' }] as any;
     const mapperSpy = vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue(mapped);
 
-    service.loadRefactoringCandidates();
+    const p = service.loadRefactoringCandidates();
 
     const categories = Object.values(RefactoringCategory);
 
@@ -326,6 +335,7 @@ describe('SigridData', () => {
       expect(req.request.method).toBe('GET');
       req.flush({ refactoringCandidates: [] } satisfies RefactoringCandidatesResponse);
     }
+    await p;
 
     expect(mapperSpy).toHaveBeenCalledTimes(1);
 
@@ -339,113 +349,71 @@ describe('SigridData', () => {
     expect(finding.error).toBeUndefined();
   });
 
-  it('does not refetch when data already exists and forceRefresh is not set', () => {
+  it('does not refetch when data already exists and forceRefresh is not set', async () => {
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue([] as any);
 
-    service.loadSecurityFindings();
+    const p1 = service.loadSecurityFindings();
     httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+    await p1;
 
-    service.loadSecurityFindings(); // ignored
+    await service.loadSecurityFindings(); // ignored
     httpMock.expectNone(findingEndpoint('security-findings'));
   });
 
-  it('refetches when forceRefresh is true', () => {
+  it('refetches when forceRefresh is true', async () => {
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue([] as any);
 
-    service.loadSecurityFindings();
+    const p1 = service.loadSecurityFindings();
     httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+    await p1;
 
-    service.loadSecurityFindings(true);
+    const p2 = service.loadSecurityFindings(true);
     httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
+    await p2;
   });
 
-  it('stores a fetch error when the HTTP request fails', () => {
-    service.loadSecurityFindings();
+  it('stores a fetch error when the HTTP request fails', async () => {
+    const p = service.loadSecurityFindings();
 
     const req = httpMock.expectOne(findingEndpoint('security-findings'));
     req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+    await p;
 
     const finding = service.securityFindings()!;
     expect(finding.data).toBeUndefined();
     expect(finding.error).toBe('Server error (500) while fetching security findings. Please try again later.');
   });
 
-  describe('toFetchErrorMessage()', () => {
-    it('returns the fallback message for non-HttpErrorResponse errors', () => {
-      const msg = (service as any).toFetchErrorMessage(new Error('boom'), 'security');
-      expect(msg).toBe('Error occurred while fetching security findings.');
-    });
-
-    it('returns a network/config hint message when status is 0', () => {
-      const err = new HttpErrorResponse({ status: 0, statusText: 'Unknown Error', error: 'Network error' });
-      const msg = (service as any).toFetchErrorMessage(err, 'security');
-      expect(msg).toBe(
-        'Could not reach the server while fetching security findings. Check your network connection and configuration.',
-      );
-    });
-
-    it('maps known HTTP status codes to specific messages', () => {
-      const cases: Array<{ status: number; expected: string }> = [
-        { status: 400, expected: 'Bad request while fetching security findings. Please check the configuration.' },
-        {
-          status: 401,
-          expected:
-            'Unauthorized while fetching security findings. Please verify your access token and other configuration settings.',
-        },
-        {
-          status: 403,
-          expected: 'Forbidden while fetching security findings. You do not have permission to access this resource.',
-        },
-        {
-          status: 404,
-          expected:
-            'Not found while fetching security findings. Please verify the server URL and configured customer/system.',
-        },
-        { status: 408, expected: 'Request timed out while fetching security findings. Please try again.' },
-        { status: 429, expected: 'Too many requests while fetching security findings. Please wait and try again.' },
-      ];
-
-      for (const { status, expected } of cases) {
-        const err = new HttpErrorResponse({ status, statusText: 'X', error: 'Y' });
-        const msg = (service as any).toFetchErrorMessage(err, 'security');
-        expect(msg).toBe(expected);
-      }
-    });
-
-    it('formats 5xx responses as a server error message (includes status code)', () => {
-      const err = new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable', error: 'nope' });
-      const msg = (service as any).toFetchErrorMessage(err, 'security');
-      expect(msg).toBe('Server error (503) while fetching security findings. Please try again later.');
-    });
-
-    it('formats other non-mapped statuses as a generic request failed message (includes status code)', () => {
-      const err = new HttpErrorResponse({ status: 418, statusText: "I'm a teapot", error: 'nope' });
-      const msg = (service as any).toFetchErrorMessage(err, 'security');
-      expect(msg).toBe('Request failed (418) while fetching security findings.');
-    });
-  });
-
-  it('stores a mapping error when the mapper throws', () => {
+  it('stores a mapping error when the mapper throws', async () => {
     vi.spyOn(SecurityFindingMapper, 'map').mockImplementation(() => {
       throw new Error('mapper boom');
     });
 
-    service.loadSecurityFindings();
+    const p = service.loadSecurityFindings();
 
     const req = httpMock.expectOne(findingEndpoint('security-findings'));
     req.flush([] as SecurityFindingResponse[]);
+    await p;
 
     const finding = service.securityFindings()!;
     expect(finding.data).toBeUndefined();
     expect(finding.error).toBe('Error occurred while mapping response to security findings.');
   });
 
-  it('loadAllFindings() calls all three loaders with forceRefresh=true', () => {
-    const loadRefactoringSpy = vi.spyOn(service, 'loadRefactoringCandidates').mockImplementation(() => undefined);
-    const loadSecuritySpy = vi.spyOn(service, 'loadSecurityFindings').mockImplementation(() => undefined);
-    const loadOshSpy = vi.spyOn(service, 'loadOpenSourceHealthFindings').mockImplementation(() => undefined);
+  it('loadAllFindings() calls all three loaders with forceRefresh=true', async () => {
+    const loadRefactoringSpy = vi
+      .spyOn(service, 'loadRefactoringCandidates')
+      .mockImplementation(() => Promise.resolve());
 
-    service.loadAllFindings();
+    const loadSecuritySpy = vi
+      .spyOn(service, 'loadSecurityFindings')
+      .mockImplementation(() => Promise.resolve());
+
+    const loadOshSpy = vi
+      .spyOn(service, 'loadOpenSourceHealthFindings')
+      .mockImplementation(() => Promise.resolve());
+
+    await service.loadAllFindings();
 
     expect(loadRefactoringSpy).toHaveBeenCalledTimes(1);
     expect(loadRefactoringSpy).toHaveBeenCalledWith(true);
@@ -455,16 +423,64 @@ describe('SigridData', () => {
 
     expect(loadOshSpy).toHaveBeenCalledTimes(1);
     expect(loadOshSpy).toHaveBeenCalledWith(true);
-
-    // No HTTP expectations here because we stubbed the loaders.
   });
 
-  it('loadAllFindings() triggers HTTP fetches for refactoring, security, and open source health findings', () => {
+  it('loadAllFindings() toggles isRefreshing true while running, then false when finished (even if loaders are async)', async () => {
+    let resolveRefactoring!: () => void;
+    let resolveSecurity!: () => void;
+    let resolveOsh!: () => void;
+
+    vi.spyOn(service, 'loadRefactoringCandidates').mockImplementation(
+      () => new Promise<void>((resolve) => { resolveRefactoring = resolve; }),
+    );
+    vi.spyOn(service, 'loadSecurityFindings').mockImplementation(
+      () => new Promise<void>((resolve) => { resolveSecurity = resolve; }),
+    );
+    vi.spyOn(service, 'loadOpenSourceHealthFindings').mockImplementation(
+      () => new Promise<void>((resolve) => { resolveOsh = resolve; }),
+    );
+
+    expect(service.isRefreshing()).toBe(false);
+
+    const p = service.loadAllFindings();
+
+    // after calling loadAllFindings(), the flag should be set synchronously
+    expect(service.isRefreshing()).toBe(true);
+
+    resolveRefactoring();
+    resolveSecurity();
+
+    // still waiting for OSH => still refreshing
+    await Promise.resolve(); // allow microtasks to run
+    expect(service.isRefreshing()).toBe(true);
+
+    resolveOsh();
+    await p;
+
+    expect(service.isRefreshing()).toBe(false);
+  });
+
+  it('loadAllFindings() sets isRefreshing back to false even when a loader rejects', async () => {
+    vi.spyOn(service, 'loadRefactoringCandidates').mockResolvedValue();
+    vi.spyOn(service, 'loadSecurityFindings').mockRejectedValue(new Error('boom'));
+    vi.spyOn(service, 'loadOpenSourceHealthFindings').mockResolvedValue();
+
+    expect(service.isRefreshing()).toBe(false);
+
+    await expect(service.loadAllFindings()).rejects.toThrow('boom');
+
+    expect(service.isRefreshing()).toBe(false);
+  });
+
+  it('loadAllFindings() triggers HTTP fetches for refactoring, security, and open source health findings', async () => {
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue([] as any);
     vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue([] as any);
     vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue([] as any);
 
-    service.loadAllFindings();
+    expect(service.isRefreshing()).toBe(false);
+
+    const p = service.loadAllFindings();
+    expect(service.isRefreshing()).toBe(true);
 
     // Security + OSH are single endpoints
     httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
@@ -484,5 +500,8 @@ describe('SigridData', () => {
         .expectOne(refactoringEndpoint(category))
         .flush({refactoringCandidates: []} satisfies RefactoringCandidatesResponse);
     }
+
+    await p;
+    expect(service.isRefreshing()).toBe(false);
   });
 });

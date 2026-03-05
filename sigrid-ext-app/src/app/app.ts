@@ -6,10 +6,11 @@ import {VsCommandRegistry} from './commands/vs-command-registry';
 import {SelectButton} from './shared/select-button/select-button';
 import {SigridData} from './services/sigrid-data';
 import {FileFilterMode} from './models/file-filter-mode';
+import {IconButton} from './shared/icon-button/icon-button';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SelectButton],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SelectButton, IconButton],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -25,6 +26,7 @@ export class App implements OnInit {
   ];
   protected readonly activeFilePath = this.sigridData.activeFilePath;
   protected readonly displayActivePath = this.sigridData.displayActivePath;
+  protected readonly refreshButtonDisabled = this.sigridData.isRefreshing;
 
   constructor() {
     window.addEventListener('message', this.onMessageReceived.bind(this));
@@ -43,5 +45,9 @@ export class App implements OnInit {
 
   protected onFileFilterChange(mode: FileFilterMode) {
     this.sigridData.setFileFilter(mode);
+  }
+
+  protected async refresh() {
+    await this.sigridData.loadAllFindings();
   }
 }

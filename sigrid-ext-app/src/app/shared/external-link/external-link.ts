@@ -1,9 +1,14 @@
 import {Component, inject, input} from '@angular/core';
 import {VsCode} from '../../services/vs-code';
+import {IconButton} from '../icon-button/icon-button';
+import {SigridTooltip} from '../tooltip/sigrid-tooltip';
 
 @Component({
   selector: 'sigrid-external-link',
-  imports: [],
+  imports: [
+    IconButton,
+    SigridTooltip
+  ],
   templateUrl: './external-link.html',
   styleUrl: './external-link.scss',
 })
