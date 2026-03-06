@@ -117,7 +117,6 @@ export class SigridData {
 
     try {
       const data = await firstValueFrom(httpFn());
-      console.log(data);
 
       try {
         const mappedData = mapperFn(data);

@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {SigridConfiguration} from './services/sigrid-configuration';
 import {WebviewMessage} from './models/webview-message';
@@ -15,7 +15,7 @@ import {TooltipDirective} from 'ngx-smart-tooltip';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
   private router = inject(Router);
   private sigridConfig = inject(SigridConfiguration);
   private commandRegistry = inject(VsCommandRegistry);
@@ -28,6 +28,8 @@ export class App implements OnInit {
   protected readonly activeFilePath = this.sigridData.activeFilePath;
   protected readonly displayActivePath = this.sigridData.displayActivePath;
   protected readonly refreshButtonDisabled = this.sigridData.isRefreshing;
+  private intervalId: any;
+  private static readonly refreshInterval = 1800000; // 30 minutes
 
   constructor() {
     window.addEventListener('message', this.onMessageReceived.bind(this));
@@ -37,6 +39,12 @@ export class App implements OnInit {
     if (this.router.url === '/') {
       this.router.navigate(['/maintainability']);
     }
+
+    this.intervalId = setInterval(() => {
+      if (this.isConfigValid() && !this.sigridData.isRefreshing()) {
+        this.refresh().then();
+      }
+    }, App.refreshInterval);
   }
 
   onMessageReceived(message: MessageEvent<WebviewMessage>) {
@@ -50,5 +58,9 @@ export class App implements OnInit {
 
   protected async refresh() {
     await this.sigridData.loadAllFindings();
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.intervalId);
   }
 }
