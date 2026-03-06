@@ -15,7 +15,12 @@
     @for (dependency of findings(); track dependency.purl) {
       <tr sigridFindingNavigator [locations]="dependency.fileLocations">
         <td class="text-center"><sigrid-severity-icon [severity]="dependency.risk" /></td>
-        <td>{{ dependency.displayName }}</td>
+        <td>
+          <div class="external-link-container">
+            <span>{{ dependency.displayName }}</span>
+            <sigrid-external-link [href]="'https://sigrid-says.com'" />
+          </div>
+        </td>
         <td>{{ dependency.version }}</td>
         <td class="text-center">{{ dependency.dependencyType }}</td>
         <td class="text-center"><sigrid-severity-icon [severity]="dependency.licenseRisk" /></td>

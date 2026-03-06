@@ -4,12 +4,14 @@ import {FindingComponent} from '../shared/finding-component';
 import {SigridData} from '../services/sigrid-data';
 import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 import {FindingNavigator} from '../shared/finding-navigator';
+import {ExternalLink} from '../shared/external-link/external-link';
 
 @Component({
   selector: 'sigrid-open-source-health',
   imports: [
     SeverityIcon,
-    FindingNavigator
+    FindingNavigator,
+    ExternalLink
   ],
   templateUrl: './open-source-health.html',
   styleUrl: './open-source-health.scss',

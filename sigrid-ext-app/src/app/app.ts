@@ -7,10 +7,11 @@ import {SelectButton} from './shared/select-button/select-button';
 import {SigridData} from './services/sigrid-data';
 import {FileFilterMode} from './models/file-filter-mode';
 import {IconButton} from './shared/icon-button/icon-button';
+import {TooltipDirective} from 'ngx-smart-tooltip';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SelectButton, IconButton],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SelectButton, IconButton, TooltipDirective],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

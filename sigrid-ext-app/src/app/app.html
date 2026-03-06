@@ -13,7 +13,7 @@
         </div>
       </div>
       <div class="header-action-buttons">
-        <sigrid-icon-button iconClass="codicon codicon-refresh" title="Refresh" [disabled]="refreshButtonDisabled()" (onClick)="refresh()"/>
+        <sigrid-icon-button iconClass="codicon codicon-refresh" ngxTooltip="Refresh" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="refreshButtonDisabled()" (onClick)="refresh()"/>
       </div>
     </div>
     <div class="file-filter">
