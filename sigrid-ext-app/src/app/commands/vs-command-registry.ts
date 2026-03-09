@@ -17,7 +17,7 @@ export class VsCommandRegistry {
     initialize: new InitializeCommand(this.sigridConfig),
     activeEditorChanged: new ActiveEditorChangedCommand(this.sigridData),
     configurationChanged: new ConfigurationChangedCommand(this.sigridConfig, this.sigridData),
-  }
+  };
 
   execute(command: string, payload: unknown) {
     this.commands[command]?.execute(payload);

@@ -52,7 +52,7 @@ describe('VsCode service', () => {
 
     const svc = TestBed.inject(VsCode);
 
-    svc.postMessage('Hello');
+    svc.showMessage('Hello');
 
     expect(postMessageSpy).toHaveBeenCalledTimes(1);
 
@@ -76,7 +76,7 @@ describe('VsCode service', () => {
 
     const svc = TestBed.inject(VsCode);
 
-    svc.postMessage('Something happened', VsMessageSeverity.Error);
+    svc.showMessage('Something happened', VsMessageSeverity.Error);
 
     const arg = postMessageSpy.mock.calls[0]![0] as VsCommand<unknown>;
     expect(arg.command).toBe(VsCommandType.Message);
@@ -116,7 +116,7 @@ describe('VsCode service', () => {
 
     const svc = TestBed.inject(VsCode);
 
-    expect(() => svc.postMessage('x')).not.toThrow();
+    expect(() => svc.showMessage('x')).not.toThrow();
     expect(() => svc.openFile({filePath: '/x'} as any)).not.toThrow();
   });
 });

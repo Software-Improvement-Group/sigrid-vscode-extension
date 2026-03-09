@@ -1,3 +1,5 @@
+import { VsCodeCommandData } from "./vscode-command-data";
+
 export interface VsCodeCommand<T> {
-    execute(payload?: T): void;
+    execute(data: VsCodeCommandData<T>): void;
 }
