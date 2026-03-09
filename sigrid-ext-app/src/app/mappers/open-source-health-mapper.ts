@@ -15,7 +15,7 @@ export class OpenSourceHealthMapper {
   private static readonly managementRiskKey = 'sigrid:risk:management';
 
   static map(response: OpenSourceHealthResponse): OpenSourceHealthDependency[] {
-    if (Array.isArray(response.components)) {
+    if (Array.isArray(response?.components)) {
       return response.components.map(component => {
         const properties = asRecord(component.properties);
 

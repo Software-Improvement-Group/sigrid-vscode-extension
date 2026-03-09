@@ -1,14 +1,19 @@
 @if (this.isConfigValid()) {
   <div class="sigrid-header">
-    <div class="sigrid-tabs">
-      <div class="sigrid-tab" routerLink="/maintainability" routerLinkActive="active">
-        <div class="tab-label-wrapper"><span class="tab-label">Maintainability</span></div>
+    <div class="sigrid-tabs-container">
+      <div class="sigrid-tabs">
+        <div class="sigrid-tab" routerLink="/maintainability" routerLinkActive="active">
+          <div class="tab-label-wrapper"><span class="tab-label">Maintainability</span></div>
+        </div>
+        <div class="sigrid-tab" routerLink="/security" routerLinkActive="active">
+          <div class="tab-label-wrapper"><span class="tab-label">Security</span></div>
+        </div>
+        <div class="sigrid-tab" routerLink="/open-source-health" routerLinkActive="active">
+          <div class="tab-label-wrapper"><span class="tab-label">Open Source Health</span></div>
+        </div>
       </div>
-      <div class="sigrid-tab" routerLink="/security" routerLinkActive="active">
-        <div class="tab-label-wrapper"><span class="tab-label">Security</span></div>
-      </div>
-      <div class="sigrid-tab" routerLink="/open-source-health" routerLinkActive="active">
-        <div class="tab-label-wrapper"><span class="tab-label">Open Source Health</span></div>
+      <div class="header-action-buttons">
+        <sigrid-icon-button iconClass="codicon codicon-refresh" ngxTooltip="Refresh" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="refreshButtonDisabled()" (onClick)="refresh()"/>
       </div>
     </div>
     <div class="file-filter">

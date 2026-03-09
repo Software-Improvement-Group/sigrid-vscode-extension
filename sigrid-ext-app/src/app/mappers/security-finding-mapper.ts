@@ -5,6 +5,9 @@ import {snakeCaseToTitleCase} from '../utilities/string';
 
 export class SecurityFindingMapper {
   static map(findingsResponse: SecurityFindingResponse[]): SecurityFinding[] {
+    if (!Array.isArray(findingsResponse)) {
+      return [];
+    }
     return findingsResponse.map((response) => {
       const finding = new SecurityFinding();
       finding.id = response.id;

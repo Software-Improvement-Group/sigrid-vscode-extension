@@ -23,7 +23,7 @@ export class RefactoringCandidateMapper {
   }
 
   private static mapRefactoringCandidate(category: RefactoringCategory, candidateResponse: RefactoringCandidatesResponse): RefactoringCandidate[] {
-    if (Array.isArray(candidateResponse.refactoringCandidates)) {
+    if (Array.isArray(candidateResponse?.refactoringCandidates)) {
       return candidateResponse.refactoringCandidates.map(response => {
         const refactoringCandidate = new RefactoringCandidate();
         refactoringCandidate.id = response.id;

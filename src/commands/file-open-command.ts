@@ -1,4 +1,4 @@
-import { Position, Range, Selection, window, workspace } from "vscode";
+import { window, workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { moveCursor } from "../utilities/editor";
 

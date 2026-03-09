@@ -35,3 +35,28 @@ html, body {
 .error {
   color: var(--vscode-errorForeground);
 }
+
+.external-link-container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  & > :first-child {
+    flex: 1;
+    width: 100%;
+  }
+
+  sigrid-external-link {
+    flex: 0;
+  }
+}
+
+.sigrid-tooltip {
+  background: var(--vscode-editorHoverWidget-background) !important;
+  color: var(--vscode-editorHoverWidget-foreground) !important;
+  border: 1px solid var(--vscode-editorHoverWidget-border) !important;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}

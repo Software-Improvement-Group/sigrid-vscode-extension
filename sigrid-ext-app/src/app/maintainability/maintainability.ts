@@ -4,12 +4,14 @@ import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {SigridData} from '../services/sigrid-data';
 import {MaintainabilitySeverityIcon} from './maintainability-severity-icon/maintainability-severity-icon.component';
 import {FindingNavigator} from '../shared/finding-navigator';
+import {ExternalLink} from '../shared/external-link/external-link';
 
 @Component({
   selector: 'app-maintainability',
   imports: [
     MaintainabilitySeverityIcon,
-    FindingNavigator
+    FindingNavigator,
+    ExternalLink
   ],
   templateUrl: './maintainability.html',
   styleUrl: './maintainability.scss',
