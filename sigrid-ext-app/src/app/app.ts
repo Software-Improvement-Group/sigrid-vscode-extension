@@ -8,6 +8,7 @@ import {SigridData} from './services/sigrid-data';
 import {FileFilterMode} from './models/file-filter-mode';
 import {IconButton} from './shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
+import {REFRESH_INTERVAL} from './utilities/constants';
 
 @Component({
   selector: 'app-root',
@@ -29,7 +30,6 @@ export class App implements OnInit, OnDestroy {
   protected readonly displayActivePath = this.sigridData.displayActivePath;
   protected readonly refreshButtonDisabled = this.sigridData.isRefreshing;
   private intervalId: any;
-  private static readonly refreshInterval = 1800000; // 30 minutes
 
   constructor() {
     window.addEventListener('message', this.onMessageReceived.bind(this));
@@ -44,7 +44,7 @@ export class App implements OnInit, OnDestroy {
       if (this.isConfigValid() && !this.sigridData.isRefreshing()) {
         this.refresh().then();
       }
-    }, App.refreshInterval);
+    }, REFRESH_INTERVAL);
   }
 
   onMessageReceived(message: MessageEvent<WebviewMessage>) {
