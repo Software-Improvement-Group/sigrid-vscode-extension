@@ -5,6 +5,8 @@ import {VsCommandRegistry} from './vs-command-registry';
 import {SigridConfiguration} from '../services/sigrid-configuration';
 import {InitializeCommand} from './initialize-command';
 import {ActiveEditorChangedCommand} from './active-editor-changed-command';
+import {SigridData} from '../services/sigrid-data';
+import {UsageStatistics} from '../services/usage-statistics';
 
 describe('VsCommandRegistry', () => {
   afterEach(() => {
@@ -22,9 +24,20 @@ describe('VsCommandRegistry', () => {
           provide: SigridConfiguration,
           useValue: {
             setConfiguration: vi.fn(),
-            getConfiguration: vi.fn(),
-            getEmptyConfiguration: vi.fn(),
-          } satisfies Partial<SigridConfiguration>,
+          },
+        },
+        {
+          provide: SigridData,
+          useValue: {
+            loadAllFindings: vi.fn(),
+            setActiveFilePath: vi.fn(),
+          },
+        },
+        {
+          provide: UsageStatistics,
+          useValue: {
+            send: vi.fn(),
+          },
         },
       ],
     });
@@ -48,9 +61,20 @@ describe('VsCommandRegistry', () => {
           provide: SigridConfiguration,
           useValue: {
             setConfiguration: vi.fn(),
-            getConfiguration: vi.fn(),
-            getEmptyConfiguration: vi.fn(),
-          } satisfies Partial<SigridConfiguration>,
+          },
+        },
+        {
+          provide: SigridData,
+          useValue: {
+            loadAllFindings: vi.fn(),
+            setActiveFilePath: vi.fn(),
+          },
+        },
+        {
+          provide: UsageStatistics,
+          useValue: {
+            send: vi.fn(),
+          },
         },
       ],
     });
@@ -75,9 +99,20 @@ describe('VsCommandRegistry', () => {
           provide: SigridConfiguration,
           useValue: {
             setConfiguration: vi.fn(),
-            getConfiguration: vi.fn(),
-            getEmptyConfiguration: vi.fn(),
-          } satisfies Partial<SigridConfiguration>,
+          },
+        },
+        {
+          provide: SigridData,
+          useValue: {
+            loadAllFindings: vi.fn(),
+            setActiveFilePath: vi.fn(),
+          },
+        },
+        {
+          provide: UsageStatistics,
+          useValue: {
+            send: vi.fn(),
+          },
         },
       ],
     });

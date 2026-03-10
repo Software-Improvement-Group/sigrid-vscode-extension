@@ -3,6 +3,7 @@ import {ConfigurationChangedCommand} from './configuration-changed-command';
 import type {Configuration} from '../models/configuration';
 import type {SigridConfiguration} from '../services/sigrid-configuration';
 import type {SigridData} from '../services/sigrid-data';
+import {UsageStatistics} from '../services/usage-statistics';
 
 describe('ConfigurationChangedCommand', () => {
   it('calls SigridConfiguration.setConfiguration with the provided payload', () => {
@@ -14,9 +15,14 @@ describe('ConfigurationChangedCommand', () => {
       loadAllFindings: vi.fn(),
     };
 
+    const usageStatisticsMock: Pick<UsageStatistics, 'send'> = {
+      send: vi.fn(),
+    };
+
     const cmd = new ConfigurationChangedCommand(
       sigridConfigMock as SigridConfiguration,
       sigridDataMock as SigridData,
+      usageStatisticsMock as UsageStatistics,
     );
 
     const payload: Configuration = {
@@ -41,9 +47,14 @@ describe('ConfigurationChangedCommand', () => {
       loadAllFindings: vi.fn(),
     };
 
+    const usageStatisticsMock: Pick<UsageStatistics, 'send'> = {
+      send: vi.fn(),
+    };
+
     const cmd = new ConfigurationChangedCommand(
       sigridConfigMock as SigridConfiguration,
       sigridDataMock as SigridData,
+      usageStatisticsMock as UsageStatistics,
     );
 
     const payload: Configuration = {
