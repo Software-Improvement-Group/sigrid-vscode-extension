@@ -5,6 +5,7 @@ import { getNonce } from "../utilities/get-nonce";
 import { VsCodeCommandEvent } from "../commands/vscode-command-event";
 import { COMMANDS } from "../commands/command-registry";
 import { getRelativePath } from "../utilities/workspace";
+import { VsCodeCommandData } from "../commands/vscode-command-data";
 
 export class SigridPanel {
   static currentPanel: SigridPanel | undefined;
@@ -16,7 +17,7 @@ export class SigridPanel {
     this.panel.webview.html = this.getWebviewContent(this.panel.webview, extensionUri);
     this.setWebviewMessageListener(this.panel.webview);
     this.setActiveEditorListener(this.panel.webview);
-    this.setConfigurationChangeListener();
+    this.setConfigurationChangeListener(this.panel.webview);
   }
 
   /**
@@ -54,8 +55,6 @@ export class SigridPanel {
       };
 
       SigridPanel.currentPanel = new SigridPanel(panel, extensionUri);
-      
-      panel.webview.postMessage({ command: "initialize", data: workspace.getConfiguration().get(EXTENSION_ID)} );
     }
   }
 
@@ -102,7 +101,7 @@ export class SigridPanel {
   private setWebviewMessageListener(webview: Webview) {
     webview.onDidReceiveMessage(
       (message: VsCodeCommandEvent) => {
-        COMMANDS[message.command]?.execute(message.data);
+        COMMANDS[message.command]?.execute(new VsCodeCommandData(webview, message.data));
       },
       undefined,
       this.disposables
@@ -120,12 +119,13 @@ export class SigridPanel {
     }, undefined, this.disposables);
   }
 
-  private setConfigurationChangeListener() {
+  private setConfigurationChangeListener(webview: Webview) {
     workspace.onDidChangeConfiguration(event => {
       if (event.affectsConfiguration(EXTENSION_ID)) {
         const newConfig = workspace.getConfiguration().get(EXTENSION_ID);
-        this.panel.webview.postMessage({ command: "configurationChanged", data: newConfig });
+        webview.postMessage({ command: "configurationChanged", data: newConfig });
       }
     }, undefined, this.disposables);
   }
 }
+

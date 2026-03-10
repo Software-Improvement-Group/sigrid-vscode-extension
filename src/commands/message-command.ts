@@ -1,9 +1,12 @@
 import { window } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
+import { VsCodeCommandData } from "./vscode-command-data";
 
 export class MessageCommand implements VsCodeCommand<MessagePayload> {
-    execute(payload: MessagePayload) {
+    execute(data: VsCodeCommandData<MessagePayload>) {
+        const payload = data.payload;
         const { text, severity } = payload;
+        
         switch (severity) {
             case 'info':
                 window.showInformationMessage(text);
