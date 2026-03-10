@@ -1,4 +1,5 @@
-import { VsCodeCommand, VsCodeCommandData } from "./vscode-command";
+import { VsCodeCommand } from "./vscode-command";
+import { VsCodeCommandData } from "./vscode-command-data";
 
 const STATISTICS_URL = 'https://sigrid-says.com/usage/matomo.php?idsite=5&rec=1&ca=1&e_c=vscode&e_a=';
 
