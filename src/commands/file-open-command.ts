@@ -1,10 +1,17 @@
 import { window, workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { moveCursor } from "../utilities/editor";
+import { VsCodeCommandData } from "./vscode-command-data";
 
 export class FileOpenCommand implements VsCodeCommand<FileOpenPayload> {
-    async execute(payload: FileOpenPayload) {
+    async execute(data: VsCodeCommandData<FileOpenPayload>) {
+        const payload = data.payload;
         const { filePath } = payload;
+
+        if (!filePath) {
+            window.showErrorMessage("No file path provided to open.");
+            return;
+        }
 
         try {
             const files = await workspace.findFiles(`**/${filePath}`);

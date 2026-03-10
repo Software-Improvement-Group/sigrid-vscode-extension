@@ -20,7 +20,11 @@ export class VsCode {
     }
   }
 
-  postMessage(message: string, severity = VsMessageSeverity.Info) {
+  initialize() {
+    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.Initialize));
+  }
+
+  showMessage(message: string, severity = VsMessageSeverity.Info) {
     this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.Message, new VsMessageData(message, severity)));
   }
 

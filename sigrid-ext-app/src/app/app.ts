@@ -9,6 +9,7 @@ import {FileFilterMode} from './models/file-filter-mode';
 import {IconButton} from './shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {REFRESH_INTERVAL} from './utilities/constants';
+import {VsCode} from './services/vs-code';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +22,7 @@ export class App implements OnInit, OnDestroy {
   private sigridConfig = inject(SigridConfiguration);
   private commandRegistry = inject(VsCommandRegistry);
   private sigridData = inject(SigridData);
+  private vscode = inject(VsCode);
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
   protected fileFilterOptions = [
     {label: 'All', value: FileFilterMode.All},
@@ -45,6 +47,8 @@ export class App implements OnInit, OnDestroy {
         this.refresh().then();
       }
     }, REFRESH_INTERVAL);
+
+    this.vscode.initialize();
   }
 
   onMessageReceived(message: MessageEvent<WebviewMessage>) {

@@ -42,6 +42,26 @@ describe('VsCode service', () => {
     expect(errorSpy.mock.calls[0]?.[0]).toBe('VS Code API not available.');
   });
 
+  it('initialize() sends a VsCommand(Initialize)', () => {
+    const postMessageSpy = vi.fn();
+    (globalThis as any).acquireVsCodeApi = vi.fn(() => ({postMessage: postMessageSpy}));
+
+    TestBed.configureTestingModule({
+      providers: [VsCode],
+    });
+
+    const svc = TestBed.inject(VsCode);
+
+    svc.initialize();
+
+    expect(postMessageSpy).toHaveBeenCalledTimes(1);
+
+    const arg = postMessageSpy.mock.calls[0]![0] as VsCommand<unknown>;
+    expect(arg).toBeInstanceOf(VsCommand);
+    expect(arg.command).toBe(VsCommandType.Initialize);
+    expect(arg.data).toBeUndefined();
+  });
+
   it('postMessage() sends a VsCommand(Message) with VsMessageData and default severity Info', () => {
     const postMessageSpy = vi.fn();
     (globalThis as any).acquireVsCodeApi = vi.fn(() => ({postMessage: postMessageSpy}));
@@ -52,7 +72,7 @@ describe('VsCode service', () => {
 
     const svc = TestBed.inject(VsCode);
 
-    svc.postMessage('Hello');
+    svc.showMessage('Hello');
 
     expect(postMessageSpy).toHaveBeenCalledTimes(1);
 
@@ -76,7 +96,7 @@ describe('VsCode service', () => {
 
     const svc = TestBed.inject(VsCode);
 
-    svc.postMessage('Something happened', VsMessageSeverity.Error);
+    svc.showMessage('Something happened', VsMessageSeverity.Error);
 
     const arg = postMessageSpy.mock.calls[0]![0] as VsCommand<unknown>;
     expect(arg.command).toBe(VsCommandType.Message);
@@ -116,7 +136,7 @@ describe('VsCode service', () => {
 
     const svc = TestBed.inject(VsCode);
 
-    expect(() => svc.postMessage('x')).not.toThrow();
+    expect(() => svc.showMessage('x')).not.toThrow();
     expect(() => svc.openFile({filePath: '/x'} as any)).not.toThrow();
   });
 });

@@ -1,8 +1,11 @@
 import { env, Uri, window } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
+import { VsCodeCommandData } from "./vscode-command-data";
 
 export class UrlOpenCommand implements VsCodeCommand<string> {
-    execute(url: string) {
+    execute(data: VsCodeCommandData<string>) {
+        const url = data.payload;
+
         if (url) {
             try {
                 const uri = Uri.parse(url);
