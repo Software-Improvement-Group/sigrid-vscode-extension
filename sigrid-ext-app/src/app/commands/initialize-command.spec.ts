@@ -2,6 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {InitializeCommand} from './initialize-command';
 import type {Configuration} from '../models/configuration';
 import type {SigridConfiguration} from '../services/sigrid-configuration';
+import {UsageStatistics} from '../services/usage-statistics';
 
 describe('InitializeCommand', () => {
   it('calls SigridConfiguration.setConfiguration with the provided configuration', () => {
@@ -9,7 +10,14 @@ describe('InitializeCommand', () => {
       setConfiguration: vi.fn(),
     };
 
-    const cmd = new InitializeCommand(sigridConfigMock as SigridConfiguration);
+    const usageStatisticsMock: Pick<UsageStatistics, 'send'> = {
+      send: vi.fn(),
+    };
+
+    const cmd = new InitializeCommand(
+      sigridConfigMock as SigridConfiguration,
+      usageStatisticsMock as UsageStatistics
+    );
 
     const cfg: Configuration = {
       apiKey: '<api-key>',
@@ -29,7 +37,14 @@ describe('InitializeCommand', () => {
       setConfiguration: vi.fn(),
     };
 
-    const cmd = new InitializeCommand(sigridConfigMock as SigridConfiguration);
+    const usageStatisticsMock: Pick<UsageStatistics, 'send'> = {
+      send: vi.fn(),
+    };
+
+    const cmd = new InitializeCommand(
+      sigridConfigMock as SigridConfiguration,
+      usageStatisticsMock as UsageStatistics,
+    );
 
     const cfg: Configuration = {
       apiKey: '<api-key>',

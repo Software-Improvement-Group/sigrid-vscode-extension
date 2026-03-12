@@ -4,6 +4,7 @@ import {VsCommand} from '../models/vs-command';
 import {VsCommandType} from '../models/vs-command-type';
 import {VsMessageData, VsMessageSeverity} from '../models/vs-message-data';
 import {FileLocation} from '../models/file-location';
+import {UsageData} from '../models/usage-data';
 
 @Injectable({
   providedIn: 'root',
@@ -33,5 +34,9 @@ export class VsCode {
 
   openUrl(url: string) {
     this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.OpenUrl, url));
+  }
+
+  sendUsageStatistics(usageData: UsageData) {
+    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.SendUsageStatistics, usageData));
   }
 }
