@@ -8,6 +8,8 @@ import {SecurityFindingResponse} from '../models/security-finding';
 import {RefactoringCategory} from '../models/refactoring-category';
 import {RefactoringCandidatesResponse} from '../models/refactoring-candidate';
 import {forkJoin, map} from 'rxjs';
+import {FindingRequest} from '../models/finding-request';
+import {FindingStatus, MaintainabilityFindingStatus} from '../models/finding-status';
 
 @Injectable({
   providedIn: 'root',
@@ -47,5 +49,15 @@ export class SigridApi {
         ) as Record<string, RefactoringCandidatesResponse>
       )
     );
+  }
+
+  editFinding(findingId: string, request: FindingRequest<FindingStatus | MaintainabilityFindingStatus>) {
+    const configuration = this.configuration();
+    return this.http.patch<void>(joinUrl(this.sigridConfiguration.getSigridApiBaseUrl(), 'findings',
+      configuration.customer, configuration.system, findingId), request/*, {
+      headers: {
+        'Content-Type': 'application/merge-patch+json',
+      }
+    }*/);
   }
 }

@@ -1,0 +1,17 @@
+<form [formGroup]="findingEditForm">
+  <div>
+    <label for="finding-status">Status</label>
+    <select id="finding-status" formControlName="status">
+      @for (option of statusOptions(); track option) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </div>
+  <div>
+    <label for="finding-remark">Remark</label>
+    <textarea id="finding-remark" formControlName="remark"></textarea>
+  </div>
+  <div>
+    <button type="submit" (click)="onSave()" [disabled]="!findingEditForm.valid">Save</button>
+  </div>
+</form>

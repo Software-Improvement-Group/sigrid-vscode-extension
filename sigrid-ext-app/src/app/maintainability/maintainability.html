@@ -20,7 +20,7 @@
             <sigrid-external-link [href]="'https://sigrid-says.com'"/>
           </div>
         </td>
-        <td class="text-center">{{ finding.statusLabel }}</td>
+        <td class="text-center"><span (click)="onStatusClick(finding)">{{ finding.statusLabel }}</span></td>
       </tr>
     }
   </table>
