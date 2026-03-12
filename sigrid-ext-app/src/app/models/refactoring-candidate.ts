@@ -2,6 +2,7 @@ import {RefactoringCategory} from './refactoring-category';
 import {MaintainabilitySeverity} from './maintainability-severity';
 import {FileLocation} from './file-location';
 import {FindingLocation} from './finding-location';
+import {MaintainabilityFindingStatus} from './finding-status';
 
 export interface RefactoringCandidatesResponse {
   refactoringCandidates: RefactoringCandidateResponse[];
@@ -42,7 +43,8 @@ export class RefactoringCandidate implements FindingLocation {
   id: string = '';
   category: RefactoringCategory = RefactoringCategory.Duplication;
   severity: MaintainabilitySeverity = MaintainabilitySeverity.Unknown;
-  status: string = '';
+  status: MaintainabilityFindingStatus = MaintainabilityFindingStatus.Raw;
+  statusLabel: string = '';
   weight: number = 0;
   technology: string = '';
   snapshotDate: string = '';

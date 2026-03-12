@@ -16,11 +16,11 @@
         <td>{{ finding.displayLocation }}</td>
         <td>
           <div class="external-link-container">
-          <span>{{ finding.description }}</span>
-          <sigrid-external-link [href]="'https://sigrid-says.com'" />
+            <span>{{ finding.description }}</span>
+            <sigrid-external-link [href]="'https://sigrid-says.com'"/>
           </div>
         </td>
-        <td class="text-center">{{ finding.status }}</td>
+        <td class="text-center">{{ finding.statusLabel }}</td>
       </tr>
     }
   </table>
