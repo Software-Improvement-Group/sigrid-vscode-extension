@@ -1,5 +1,5 @@
 <form [formGroup]="findingEditForm">
-  <div>
+  <div class="form-row">
     <label for="finding-status">Status</label>
     <select id="finding-status" formControlName="status">
       @for (option of statusOptions(); track option) {
@@ -7,11 +7,11 @@
       }
     </select>
   </div>
-  <div>
+  <div class="form-row">
     <label for="finding-remark">Remark</label>
     <textarea id="finding-remark" formControlName="remark"></textarea>
   </div>
-  <div>
+  <div class="form-submit-row">
     <button type="submit" (click)="onSave()" [disabled]="!findingEditForm.valid">Save</button>
   </div>
 </form>

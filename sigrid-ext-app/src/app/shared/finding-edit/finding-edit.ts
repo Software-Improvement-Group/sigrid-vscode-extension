@@ -5,6 +5,7 @@ import {FindingStatus, MaintainabilityFindingStatus} from '../../models/finding-
 import {snakeCaseToSentenceCase} from '../../utilities/string';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {SigridApi} from '../../services/sigrid-api';
+import {DialogRef} from '../dialog/dialog-ref';
 
 @Component({
   selector: 'sigrid-finding-edit',
@@ -18,6 +19,7 @@ export class FindingEdit implements OnInit {
   finding = input.required<RefactoringCandidate | SecurityFinding>();
 
   private sigridApi = inject(SigridApi);
+  private dialogRef = inject(DialogRef);
 
   statusOptions = computed(() => {
     const finding = this.finding();
@@ -33,11 +35,10 @@ export class FindingEdit implements OnInit {
   });
 
   ngOnInit() {
-    //console.log(this.statusOptions());
     const finding = this.finding();
-    console.log(finding);
     this.findingEditForm.controls.status.setValue(finding.status);
-    //console.log(this.findingEditForm.controls.status.value);
+    // todo: API doesn't return the remark field yet
+    // this.findingEditForm.controls.remark.setValue(finding.remark)
   }
 
   protected onSave() {
@@ -53,6 +54,7 @@ export class FindingEdit implements OnInit {
     }).subscribe({
       next: () => {
         console.log('Finding updated successfully');
+        this.dialogRef.close({id: finding.id, status: this.findingEditForm.controls.status.value as string, remark: this.findingEditForm.controls.remark.value});
       },
       error: (error) => {
         console.error('Error updating finding:', error);
