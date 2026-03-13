@@ -93,4 +93,5 @@ See [CHANGELOG.md](./CHANGELOG.md) for a full history of changes.
 ## 📚 More Information
 
 * [VS Code Extension API](https://code.visualstudio.com/api)
-* [Sigrid documentation](https://sigrid-says.com)
+* [Sigrid Software Assurance Platform](https://sigrid-says.com/)
+* [Sigrid documentation](https://docs.sigrid-says.com/)
