@@ -49,12 +49,16 @@ export class FindingEdit implements OnInit {
     const finding = this.finding();
     console.log(this.findingEditForm.value);
     this.sigridApi.editFinding(finding.id, {
-      status: this.findingEditForm.controls.status.value as any,
+      status: this.findingEditForm.controls.status.value ?? '',
       remark: this.findingEditForm.controls.remark.value
     }).subscribe({
       next: () => {
         console.log('Finding updated successfully');
-        this.dialogRef.close({id: finding.id, status: this.findingEditForm.controls.status.value as string, remark: this.findingEditForm.controls.remark.value});
+        this.dialogRef.close({
+          id: finding.id,
+          status: this.findingEditForm.controls.status.value ?? '',
+          remark: this.findingEditForm.controls.remark.value
+        });
       },
       error: (error) => {
         console.error('Error updating finding:', error);

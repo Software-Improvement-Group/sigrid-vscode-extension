@@ -60,3 +60,30 @@ html, body {
   font-size: 13px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
+
+button.primary {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  border: 1px solid var(--vscode-button-border);
+
+  &.primary {
+    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-button-background);
+
+    &:hover {
+      background-color: var(--vscode-button-hoverBackground);
+    }
+  }
+
+  &.secondary {
+    color: var(--vscode-button-secondaryForeground);
+    background-color: var(--vscode-button-secondaryBackground);
+
+    &:hover {
+      background-color: var(--vscode-button-secondaryHoverBackground);
+    }
+  }
+}

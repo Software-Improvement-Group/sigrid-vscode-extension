@@ -33,6 +33,11 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
   }
 
   protected onStatusClick(finding: RefactoringCandidate) {
-    this.dialog.open(FindingEdit, {finding: finding});
+    const ref = this.dialog.open(FindingEdit, {finding: finding});
+    ref.afterClosed().subscribe(result => {
+      if (result) {
+        this.sigridData.loadRefactoringCandidates(true).then();
+      }
+    });
   }
 }

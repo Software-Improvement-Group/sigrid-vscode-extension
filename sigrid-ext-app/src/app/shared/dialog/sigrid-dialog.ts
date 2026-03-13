@@ -12,7 +12,7 @@ export class SigridDialog {
   private overlay = inject(Overlay);
   private injector = inject(EnvironmentInjector);
 
-  open<T>(component: any, data?: Record<string, any>): OverlayRef {
+  open<T>(component: any, data?: Record<string, any>): DialogRef<T> {
     const overlayRef = this.createOverlay();
     const dialogRef = new DialogRef<T>(overlayRef);
 
@@ -33,7 +33,7 @@ export class SigridDialog {
     }
 
     this.registerCloseHandlers(overlayRef);
-    return overlayRef;
+    return dialogRef;
   }
 
   private createInjector(popupRef: DialogRef<any>) {

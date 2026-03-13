@@ -1,3 +1,4 @@
+<h2>Edit Finding</h2>
 <form [formGroup]="findingEditForm">
   <div class="form-row">
     <label for="finding-status">Status</label>
@@ -12,6 +13,6 @@
     <textarea id="finding-remark" formControlName="remark"></textarea>
   </div>
   <div class="form-submit-row">
-    <button type="submit" (click)="onSave()" [disabled]="!findingEditForm.valid">Save</button>
+    <button class="primary" type="submit" (click)="onSave()" [disabled]="!findingEditForm.valid">Save</button>
   </div>
 </form>
