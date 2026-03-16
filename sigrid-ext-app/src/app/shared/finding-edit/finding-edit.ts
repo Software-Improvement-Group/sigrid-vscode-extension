@@ -52,7 +52,6 @@ export class FindingEdit implements OnInit {
     }
 
     const finding = this.finding();
-    console.log(this.findingEditForm.value);
     this.sigridApi.editFinding(finding.id, {
       status: this.findingEditForm.controls.status.value ?? '',
       /*
