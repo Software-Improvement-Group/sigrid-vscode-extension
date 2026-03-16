@@ -26,7 +26,6 @@ export class SigridDialog {
 
     // set inputs
     if (data) {
-      //Object.assign(componentRef.instance, data);
       for (const key in data) {
         componentRef.setInput(key, data[key]);
       }

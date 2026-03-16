@@ -7,6 +7,8 @@ import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {SigridApi} from '../../services/sigrid-api';
 import {DialogRef} from '../dialog/dialog-ref';
 import {IconButton} from '../icon-button/icon-button';
+import {VsCode} from '../../services/vs-code';
+import {VsMessageSeverity} from '../../models/vs-message-data';
 
 @Component({
   selector: 'sigrid-finding-edit',
@@ -22,6 +24,7 @@ export class FindingEdit implements OnInit {
 
   private sigridApi = inject(SigridApi);
   private dialogRef = inject(DialogRef);
+  private vscode = inject(VsCode);
 
   protected statusOptions = computed(() => {
     const finding = this.finding();
@@ -67,6 +70,7 @@ export class FindingEdit implements OnInit {
       },
       error: (error) => {
         console.error('Error updating finding:', error);
+        this.vscode.showMessage('Error occurred while updating finding.', VsMessageSeverity.Error);
       }
     });
   }
