@@ -9,6 +9,8 @@ import {toMaintainabilitySeverity} from '../models/maintainability-severity';
 import {toDisplayFilePath} from '../utilities/path';
 import {FileLocation} from '../models/file-location';
 import {sortFileLocations} from '../utilities/sort-file-locations';
+import {MaintainabilityFindingStatus} from '../models/finding-status';
+import {stringToEnumValue} from '../utilities/string-to-enum-value';
 
 export class RefactoringCandidateMapper {
   static map(response: Record<string, RefactoringCandidatesResponse>): RefactoringCandidate[] {
@@ -30,7 +32,8 @@ export class RefactoringCandidateMapper {
         refactoringCandidate.category = category;
         refactoringCandidate.severity = toMaintainabilitySeverity(response.severity);
         refactoringCandidate.weight = response.weight;
-        refactoringCandidate.status = snakeCaseToTitleCase(response.status);
+        refactoringCandidate.status = stringToEnumValue(MaintainabilityFindingStatus, response.status) ?? MaintainabilityFindingStatus.Raw;
+        refactoringCandidate.statusLabel = snakeCaseToTitleCase(response.status);
         refactoringCandidate.technology = response.technology;
         refactoringCandidate.snapshotDate = response.snapshotDate;
         refactoringCandidate.fileLocations = sortFileLocations(RefactoringCandidateMapper.getFileLocations(category, response));

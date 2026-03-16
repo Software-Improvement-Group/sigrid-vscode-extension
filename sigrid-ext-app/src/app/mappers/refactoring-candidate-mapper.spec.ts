@@ -4,6 +4,7 @@ import {
   RefactoringCandidateResponse,
   RefactoringCandidatesResponse,
 } from '../models/refactoring-candidate';
+import {MaintainabilityFindingStatus} from '../models/finding-status';
 
 describe('RefactoringCandidateMapper', () => {
   const emptyResponse = (): RefactoringCandidatesResponse => ({ refactoringCandidates: [] });
@@ -41,6 +42,40 @@ describe('RefactoringCandidateMapper', () => {
     const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'no-locations');
 
     expect(candidate.displayLocation).toBe('.../z.ts');
+  });
+
+  it('maps status and statusLabel', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.UnitSize] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'status-mapped',
+          status: 'FALSE_POSITIVE',
+        }),
+      ],
+    };
+
+    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'status-mapped');
+
+    expect(candidate.status).toBe(MaintainabilityFindingStatus.Raw);
+    expect(candidate.statusLabel).toBe('False Positive');
+  });
+
+  it('falls back to Raw when status is unknown', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.UnitSize] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'status-fallback',
+          status: 'in_progress',
+        }),
+      ],
+    };
+
+    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'status-fallback');
+
+    expect(candidate.status).toBe(MaintainabilityFindingStatus.Raw);
+    expect(candidate.statusLabel).toBe('In Progress');
   });
 
   it('maps displayLocation from the only location when exactly one location is present', () => {

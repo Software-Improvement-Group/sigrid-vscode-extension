@@ -153,7 +153,7 @@ describe('SigridApi', () => {
             id: `id-${category}`,
             severity: 'high',
             weight: 1,
-            status: 'in_progress',
+            status: 'WILL_FIX',
             technology: 'ts',
             snapshotDate: '2026-01-01',
           } as any,

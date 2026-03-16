@@ -6,4 +6,37 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
-- Initial release
+- Initial relase
+
+## [0.0.2] - 2026-03-16
+
+### Added
+
+- Inline edit functionality for findings in security and maintainability components.
+- Reusable dialog system and "Edit Finding" dialog.
+- Unit tests for `FindingEdit`, `SigridDialog`, and utility modules.
+
+### Changed
+
+- Updated dialog styling and form layout to match Visual Studio Code UX patterns.
+- Added refresh of findings on successful edit.
+
+## [0.0.1] - 2026-03-13
+
+### Added
+
+- Usage statistics reporting from the extension.
+- Auto-refresh findings every 30 minutes with cleanup on destroy.
+- File filtering support based on file paths, with UI integration.
+- Reusable UI components: `IconButton`, `Tooltip`, `ExternalLink`.
+
+### Changed
+
+- Centralized SIGRID API base URL logic in `SigridConfiguration` and made `sigridUrl` configurable.
+- Refactored command handling and data structures (e.g., `InitializeCommand`, `VsCodeCommandData`).
+- Improved error handling and UI feedback for on-premise URL and other error states.
+
+### Fixed
+
+- Addressed tooltip timing issues to prevent "User aborted a request" console errors.
+- Added unit tests to improve coverage of services and components (e.g., `SigridData`, `ExternalLink`).

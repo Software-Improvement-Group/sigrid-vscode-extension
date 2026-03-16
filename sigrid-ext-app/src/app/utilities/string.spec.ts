@@ -1,4 +1,4 @@
-import { asStringOrDefault, snakeCaseToTitleCase } from './string';
+import { asStringOrDefault, snakeCaseToSentenceCase, snakeCaseToTitleCase } from './string';
 
 describe('utilities/string', () => {
   describe('snakeCaseToTitleCase', () => {
@@ -14,6 +14,22 @@ describe('utilities/string', () => {
 
     it('returns empty string for empty input', () => {
       expect(snakeCaseToTitleCase('')).toBe('');
+    });
+  });
+
+  describe('snakeCaseToSentenceCase', () => {
+    it('converts snake_case to Sentence case', () => {
+      expect(snakeCaseToSentenceCase('in_progress')).toBe('In progress');
+      expect(snakeCaseToSentenceCase('VERY_HIGH')).toBe('Very high');
+      expect(snakeCaseToSentenceCase('alreadyTitle')).toBe('Alreadytitle');
+    });
+
+    it('handles multiple underscores and spacing', () => {
+      expect(snakeCaseToSentenceCase('a__b___c')).toBe('A  b   c');
+    });
+
+    it('returns empty string for empty input', () => {
+      expect(snakeCaseToSentenceCase('')).toBe('');
     });
   });
 

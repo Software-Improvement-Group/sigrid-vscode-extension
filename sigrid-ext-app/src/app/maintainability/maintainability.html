@@ -15,12 +15,22 @@
         </td>
         <td>{{ finding.displayLocation }}</td>
         <td>
-          <div class="external-link-container">
-          <span>{{ finding.description }}</span>
-          <sigrid-external-link [href]="'https://sigrid-says.com'" />
+          <div class="action-button-container">
+            <span>{{ finding.description }}</span>
+            <sigrid-external-link [href]="'https://sigrid-says.com'"/>
           </div>
         </td>
-        <td class="text-center">{{ finding.status }}</td>
+        <td class="text-center">
+          <div class="action-button-container">
+            <span>{{FindingStatusEmoji[finding.status]}} {{ finding.statusLabel }}</span>
+            <sigrid-icon-button iconClass="codicon codicon-edit"
+                                ngxTooltip="Edit Finding"
+                                [tooltipArrow]="false"
+                                tooltipPosition="bottom"
+                                (onClick)="onStatusClick(finding)"
+            />
+          </div>
+        </td>
       </tr>
     }
   </table>

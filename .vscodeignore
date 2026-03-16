@@ -1,8 +1,9 @@
 .vscode/**
 .vscode-test/**
 out/**
-node_modules/**
+**/node_modules/**
 src/**
+sigrid-ext-app/**
 .gitignore
 .yarnrc
 esbuild.js

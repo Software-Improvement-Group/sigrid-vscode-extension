@@ -1,71 +1,97 @@
-# sigrid-vscode README
+# Sigrid (Visual Studio Code)
 
-This is the README for your extension "sigrid-vscode". After writing up a brief description, we recommend including the following sections.
+A Visual Studio Code extension that brings Sigrid findings directly into your editor via a lightweight dashboard.
 
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+> 🚀 Use the **Sigrid: Show Findings** command to open an interactive webview panel with security, maintainability, and other findings powered by your Sigrid account.
 
 ---
 
-## Following extension guidelines
+## ✅ Features
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+- **View Sigrid findings in VS Code** without leaving your editor
+- **Interactive dashboard** with filtering and navigation support
+- **Deep link** from findings to the Sigrid web UI
+- **Configurable Sigrid instance URL** (supports self-hosted deployments)
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+---
 
-## Working with Markdown
+## ⚙️ Requirements
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+This extension requires a valid Sigrid account and API credentials.
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+You will need:
 
-## For more information
+1. A **Sigrid API Key**
+2. Your **Sigrid Customer ID**
+3. Your **Sigrid System ID**
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+If you don’t have these values, contact your Sigrid administrator or refer to your Sigrid documentation.
 
-**Enjoy!**
+---
+
+## 🚀 Getting Started
+
+1. Install the extension in VS Code.
+2. Open **Settings** and set the following configuration values:
+   - `sigrid-vscode.apiKey` – your Sigrid API key
+   - `sigrid-vscode.customer` – your Sigrid customer ID
+   - `sigrid-vscode.system` – your Sigrid system ID
+   - `sigrid-vscode.sigridUrl` – (optional) your Sigrid instance URL. Defaults to `https://sigrid-says.com`.
+3. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run:
+   - **Sigrid: Show Findings**
+
+---
+
+## 🧩 Extension Settings
+
+This extension contributes the following settings:
+
+| Setting | Description |
+|--------|-------------|
+| `sigrid-vscode.apiKey` | Your Sigrid API Key. |
+| `sigrid-vscode.customer` | Your Sigrid Customer ID. |
+| `sigrid-vscode.system` | Your Sigrid System ID. |
+| `sigrid-vscode.sigridUrl` | The URL of your Sigrid instance (default: `https://sigrid-says.com`). |
+
+---
+
+## 🛠 Development
+
+To build and test the extension locally:
+
+```bash
+npm install
+npm run build:webview
+npm run compile
+```
+
+To start a watch build while developing:
+
+```bash
+npm run watch
+```
+
+To run the extension in VS Code for debugging:
+
+1. Open this repository in VS Code.
+2. Press `F5` to start the Extension Development Host.
+
+---
+
+## 🐞 Known Issues
+
+- If the panel stays blank, verify that your API credentials are correct and that your network allows requests to your Sigrid instance.
+
+---
+
+## 📄 Release Notes
+
+See [CHANGELOG.md](./CHANGELOG.md) for a full history of changes.
+
+---
+
+## 📚 More Information
+
+* [VS Code Extension API](https://code.visualstudio.com/api)
+* [Sigrid Software Assurance Platform](https://sigrid-says.com/)
+* [Sigrid documentation](https://docs.sigrid-says.com/)

@@ -2,6 +2,8 @@ import {SecurityFinding, SecurityFindingResponse} from '../models/security-findi
 import {toRiskSeverity} from '../models/risk-severity';
 import {toDisplayFilePath} from '../utilities/path';
 import {snakeCaseToTitleCase} from '../utilities/string';
+import {FindingStatus} from '../models/finding-status';
+import {stringToEnumValue} from '../utilities/string-to-enum-value';
 
 export class SecurityFindingMapper {
   static map(findingsResponse: SecurityFindingResponse[]): SecurityFinding[] {
@@ -16,7 +18,8 @@ export class SecurityFindingMapper {
       finding.filePath = response.filePath ?? '';
       finding.displayFilePath = toDisplayFilePath(response.filePath);
       finding.type = response.type;
-      finding.status = snakeCaseToTitleCase(response.status);
+      finding.status = stringToEnumValue(FindingStatus, response.status) ?? FindingStatus.Raw;
+      finding.statusLabel = snakeCaseToTitleCase(response.status);
       finding.fileLocations = [{filePath: finding.filePath, startLine: response.startLine ?? 0, endLine: response.endLine ?? 0}];
 
       return finding;

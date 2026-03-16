@@ -1,6 +1,7 @@
 import {RiskSeverity} from './risk-severity';
 import {FindingLocation} from './finding-location';
 import {FileLocation} from './file-location';
+import {FindingStatus} from './finding-status';
 
 export interface SecurityFindingResponse {
   id: string;
@@ -37,6 +38,7 @@ export class SecurityFinding implements FindingLocation {
   filePath: string = '';
   displayFilePath: string = '';
   type: string = '';
-  status: string = '';
+  status: FindingStatus = FindingStatus.Raw;
+  statusLabel: string = '';
   fileLocations: FileLocation[] = [];
 }

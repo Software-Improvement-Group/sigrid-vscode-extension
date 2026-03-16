@@ -1,6 +1,7 @@
 import { SecurityFindingMapper } from './security-finding-mapper';
 import { SecurityFindingResponse } from '../models/security-finding';
 import { RiskSeverity } from '../models/risk-severity';
+import {FindingStatus} from '../models/finding-status';
 
 describe('SecurityFindingMapper', () => {
   const baseResponse = (overrides: Partial<SecurityFindingResponse> = {}): SecurityFindingResponse =>
@@ -23,7 +24,7 @@ describe('SecurityFindingMapper', () => {
       severityScore: 9,
       impactScore: 9,
       exploitabilityScore: 9,
-      status: 'in_progress',
+      status: 'RAW',
       remark: 'remark',
       toolName: null,
       isManualFinding: false,
@@ -61,7 +62,19 @@ describe('SecurityFindingMapper', () => {
     expect(mapped.fileLocations[0].endLine).toBe(0);
 
     expect(mapped.type).toBe('sql_injection');
-    expect(mapped.status).toBe('False Positive');
+    expect(mapped.status).toBe(FindingStatus.FalsePositive);
+    expect(mapped.statusLabel).toBe('False Positive');
+  });
+
+  it('falls back to Raw status when the response status is unknown', () => {
+    const [mapped] = SecurityFindingMapper.map([
+      baseResponse({
+        status: 'in_progress',
+      }),
+    ]);
+
+    expect(mapped.status).toBe(FindingStatus.Raw);
+    expect(mapped.statusLabel).toBe('In Progress');
   });
 
   it('sorts by severity descending', () => {
