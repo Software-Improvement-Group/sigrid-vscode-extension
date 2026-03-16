@@ -6,11 +6,13 @@ import {snakeCaseToSentenceCase} from '../../utilities/string';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {SigridApi} from '../../services/sigrid-api';
 import {DialogRef} from '../dialog/dialog-ref';
+import {IconButton} from '../icon-button/icon-button';
 
 @Component({
   selector: 'sigrid-finding-edit',
   imports: [
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    IconButton
   ],
   templateUrl: './finding-edit.html',
   styleUrl: './finding-edit.scss',
@@ -21,7 +23,7 @@ export class FindingEdit implements OnInit {
   private sigridApi = inject(SigridApi);
   private dialogRef = inject(DialogRef);
 
-  statusOptions = computed(() => {
+  protected statusOptions = computed(() => {
     const finding = this.finding();
     const enumValues: string[] = finding instanceof RefactoringCandidate
       ? Object.values(MaintainabilityFindingStatus) : Object.values(FindingStatus);
@@ -29,7 +31,7 @@ export class FindingEdit implements OnInit {
     return enumValues.map(value => ({value, label: snakeCaseToSentenceCase(value)}));
   });
 
-  findingEditForm = new FormGroup({
+  protected findingEditForm = new FormGroup({
     status: new FormControl('', Validators.required),
     remark: new FormControl(''),
   });
@@ -50,10 +52,13 @@ export class FindingEdit implements OnInit {
     console.log(this.findingEditForm.value);
     this.sigridApi.editFinding(finding.id, {
       status: this.findingEditForm.controls.status.value ?? '',
-      remark: this.findingEditForm.controls.remark.value
+      /*
+       todo: Reset remark to undefined to keep the remark if not specified.
+       Remove this reset once the API returns the remark field and it will be loaded in the form.
+      */
+      remark: this.findingEditForm.controls.remark.value ?? undefined
     }).subscribe({
       next: () => {
-        console.log('Finding updated successfully');
         this.dialogRef.close({
           id: finding.id,
           status: this.findingEditForm.controls.status.value ?? '',
@@ -64,5 +69,9 @@ export class FindingEdit implements OnInit {
         console.error('Error updating finding:', error);
       }
     });
+  }
+
+  protected close() {
+    this.dialogRef.close();
   }
 }

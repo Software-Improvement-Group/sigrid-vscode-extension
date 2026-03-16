@@ -36,7 +36,7 @@ html, body {
   color: var(--vscode-errorForeground);
 }
 
-.external-link-container {
+.action-button-container {
   display: flex;
   gap: 0.5rem;
   align-items: center;
@@ -46,7 +46,7 @@ html, body {
     width: 100%;
   }
 
-  sigrid-external-link {
+  sigrid-external-link, sigrid-icon-button {
     flex: 0;
   }
 }
@@ -61,7 +61,7 @@ html, body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
-button.primary {
+button {
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
@@ -85,5 +85,28 @@ button.primary {
     &:hover {
       background-color: var(--vscode-button-secondaryHoverBackground);
     }
+  }
+}
+
+select {
+  color: var(--vscode-settings-dropdownForeground);
+  background-color: var(--vscode-settings-dropdownBackground);
+  border: 1px solid var(--vscode-settings-dropdownBorder);
+  padding: 2px;
+}
+
+textarea {
+  color: var(--vscode-settings-textInputForeground);
+  background-color: var(--vscode-settings-textInputBackground);
+  border: 1px solid var(--vscode-settings-textInputBorder);
+  padding: 2px 6px;
+}
+
+input,
+textarea,
+select,
+button {
+  &:focus {
+    outline-color: var(--vscode-inputOption-activeBorder);
   }
 }

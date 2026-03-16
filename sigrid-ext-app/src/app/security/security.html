@@ -13,12 +13,22 @@
         <td class="text-center"><sigrid-severity-icon [severity]="finding.severity" /></td>
         <td><span [title]="finding.filePath"> {{ finding.displayFilePath }} </span></td>
         <td>
-          <div class="external-link-container">
+          <div class="action-button-container">
             <span>{{ finding.type }}</span>
             <sigrid-external-link [href]="finding.href" />
           </div>
         </td>
-        <td class="text-center">{{ finding.statusLabel }}</td>
+        <td class="text-center">
+          <div class="action-button-container">
+            <span>{{FindingStatusEmoji[finding.status]}} {{ finding.statusLabel }}</span>
+            <sigrid-icon-button iconClass="codicon codicon-edit"
+                                ngxTooltip="Edit Finding"
+                                [tooltipArrow]="false"
+                                tooltipPosition="bottom"
+                                (onClick)="onStatusClick(finding)"
+            />
+          </div>
+        </td>
       </tr>
     }
   </table>

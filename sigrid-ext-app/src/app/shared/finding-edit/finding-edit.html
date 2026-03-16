@@ -1,4 +1,7 @@
-<h2>Edit Finding</h2>
+<div class="header action-button-container">
+  <h2>Edit Finding</h2>
+  <sigrid-icon-button iconClass="codicon codicon-close" (onClick)="close()" />
+</div>
 <form [formGroup]="findingEditForm">
   <div class="form-row">
     <label for="finding-status">Status</label>
@@ -10,7 +13,7 @@
   </div>
   <div class="form-row">
     <label for="finding-remark">Remark</label>
-    <textarea id="finding-remark" formControlName="remark"></textarea>
+    <textarea id="finding-remark" formControlName="remark" rows="5"></textarea>
   </div>
   <div class="form-submit-row">
     <button class="primary" type="submit" (click)="onSave()" [disabled]="!findingEditForm.valid">Save</button>

@@ -12,3 +12,12 @@ export enum MaintainabilityFindingStatus {
   WillFix = 'WILL_FIX',
   Accepted = 'ACCEPTED',
 }
+
+export const FindingStatusEmoji: Record<string, string> = {
+  [FindingStatus.Raw]: '❓',
+  [FindingStatus.Refined]: '🔍',
+  [FindingStatus.WillFix]: '🔧',
+  [FindingStatus.Fixed]: '✅',
+  [FindingStatus.Accepted]: '😐',
+  [FindingStatus.FalsePositive]: '🚫',
+};
