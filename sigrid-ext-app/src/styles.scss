@@ -30,6 +30,13 @@ html, body {
   th {
     text-align: left;
   }
+
+  th.status, td.status {
+    .action-button-container {
+      text-wrap: nowrap;
+    }
+    min-width: 105px !important;
+  }
 }
 
 .error {
