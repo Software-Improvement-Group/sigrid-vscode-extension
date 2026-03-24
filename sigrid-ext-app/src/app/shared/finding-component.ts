@@ -1,6 +1,6 @@
 import {DataState} from '../models/data-state';
 import {SigridFinding} from '../models/sigrid-finding';
-import {computed, Directive, inject, OnInit, Signal} from '@angular/core';
+import {computed, Directive, HostListener, inject, OnInit, Signal} from '@angular/core';
 import {SigridConfiguration} from '../services/sigrid-configuration';
 import {toObservable} from '@angular/core/rxjs-interop';
 import {FindingStatusEmoji} from '../models/finding-status';
@@ -11,6 +11,7 @@ export abstract class FindingComponent<T> implements OnInit {
   protected isConfigValid$ = toObservable<boolean>(this.sigridConfiguration.isConfigurationValid);
   protected readonly DataState = DataState;
   protected readonly FindingStatusEmoji = FindingStatusEmoji;
+  protected selectedId: string | null = '';
 
   protected findings = computed(() => {
     const findings = this.findingSignal();
@@ -50,4 +51,15 @@ export abstract class FindingComponent<T> implements OnInit {
   }
 
   protected abstract loadData(): void;
+
+  onClick(id: string | null) {
+    this.selectedId = id;
+  }
+
+  @HostListener('keydown', ['$event'])
+  onKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      this.onClick(null);
+    }
+  }
 }

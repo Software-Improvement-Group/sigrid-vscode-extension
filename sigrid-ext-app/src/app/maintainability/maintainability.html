@@ -13,7 +13,8 @@
     </thead>
     <tbody>
       @for (finding of findings(); track finding.id) {
-        <tr sigridFindingNavigator [locations]="finding.fileLocations">
+        <tr sigridFindingNavigator [locations]="finding.fileLocations" tabindex="-1"
+            [class.selected]="finding.id === selectedId" (click)="onClick(finding.id)">
           <td class="text-center">
             <sigrid-maintainability-severity-icon [severity]="finding.severity"/>
           </td>
