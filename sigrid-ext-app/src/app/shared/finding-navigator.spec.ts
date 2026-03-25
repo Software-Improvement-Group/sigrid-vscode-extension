@@ -12,15 +12,24 @@ import type {FileLocation} from '../models/file-location';
 @Component({
   standalone: true,
   imports: [FindingNavigator],
-  template: `<div sigridFindingNavigator [locations]="locations"></div>`,
+  template: `
+    <table>
+      <tr sigridFindingNavigator [locations]="firstLocations"></tr>
+      <tr sigridFindingNavigator [locations]="secondLocations"></tr>
+      <tr sigridFindingNavigator [locations]="thirdLocations"></tr>
+    </table>
+  `,
 })
 class HostComponent {
-  locations: FileLocation[] | null | undefined = undefined;
+  firstLocations: FileLocation[] | null | undefined = undefined;
+  secondLocations: FileLocation[] | null | undefined = undefined;
+  thirdLocations: FileLocation[] | null | undefined = undefined;
 }
 
 describe('FindingNavigator', () => {
   let fixture: ComponentFixture<HostComponent>;
   let hostDe: DebugElement;
+  let rows: DebugElement[];
 
   const openFile = vi.fn();
 
@@ -53,6 +62,12 @@ describe('FindingNavigator', () => {
     return e as unknown as MouseEvent & { preventDefault: ReturnType<typeof vi.fn> };
   };
 
+  const keydownEvent = (key: string) => {
+    const e = new KeyboardEvent('keydown', {key});
+    Object.defineProperty(e, 'preventDefault', {value: vi.fn(), configurable: true});
+    return e as unknown as KeyboardEvent & { preventDefault: ReturnType<typeof vi.fn> };
+  };
+
   beforeEach(async () => {
     backdropClick$ = new Subject<MouseEvent>();
     popupClose$ = new Subject<void>();
@@ -74,14 +89,79 @@ describe('FindingNavigator', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(HostComponent);
-    // IMPORTANT: do NOT call fixture.detectChanges() here.
-    // Each test sets locations first, then runs the first detectChanges.
+  });
+
+  it('sets tabindex to -1 on the host elements', () => {
+    fixture.detectChanges();
+    rows = fixture.debugElement.queryAll(By.css('tr[sigridFindingNavigator]'));
+
+    expect(rows).toHaveLength(3);
+    expect(rows[0]!.attributes['tabindex']).toBe('-1');
+    expect(rows[1]!.attributes['tabindex']).toBe('-1');
+    expect(rows[2]!.attributes['tabindex']).toBe('-1');
+  });
+
+  it('focuses the row on mousedown', () => {
+    fixture.componentInstance.firstLocations = [];
+    fixture.detectChanges();
+
+    hostDe = fixture.debugElement.query(By.css('tr[sigridFindingNavigator]'));
+    const focusSpy = vi.spyOn(hostDe.nativeElement, 'focus');
+
+    hostDe.triggerEventHandler('mousedown', new MouseEvent('mousedown'));
+
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates with keyboard and activates on Enter/Space', () => {
+    const firstLoc: FileLocation = {filePath: '/repo/src/a.ts', startLine: 1, endLine: 1} as any;
+    const secondLoc: FileLocation = {filePath: '/repo/src/b.ts', startLine: 2, endLine: 2} as any;
+    const thirdLoc: FileLocation = {filePath: '/repo/src/c.ts', startLine: 3, endLine: 3} as any;
+
+    fixture.componentInstance.firstLocations = [firstLoc];
+    fixture.componentInstance.secondLocations = [secondLoc];
+    fixture.componentInstance.thirdLocations = [thirdLoc];
+    fixture.detectChanges();
+
+    rows = fixture.debugElement.queryAll(By.css('tr[sigridFindingNavigator]'));
+    const firstRow = rows[0]!;
+    const secondRow = rows[1]!;
+    const thirdRow = rows[2]!;
+
+    const focusSpy1 = vi.spyOn(firstRow.nativeElement, 'focus');
+    const focusSpy2 = vi.spyOn(secondRow.nativeElement, 'focus');
+    const focusSpy3 = vi.spyOn(thirdRow.nativeElement, 'focus');
+    const blurSpy = vi.spyOn(secondRow.nativeElement, 'blur');
+
+    secondRow.triggerEventHandler('keydown', keydownEvent('ArrowDown'));
+    expect(focusSpy3).toHaveBeenCalledTimes(1);
+
+    secondRow.triggerEventHandler('keydown', keydownEvent('ArrowUp'));
+    expect(focusSpy1).toHaveBeenCalledTimes(1);
+
+    secondRow.triggerEventHandler('keydown', keydownEvent('Home'));
+    expect(focusSpy1).toHaveBeenCalledTimes(2);
+
+    secondRow.triggerEventHandler('keydown', keydownEvent('End'));
+    expect(focusSpy3).toHaveBeenCalledTimes(2);
+    expect(focusSpy2).toHaveBeenCalledTimes(0);
+
+    secondRow.triggerEventHandler('keydown', keydownEvent('Escape'));
+    expect(blurSpy).toHaveBeenCalledTimes(1);
+
+    secondRow.triggerEventHandler('keydown', keydownEvent('Enter'));
+    expect(openFile).toHaveBeenCalledTimes(1);
+    expect(openFile).toHaveBeenCalledWith(secondLoc);
+
+    secondRow.triggerEventHandler('keydown', keydownEvent(' '));
+    expect(openFile).toHaveBeenCalledTimes(2);
+    expect(openFile).toHaveBeenLastCalledWith(secondLoc);
   });
 
   it('prevents default and does nothing when locations is undefined/null/empty', () => {
-    fixture.componentInstance.locations = undefined;
+    fixture.componentInstance.firstLocations = undefined;
     fixture.detectChanges();
-    hostDe = fixture.debugElement.query(By.css('div'));
+    hostDe = fixture.debugElement.query(By.css('tr[sigridFindingNavigator]'));
 
     const e1 = dblClickEvent();
     hostDe.triggerEventHandler('dblclick', e1);
@@ -89,7 +169,7 @@ describe('FindingNavigator', () => {
     expect(openFile).not.toHaveBeenCalled();
     expect(overlay.create).not.toHaveBeenCalled();
 
-    fixture.componentInstance.locations = null;
+    fixture.componentInstance.firstLocations = null;
     fixture.detectChanges();
 
     const e2 = dblClickEvent();
@@ -98,7 +178,7 @@ describe('FindingNavigator', () => {
     expect(openFile).not.toHaveBeenCalled();
     expect(overlay.create).not.toHaveBeenCalled();
 
-    fixture.componentInstance.locations = [];
+    fixture.componentInstance.firstLocations = [];
     fixture.detectChanges();
 
     const e3 = dblClickEvent();
@@ -111,9 +191,9 @@ describe('FindingNavigator', () => {
   it('opens the file directly when exactly one location is provided', () => {
     const loc: FileLocation = {filePath: '/repo/src/a.ts', startLine: 10, endLine: 12} as any;
 
-    fixture.componentInstance.locations = [loc];
+    fixture.componentInstance.firstLocations = [loc];
     fixture.detectChanges();
-    hostDe = fixture.debugElement.query(By.css('div'));
+    hostDe = fixture.debugElement.query(By.css('tr[sigridFindingNavigator]'));
 
     const e = dblClickEvent();
     hostDe.triggerEventHandler('dblclick', e);
@@ -125,12 +205,12 @@ describe('FindingNavigator', () => {
   });
 
   it('with multiple locations it creates an overlay, attaches popup, and sets menu items', () => {
-    fixture.componentInstance.locations = [
+    fixture.componentInstance.firstLocations = [
       {filePath: '/repo/src/a.ts', startLine: 0, endLine: 0} as any,
       {filePath: '/repo/src/b.ts', startLine: 5, endLine: 6} as any,
     ];
     fixture.detectChanges();
-    hostDe = fixture.debugElement.query(By.css('div'));
+    hostDe = fixture.debugElement.query(By.css('tr[sigridFindingNavigator]'));
 
     hostDe.triggerEventHandler('dblclick', dblClickEvent());
 
@@ -154,12 +234,12 @@ describe('FindingNavigator', () => {
   });
 
   it('backdrop click closes popup (disposes overlay)', () => {
-    fixture.componentInstance.locations = [
+    fixture.componentInstance.firstLocations = [
       {filePath: '/repo/src/a.ts', startLine: 1, endLine: 1} as any,
       {filePath: '/repo/src/b.ts', startLine: 2, endLine: 2} as any,
     ];
     fixture.detectChanges();
-    hostDe = fixture.debugElement.query(By.css('div'));
+    hostDe = fixture.debugElement.query(By.css('tr[sigridFindingNavigator]'));
 
     hostDe.triggerEventHandler('dblclick', dblClickEvent());
     expect(overlayRef.dispose).not.toHaveBeenCalled();
@@ -169,12 +249,12 @@ describe('FindingNavigator', () => {
   });
 
   it('popup close event closes popup (disposes overlay)', () => {
-    fixture.componentInstance.locations = [
+    fixture.componentInstance.firstLocations = [
       {filePath: '/repo/src/a.ts', startLine: 1, endLine: 1} as any,
       {filePath: '/repo/src/b.ts', startLine: 2, endLine: 2} as any,
     ];
     fixture.detectChanges();
-    hostDe = fixture.debugElement.query(By.css('div'));
+    hostDe = fixture.debugElement.query(By.css('tr[sigridFindingNavigator]'));
 
     hostDe.triggerEventHandler('dblclick', dblClickEvent());
     expect(overlayRef.dispose).not.toHaveBeenCalled();
@@ -184,12 +264,12 @@ describe('FindingNavigator', () => {
   });
 
   it('double-clicking again while popup is open closes it (toggle)', () => {
-    fixture.componentInstance.locations = [
+    fixture.componentInstance.firstLocations = [
       {filePath: '/repo/src/a.ts', startLine: 1, endLine: 1} as any,
       {filePath: '/repo/src/b.ts', startLine: 2, endLine: 2} as any,
     ];
     fixture.detectChanges();
-    hostDe = fixture.debugElement.query(By.css('div'));
+    hostDe = fixture.debugElement.query(By.css('tr[sigridFindingNavigator]'));
 
     hostDe.triggerEventHandler('dblclick', dblClickEvent());
     expect(overlay.create).toHaveBeenCalledTimes(1);
@@ -204,9 +284,9 @@ describe('FindingNavigator', () => {
     const locA: FileLocation = {filePath: '/repo/src/a.ts', startLine: 0, endLine: 0} as any;
     const locB: FileLocation = {filePath: '/repo/src/b.ts', startLine: 5, endLine: 6} as any;
 
-    fixture.componentInstance.locations = [locA, locB];
+    fixture.componentInstance.firstLocations = [locA, locB];
     fixture.detectChanges();
-    hostDe = fixture.debugElement.query(By.css('div'));
+    hostDe = fixture.debugElement.query(By.css('tr[sigridFindingNavigator]'));
 
     hostDe.triggerEventHandler('dblclick', dblClickEvent());
 

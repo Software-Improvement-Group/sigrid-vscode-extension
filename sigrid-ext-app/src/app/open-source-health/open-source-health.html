@@ -18,7 +18,7 @@
     <tbody>
       @for (dependency of findings(); track dependency.purl) {
         <tr sigridFindingNavigator [locations]="dependency.fileLocations" tabindex="-1"
-            [class.selected]="dependency.purl === selectedId" (click)="onClick(dependency.purl)">
+            [class.selected]="dependency.purl === selectedId" (click)="setSelectedId(dependency.purl)">
           <td class="text-center"><sigrid-severity-icon [severity]="dependency.risk" /></td>
           <td>{{ dependency.displayName }}</td>
           <td>{{ dependency.version }}</td>

@@ -52,14 +52,14 @@ export abstract class FindingComponent<T> implements OnInit {
 
   protected abstract loadData(): void;
 
-  onClick(id: string | null) {
+  setSelectedId(id: string | null) {
     this.selectedId = id;
   }
 
   @HostListener('keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
-      this.onClick(null);
+      this.setSelectedId(null);
     }
   }
 }
