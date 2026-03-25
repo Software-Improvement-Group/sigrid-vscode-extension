@@ -2,32 +2,38 @@
   <div class="error">{{ errorMessage() }}</div>
 } @else {
   <table class="findings-table">
-    <tr>
-      <th>Risk</th>
-      <th>Library</th>
-      <th>Version</th>
-      <th>Transitive</th>
-      <th>License</th>
-      <th>Vulnerabilities</th>
-      <th>Freshness</th>
-      <th>Activity</th>
-    </tr>
-    @for (dependency of findings(); track dependency.purl) {
-      <tr sigridFindingNavigator [locations]="dependency.fileLocations">
-        <td class="text-center"><sigrid-severity-icon [severity]="dependency.risk" /></td>
-        <td>
-          <div class="action-button-container">
-            <span>{{ dependency.displayName }}</span>
-            <sigrid-external-link [href]="'https://sigrid-says.com'" />
-          </div>
-        </td>
-        <td>{{ dependency.version }}</td>
-        <td class="text-center">{{ dependency.dependencyType }}</td>
-        <td class="text-center"><sigrid-severity-icon [severity]="dependency.licenseRisk" /></td>
-        <td class="text-center"><sigrid-severity-icon [severity]="dependency.vulnerabilityRisk" /> </td>
-        <td class="text-center"><sigrid-severity-icon [severity]="dependency.freshnessRisk" /></td>
-        <td class="text-center"><sigrid-severity-icon [severity]="dependency.activityRisk" /></td>
+    <thead>
+      <tr>
+        <th class="text-center">Risk</th>
+        <th>Library</th>
+        <th>Version</th>
+        <th class="text-center">Transitive</th>
+        <th class="text-center">License</th>
+        <th class="text-center">Vulnerabilities</th>
+        <th class="text-center">Freshness</th>
+        <th class="text-center">Activity</th>
+        <th></th>
       </tr>
-    }
+    </thead>
+    <tbody>
+      @for (dependency of findings(); track dependency.purl) {
+        <tr sigridFindingNavigator [locations]="dependency.fileLocations" tabindex="-1"
+            [class.selected]="dependency.purl === selectedId" (click)="setSelectedId(dependency.purl)">
+          <td class="text-center"><sigrid-severity-icon [severity]="dependency.risk" /></td>
+          <td>{{ dependency.displayName }}</td>
+          <td>{{ dependency.version }}</td>
+          <td class="text-center">{{ dependency.dependencyType }}</td>
+          <td class="text-center"><sigrid-severity-icon [severity]="dependency.licenseRisk" /></td>
+          <td class="text-center"><sigrid-severity-icon [severity]="dependency.vulnerabilityRisk" /> </td>
+          <td class="text-center"><sigrid-severity-icon [severity]="dependency.freshnessRisk" /></td>
+          <td class="text-center"><sigrid-severity-icon [severity]="dependency.activityRisk" /></td>
+          <td>
+            <div class="action-buttons">
+              <sigrid-external-link [href]="'https://sigrid-says.com'" />
+            </div>
+          </td>
+        </tr>
+      }
+    </tbody>
   </table>
 }
