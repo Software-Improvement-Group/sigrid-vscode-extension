@@ -29,7 +29,7 @@ export class SigridPanel {
   public static render(extensionUri: Uri) {
     if (SigridPanel.currentPanel) {
       // If the webview panel already exists reveal it
-      SigridPanel.currentPanel.panel.reveal(ViewColumn.One);
+      SigridPanel.currentPanel.panel.reveal(undefined);
     } else {
       // If a webview panel does not already exist create and show a new one
       const panel = window.createWebviewPanel(
