@@ -4,9 +4,18 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [0.0.3] - 2026-03-25
 
-- Initial relase
+### Added
+
+- Keyboard navigation and focus management for findings tables with row selection support.
+- Unit tests for `FindingNavigator` directive covering keyboard navigation and focus behavior.
+
+### Changed
+
+- Restyled tables to match VS Code table styles with sticky headers and consistent styling.
+- Moved all action buttons to the last table column for improved UI consistency.
+- Updated status table cell alignment and styling for maintainability and security views.
 
 ## [0.0.2] - 2026-03-16
 
