@@ -4,7 +4,7 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [0.0.4] - 2026
+## [0.0.4] - 2026-03-26
 
 ### Changed
 
