@@ -9,15 +9,75 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:sigridView",
+    "onView:sigridFindingsView2",
+    "onCommand:sigrid-vscode.showFindings"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "sigridFindingsPanel",
+          "title": "Sigrid",
+          "icon": "dist/sigrid-ext-app/browser/sigrid-light.svg"
+        },
+        {
+          "id": "sigridFindingsPanel2",
+          "title": "Sigrid2",
+          "icon": "dist/sigrid-ext-app/browser/sigrid-light.svg"
+        }
+      ]
+    },
+    "views": {
+      "sigridFindingsPanel": [
+        {
+          "id": "sigridView",
+          "name": "Sigrid",
+          "type": "webview"
+        }
+      ],
+      "sigridFindingsPanel2": [
+        {
+          "id": "sigridFindingsView2",
+          "name": "Sigrid2"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "sigrid-vscode.showFindings",
         "title": "Sigrid: Show Findings"
+      },
+      {
+        "command": "bottomPanelTree.editFinding",
+        "title": "Edit Finding"
+      },
+      {
+        "command": "bottomPanelTree.openInSigrid",
+        "title": "Open in Sigrid"
       }
     ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "bottomPanelTree.editFinding",
+          "when": "view == sigridFindingsView2"
+        },
+        {
+          "command": "bottomPanelTree.openInSigrid",
+          "when": "view == sigridFindingsView2"
+        },
+        {
+          "command": "bottomPanelTree.editFinding",
+          "when": "view == sigridFindingsView2",
+          "group": "inline",
+          "icon": "$(edit)"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "Sigrid",
