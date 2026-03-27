@@ -3,7 +3,6 @@
 import * as vscode from 'vscode';
 import { SigridPanel } from './panels/sigrid-panel';
 import { EXTENSION_ID } from './extension.config';
-import { FindingTreeDataProvider } from './panels/finding-tree/finding-tree-data-provider';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -19,12 +18,8 @@ export function activate(context: vscode.ExtensionContext) {
 		webviewOptions: { retainContextWhenHidden: true }
 	}));
 
-	// Show the Sigrid view by default
-	vscode.commands.executeCommand('workbench.view.extension.sigridView');
-
-	const treeDataProvider = new FindingTreeDataProvider();
-	vscode.window.registerTreeDataProvider('sigridFindingsView2', treeDataProvider);
-	vscode.commands.executeCommand('workbench.view.extension.sigridFindingsView2');
+	// Create and show the status bar item for quick access to the Sigrid view
+	context.subscriptions.push(createSigridStatusBarItem());
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
@@ -35,6 +30,16 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	context.subscriptions.push(disposable);
+}
+
+function createSigridStatusBarItem() {
+	const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
+	statusBarItem.text = 'Sigrid';
+	statusBarItem.tooltip = 'Show Sigrid Findings';
+	statusBarItem.command = `${EXTENSION_ID}.showFindings`;
+	statusBarItem.show();
+
+	return statusBarItem;
 }
 
 // This method is called when your extension is deactivated
