@@ -4,8 +4,8 @@ import { AngularApp, EXTENSION_ID } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
 import { VsCodeCommandEvent } from "../commands/vscode-command-event";
 import { COMMANDS } from "../commands/command-registry";
-import { getRelativePath } from "../utilities/workspace";
 import { VsCodeCommandData } from "../commands/vscode-command-data";
+import { postActiveEditorChangedMessage } from "../utilities/editor";
 
 export class SigridPanel implements WebviewViewProvider {
   private disposables: Disposable[] = [];
@@ -72,12 +72,7 @@ export class SigridPanel implements WebviewViewProvider {
 
   private setActiveEditorListener(webview: Webview) {
     window.onDidChangeActiveTextEditor(editor => {
-      if (editor) {
-        const fullPath = editor.document.uri.fsPath;
-        if (fullPath) {
-          webview.postMessage({ command: "activeEditorChanged", data: { filePath: getRelativePath(fullPath) } });
-        }
-      }
+      postActiveEditorChangedMessage(webview, editor);
     }, undefined, this.disposables);
   }
 
