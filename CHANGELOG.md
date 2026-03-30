@@ -4,6 +4,11 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.5] - 2026-03-30
+
+### Changed
+- Converted Sigrid panel from `WebviewPanel` to `WebviewView` and added panel-compatible icon support.
+
 ## [0.0.3] - 2026-03-25
 
 ### Added
