@@ -9,13 +9,10 @@ import { postActiveEditorChangedMessage } from "../utilities/editor";
 
 export class SigridPanel implements WebviewViewProvider {
   private disposables: Disposable[] = [];
-  private webviewView?: WebviewView;
 
   constructor(private readonly extensionUri: Uri) {}
 
   resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
-    this.webviewView = webviewView;
-
     webviewView.webview.options = {
       // Enable JavaScript in the webview
       enableScripts: true,
@@ -86,8 +83,6 @@ export class SigridPanel implements WebviewViewProvider {
   }
 
   dispose() {
-    this.webviewView = undefined;
-
     // Dispose all disposables (i.e. commands) for the current webview view
     while (this.disposables.length) {
       const disposable = this.disposables.pop();
@@ -97,4 +92,3 @@ export class SigridPanel implements WebviewViewProvider {
     }
   }
 }
-
