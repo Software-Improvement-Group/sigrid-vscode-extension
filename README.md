@@ -99,6 +99,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for a full history of changes.
 
 ## 📚 More Information
 
+* [Extension documentation](https://docs.sigrid-says.com/integrations/vscode-extension.html)
 * [VS Code Extension API](https://code.visualstudio.com/api)
 * [Sigrid Software Assurance Platform](https://sigrid-says.com/)
 * [Sigrid documentation](https://docs.sigrid-says.com/)
