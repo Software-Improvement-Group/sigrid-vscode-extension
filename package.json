@@ -2,16 +2,36 @@
   "name": "sigrid-vscode",
   "displayName": "Sigrid",
   "description": "Placeholder for description.",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "engines": {
     "vscode": "^1.108.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "sigridFindingsPanel",
+          "title": "Sigrid",
+          "icon": "media/sigrid-outlined.svg"
+        }
+      ]
+    },
+    "views": {
+      "sigridFindingsPanel": [
+        {
+          "id": "sigridView",
+          "name": "Sigrid",
+          "type": "webview"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "sigrid-vscode.showFindings",

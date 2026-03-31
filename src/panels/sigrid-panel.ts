@@ -1,81 +1,39 @@
-import { Disposable, Uri, ViewColumn, Webview, WebviewPanel, window, workspace } from "vscode";
+import { Disposable, Uri, Webview, WebviewView, WebviewViewProvider, window, workspace } from "vscode";
 import { getWebviewUri } from "../utilities/get-webview-uri";
 import { AngularApp, EXTENSION_ID } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
 import { VsCodeCommandEvent } from "../commands/vscode-command-event";
 import { COMMANDS } from "../commands/command-registry";
-import { getRelativePath } from "../utilities/workspace";
 import { VsCodeCommandData } from "../commands/vscode-command-data";
+import { postActiveEditorChangedMessage } from "../utilities/editor";
 
-export class SigridPanel {
-  static currentPanel: SigridPanel | undefined;
+export class SigridPanel implements WebviewViewProvider {
   private disposables: Disposable[] = [];
 
-  private constructor(private readonly panel: WebviewPanel, extensionUri: Uri) {
-    this.panel = panel;
-    this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
-    this.panel.webview.html = this.getWebviewContent(this.panel.webview, extensionUri);
-    this.setWebviewMessageListener(this.panel.webview);
-    this.setActiveEditorListener(this.panel.webview);
-    this.setConfigurationChangeListener(this.panel.webview);
+  constructor(private readonly extensionUri: Uri) {}
+
+  resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
+    webviewView.webview.options = {
+      // Enable JavaScript in the webview
+      enableScripts: true,
+      // Restrict the webview to only load resources from the `out` and `webview-ui/build` directories
+      localResourceRoots: [Uri.joinPath(this.extensionUri, "out"), Uri.joinPath(this.extensionUri, AngularApp.outputFolder)],
+    };
+
+    webviewView.webview.html = this.getWebviewContent(webviewView.webview);
+
+    this.setWebviewMessageListener(webviewView.webview);
+    this.setActiveEditorListener(webviewView.webview);
+    this.setConfigurationChangeListener(webviewView.webview);
+
+    webviewView.onDidDispose(() => {
+      this.dispose();
+    }, null, this.disposables);
   }
 
-  /**
-  * Renders the current webview panel if it exists otherwise a new webview panel
-  * will be created and displayed.
-  *
-  * @param extensionUri The URI of the directory containing the extension.
-  */
-  public static render(extensionUri: Uri) {
-    if (SigridPanel.currentPanel) {
-      // If the webview panel already exists reveal it
-      SigridPanel.currentPanel.panel.reveal(ViewColumn.One);
-    } else {
-      // If a webview panel does not already exist create and show a new one
-      const panel = window.createWebviewPanel(
-        // Panel view type
-        "showSigrid",
-        // Panel title
-        "Sigrid",
-        // The editor column the panel should be displayed in
-        ViewColumn.One,
-        // Extra panel configurations
-        {
-          // Enable JavaScript in the webview
-          enableScripts: true,
-          // Restrict the webview to only load resources from the `out` and `webview-ui/build` directories
-          localResourceRoots: [Uri.joinPath(extensionUri, "out"), Uri.joinPath(extensionUri, AngularApp.outputFolder)],
-          retainContextWhenHidden: true,
-        }
-      );
-      
-      panel.iconPath = {
-        light: Uri.joinPath(extensionUri, AngularApp.outputFolder, 'sigrid-light.svg'),
-        dark: Uri.joinPath(extensionUri, AngularApp.outputFolder, 'favicon.ico')
-      };
-
-      SigridPanel.currentPanel = new SigridPanel(panel, extensionUri);
-    }
-  }
-
-  dispose() {
-    SigridPanel.currentPanel = undefined;
-
-    // Dispose the current webview panel
-    this.panel.dispose();
-
-    // Dispose all disposables (i.e. commands) for the current webview panel
-    while (this.disposables.length) {
-      const disposable = this.disposables.pop();
-      if (disposable) {
-        disposable.dispose();
-      }
-    }
-  }
-
-  private getWebviewContent(webview: Webview, extensionUri: Uri) {
-    const styleUri = getWebviewUri(webview, extensionUri, AngularApp.outputFolder, 'styles.css');
-    const scriptUri = getWebviewUri(webview, extensionUri, AngularApp.outputFolder, 'main.js');
+  private getWebviewContent(webview: Webview) {
+    const styleUri = getWebviewUri(webview, this.extensionUri, AngularApp.outputFolder, 'styles.css');
+    const scriptUri = getWebviewUri(webview, this.extensionUri, AngularApp.outputFolder, 'main.js');
     console.log("Script URI:", scriptUri);
 
     // Use a nonce to whitelist which scripts can be run
@@ -111,12 +69,7 @@ export class SigridPanel {
 
   private setActiveEditorListener(webview: Webview) {
     window.onDidChangeActiveTextEditor(editor => {
-      if (editor) {
-        const fullPath = editor.document.uri.fsPath;
-        if (fullPath) {
-          webview.postMessage({ command: "activeEditorChanged", data: { filePath: getRelativePath(fullPath) } });
-        }
-      }
+      postActiveEditorChangedMessage(webview, editor);
     }, undefined, this.disposables);
   }
 
@@ -128,5 +81,14 @@ export class SigridPanel {
       }
     }, undefined, this.disposables);
   }
-}
 
+  dispose() {
+    // Dispose all disposables (i.e. commands) for the current webview view
+    while (this.disposables.length) {
+      const disposable = this.disposables.pop();
+      if (disposable) {
+        disposable.dispose();
+      }
+    }
+  }
+}
