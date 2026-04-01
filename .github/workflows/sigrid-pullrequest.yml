@@ -16,7 +16,7 @@ jobs:
         with:
           customer: sig
           system: sigrid-vscode-extension
-          capability: maintainability,osh
+          capability: maintainability,osh,security
         env:
           SIGRID_CI_TOKEN: "${{ secrets.SIGRID_CI_TOKEN }}"
         continue-on-error: true
