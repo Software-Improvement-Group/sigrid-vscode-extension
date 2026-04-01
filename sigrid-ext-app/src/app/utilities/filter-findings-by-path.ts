@@ -13,7 +13,8 @@ export function filterFindingsByPath(sigridFindings: SigridFinding<FindingLocati
   }
 
   if (path) {
-    resultFindings.data = sigridFindings.data.filter(finding => finding.fileLocations.some(location => location.filePath === path));
+    const normalizedPath = path.replaceAll('\\', '/');
+    resultFindings.data = sigridFindings.data.filter(finding => finding.fileLocations.some(location => location.filePath === normalizedPath));
   }
 
   return resultFindings;
