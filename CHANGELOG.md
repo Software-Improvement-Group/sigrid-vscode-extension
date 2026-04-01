@@ -9,7 +9,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
 - Resolved Windows path compatibility issue in workspace path detection (`getActiveWorkspace`) by using `uri.fsPath` instead of `uri.path`.
 
-
 ## [0.0.5] - 2026-03-30
 
 ### Changed
