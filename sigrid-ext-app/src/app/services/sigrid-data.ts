@@ -9,9 +9,10 @@ import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
 import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {FileFilterMode} from '../models/file-filter-mode';
-import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
+import {filterFindings} from '../utilities/filter-findings';
 import {getFileName} from '../utilities/path';
 import {HttpErrorResponse} from '@angular/common/http';
+import {SigridConfiguration} from './sigrid-configuration';
 
 @Injectable({
   providedIn: 'root',
@@ -24,24 +25,19 @@ export class SigridData {
   private readonly _activeFilePath = signal<string | null | undefined>(undefined);
   private readonly _isRefreshing = signal(false);
   private readonly sigridApi = inject(SigridApi);
+  private readonly configuration = inject(SigridConfiguration);
   readonly displayActivePath = computed(() => this._fileFilter() === FileFilterMode.Active ? getFileName(this._activeFilePath()) : '');
 
   private filteredRefactoringCandidates = computed(() => {
-    return this._fileFilter() === FileFilterMode.All
-      ? this._refactoringCandidates()
-      : filterFindingsByPath(this._refactoringCandidates(), this._activeFilePath() ?? '') as SigridFinding<RefactoringCandidate[]>;
+    return filterFindings(this._refactoringCandidates(), this.getFindingLocationFilter()) as SigridFinding<RefactoringCandidate[]>;
   });
 
   private filteredSecurityFindings = computed(() => {
-    return this._fileFilter() === FileFilterMode.All
-      ? this._securityFindings()
-      : filterFindingsByPath(this._securityFindings(), this._activeFilePath() ?? '') as SigridFinding<SecurityFinding[]>;
+    return filterFindings(this._securityFindings(), this.getFindingLocationFilter()) as SigridFinding<SecurityFinding[]>;
   });
 
   private filteredOpenSourceHealthFindings = computed(() => {
-    return this._fileFilter() === FileFilterMode.All
-      ? this._openSourceHealthFindings()
-      : filterFindingsByPath(this._openSourceHealthFindings(), this._activeFilePath() ?? '') as SigridFinding<OpenSourceHealthDependency[]>;
+    return filterFindings(this._openSourceHealthFindings(), this.getFindingLocationFilter()) as SigridFinding<OpenSourceHealthDependency[]>;
   })
 
   get refactoringCandidates() {
@@ -171,5 +167,13 @@ export class SigridData {
 
   get activeFilePath() {
     return this._activeFilePath;
+  }
+
+  private getFindingLocationFilter() {
+    return {
+      component: this.configuration.subsystem(),
+      path: this._activeFilePath() ?? '',
+      fileFilterMode: this._fileFilter()
+    }
   }
 }

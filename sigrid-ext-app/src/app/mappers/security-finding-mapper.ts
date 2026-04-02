@@ -20,7 +20,7 @@ export class SecurityFindingMapper {
       finding.type = response.type;
       finding.status = stringToEnumValue(FindingStatus, response.status) ?? FindingStatus.Raw;
       finding.statusLabel = snakeCaseToTitleCase(response.status);
-      finding.fileLocations = [{filePath: finding.filePath, startLine: response.startLine ?? 0, endLine: response.endLine ?? 0}];
+      finding.fileLocations = [{component: response.component, filePath: finding.filePath, startLine: response.startLine ?? 0, endLine: response.endLine ?? 0}];
 
       return finding;
     }).sort((a, b) => {

@@ -6,7 +6,15 @@ import type {SigridData} from '../services/sigrid-data';
 import {UsageStatistics} from '../services/usage-statistics';
 
 describe('ConfigurationChangedCommand', () => {
-  it('calls SigridConfiguration.setConfiguration with the provided payload', () => {
+  const createPayload = (): Configuration => ({
+    apiKey: '<api-key>',
+    customer: 'acme',
+    system: 'my-system',
+    subsystem: 'my-subsystem',
+    sigridUrl: 'https://example.invalid',
+  });
+
+  const createCommand = () => {
     const sigridConfigMock: Pick<SigridConfiguration, 'setConfiguration'> = {
       setConfiguration: vi.fn(),
     };
@@ -25,12 +33,12 @@ describe('ConfigurationChangedCommand', () => {
       usageStatisticsMock as UsageStatistics,
     );
 
-    const payload: Configuration = {
-      apiKey: '<api-key>',
-      customer: 'acme',
-      system: 'my-system',
-      sigridUrl: 'https://example.invalid',
-    };
+    return {cmd, sigridConfigMock, sigridDataMock};
+  };
+
+  it('calls SigridConfiguration.setConfiguration with the provided payload', () => {
+    const {cmd, sigridConfigMock} = createCommand();
+    const payload = createPayload();
 
     cmd.execute(payload);
 
@@ -39,30 +47,8 @@ describe('ConfigurationChangedCommand', () => {
   });
 
   it('triggers a reload of findings after applying configuration', () => {
-    const sigridConfigMock: Pick<SigridConfiguration, 'setConfiguration'> = {
-      setConfiguration: vi.fn(),
-    };
-
-    const sigridDataMock: Pick<SigridData, 'loadAllFindings'> = {
-      loadAllFindings: vi.fn(),
-    };
-
-    const usageStatisticsMock: Pick<UsageStatistics, 'send'> = {
-      send: vi.fn(),
-    };
-
-    const cmd = new ConfigurationChangedCommand(
-      sigridConfigMock as SigridConfiguration,
-      sigridDataMock as SigridData,
-      usageStatisticsMock as UsageStatistics,
-    );
-
-    const payload: Configuration = {
-      apiKey: '<api-key>',
-      customer: 'acme',
-      system: 'my-system',
-      sigridUrl: 'https://example.invalid',
-    };
+    const {cmd, sigridConfigMock, sigridDataMock} = createCommand();
+    const payload = createPayload();
 
     cmd.execute(payload);
 

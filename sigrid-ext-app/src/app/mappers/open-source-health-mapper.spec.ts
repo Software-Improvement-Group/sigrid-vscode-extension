@@ -94,8 +94,8 @@ describe('OpenSourceHealthMapper', () => {
     const [dep] = OpenSourceHealthMapper.map(response);
 
     expect(dep.fileLocations).toEqual([
-      { filePath: 'package-lock.json' },
-      { filePath: 'frontend/package.json' },
+      { filePath: 'package-lock.json', component: 'package-lock.json' },
+      { filePath: 'frontend/package.json', component: 'frontend' },
     ]);
   });
 
@@ -140,7 +140,10 @@ describe('OpenSourceHealthMapper', () => {
 
     const [dep] = OpenSourceHealthMapper.map(response);
 
-    expect(dep.fileLocations).toEqual([{ filePath: '' }, { filePath: '' }]);
+    expect(dep.fileLocations).toEqual([
+      { filePath: '', component: '' },
+      { filePath: '', component: '' },
+    ]);
   });
 
   it('uses component.name as displayName when group is empty and sorts by risk desc then displayName asc', () => {

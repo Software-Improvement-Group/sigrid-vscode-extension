@@ -25,6 +25,7 @@ describe('RefactoringCandidateMapper', () => {
       status: 'in_progress',
       technology: 'typescript',
       snapshotDate: '2026-01-01',
+      component: 'c',
       file: '/repo/src/app/a.ts',
       name: 'myFunction',
       mcCabe: 3,
@@ -152,8 +153,8 @@ describe('RefactoringCandidateMapper', () => {
     const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'dup-file-locations');
 
     expect(candidate.fileLocations).toEqual([
-      { filePath: '/repo/src/app/a.ts', startLine: 11, endLine: 22 },
-      { filePath: '/repo/src/app/b.ts', startLine: 33, endLine: 44 },
+      { component: 'c', filePath: '/repo/src/app/a.ts', startLine: 11, endLine: 22 },
+      { component: 'c', filePath: '/repo/src/app/b.ts', startLine: 33, endLine: 44 },
     ]);
   });
 
@@ -175,8 +176,8 @@ describe('RefactoringCandidateMapper', () => {
     const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'complexity-file-locations');
 
     expect(candidate.fileLocations).toEqual([
-      { filePath: '/repo/src/app/complex.ts', startLine: 5, endLine: 15 },
-      { filePath: '/repo/src/app/complex.ts', startLine: 20, endLine: 25 },
+      { component: 'c', filePath: '/repo/src/app/complex.ts', startLine: 5, endLine: 15 },
+      { component: 'c', filePath: '/repo/src/app/complex.ts', startLine: 20, endLine: 25 },
     ]);
   });
 
@@ -195,7 +196,7 @@ describe('RefactoringCandidateMapper', () => {
     const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'coupling-file-locations');
 
     expect(candidate.fileLocations).toEqual([
-      { filePath: '/repo/src/app/coupled.ts', startLine: 0, endLine: 123 },
+      { component: 'c', filePath: '/repo/src/app/coupled.ts', startLine: 0, endLine: 123 },
     ]);
   });
 

@@ -97,15 +97,15 @@ export class RefactoringCandidateMapper {
     switch (category) {
       case RefactoringCategory.Duplication:
         return response.locations?.map(location => {
-          return {filePath: location.file, startLine: location.startLine, endLine: location.endLine} as FileLocation
+          return {component: location.component, filePath: location.file, startLine: location.startLine, endLine: location.endLine} as FileLocation
         }) ?? [];
       case RefactoringCategory.ModuleCoupling:
-        return [{filePath: response.file, startLine: 0, endLine: response.loc ?? 0} as FileLocation];
+        return [{component: response.component, filePath: response.file, startLine: 0, endLine: response.loc ?? 0} as FileLocation];
       case RefactoringCategory.UnitSize:
       case RefactoringCategory.UnitComplexity:
       case RefactoringCategory.UnitInterfacing:
         return response.lineRanges?.map(range => {
-          return {filePath: response.file, startLine: range.startLine, endLine: range.endLine} as FileLocation
+          return {component: response.component, filePath: response.file, startLine: range.startLine, endLine: range.endLine} as FileLocation
         }) ?? [];
       default:
         return [];

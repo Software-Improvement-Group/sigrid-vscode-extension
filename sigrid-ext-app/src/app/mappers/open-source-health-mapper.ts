@@ -37,7 +37,7 @@ export class OpenSourceHealthMapper {
           oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk,
           oshDependency.managementRisk) ?? RiskSeverity.Unknown;
         oshDependency.fileLocations = sortFileLocations(component.evidence?.occurrences?.map(evidence =>
-          ({filePath: evidence.location ?? ''})) ?? []);
+          ({filePath: evidence.location ?? '', component: OpenSourceHealthMapper.getLocationComponent(evidence.location)})) ?? []);
 
         return oshDependency;
       }).sort((a, b) => {
@@ -48,5 +48,9 @@ export class OpenSourceHealthMapper {
     }
 
     return [];
+  }
+
+  private static getLocationComponent(location?: string): string {
+    return location?.split('/')[0] ?? '';
   }
 }
