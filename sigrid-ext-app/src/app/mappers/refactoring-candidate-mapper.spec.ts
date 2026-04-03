@@ -40,7 +40,7 @@ describe('RefactoringCandidateMapper', () => {
       refactoringCandidates: [baseCandidate({ id: 'no-locations', locations: undefined, file: '/x/y/z.ts' })],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'no-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'no-locations');
 
     expect(candidate.displayLocation).toBe('.../z.ts');
   });
@@ -56,7 +56,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'status-mapped');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'status-mapped');
 
     expect(candidate.status).toBe(MaintainabilityFindingStatus.Raw);
     expect(candidate.statusLabel).toBe('False Positive');
@@ -73,7 +73,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'status-fallback');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'status-fallback');
 
     expect(candidate.status).toBe(MaintainabilityFindingStatus.Raw);
     expect(candidate.statusLabel).toBe('In Progress');
@@ -92,7 +92,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'one-location');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'one-location');
 
     expect(candidate.displayLocation).toBe('.../only.ts');
   });
@@ -111,7 +111,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'two-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'two-locations');
 
     expect(candidate.displayLocation).toBe('.../first.ts and .../second.ts');
   });
@@ -131,7 +131,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'many-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'many-locations');
 
     expect(candidate.displayLocation).toBe('.../one.ts, .../two.ts and 1 other files');
   });
@@ -150,7 +150,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'dup-file-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'dup-file-locations');
 
     expect(candidate.fileLocations).toEqual([
       { component: 'c', filePath: '/repo/src/app/a.ts', startLine: 11, endLine: 22 },
@@ -173,7 +173,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'complexity-file-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'complexity-file-locations');
 
     expect(candidate.fileLocations).toEqual([
       { component: 'c', filePath: '/repo/src/app/complex.ts', startLine: 5, endLine: 15 },
@@ -193,7 +193,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'coupling-file-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'coupling-file-locations');
 
     expect(candidate.fileLocations).toEqual([
       { component: 'c', filePath: '/repo/src/app/coupled.ts', startLine: 0, endLine: 123 },
@@ -220,7 +220,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const all = RefactoringCandidateMapper.map(record);
+    const all = RefactoringCandidateMapper.map(record, '');
 
     const dup = all.find((c) => c.id === 'dup-no-locations-array')!;
     const unitSize = all.find((c) => c.id === 'unit-size-no-lineRanges-array')!;
@@ -244,7 +244,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'dup-desc');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'dup-desc');
 
     expect(candidate.description).toBe('42 lines of code are duplicated between a.ts and b.ts.');
   });
@@ -261,7 +261,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'coupling-desc');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'coupling-desc');
 
     expect(candidate.description).toBe('coupled.ts has 9 incoming dependencies from other units.');
   });

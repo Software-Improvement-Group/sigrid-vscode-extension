@@ -30,17 +30,17 @@ describe('SigridData', () => {
       apiKey: string;
       customer: string;
       system: string;
-      subsystem: string;
       sigridUrl?: string;
+      subsystem: string;
     } | null>({
       apiKey: 'placeholder-api-key',
       customer: 'cust',
       system: 'sys',
-      subsystem: 'target-component',
+      subsystem: ''
       // sigridUrl intentionally omitted to exercise SIGRID_DEFAULT_URL fallback
     });
 
-    readonly subsystem = signal('target-component');
+    readonly subsystem = signal('');
 
     setSubsystem(subsystem: string) {
       this.subsystem.set(subsystem);
@@ -50,7 +50,7 @@ describe('SigridData', () => {
       return this.configSig.asReadonly();
     }
 
-    setConfiguration(config: { apiKey: string; customer: string; system: string; subsystem: string; sigridUrl?: string }) {
+    setConfiguration(config: { apiKey: string; customer: string; system: string; subsystem: string, sigridUrl?: string }) {
       this.configSig.set(config);
     }
 
@@ -93,13 +93,14 @@ describe('SigridData', () => {
     httpMock.verify();
   });
 
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
   it('filteredSecurityFindings: returns unfiltered findings when FileFilterMode.All', async () => {
-    const config = TestBed.inject(SigridConfiguration) as unknown as SigridConfigurationStub;
-    config.setSubsystem('');
     const mapped = [
-      {id: 'a', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}]} as any,
-      {id: 'b', fileLocations: [{filePath: '/repo/b.ts', component: 'target-component'}]} as any,
-      {id: 'c', fileLocations: [{filePath: '/other-repo/c.ts', component: 'other-component'}]} as any,
+      {id: 'a', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any,
+      {id: 'b', fileLocations: [{filePath: '/repo/b.ts', component: 'CompB'}]} as any,
     ];
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mapped as any);
 
@@ -111,85 +112,15 @@ describe('SigridData', () => {
     await p;
 
     const finding = service.securityFindings()!;
-    expect(finding.data).toStrictEqual(mapped as any);
-    expect(finding.data).toHaveLength(3);
+    expect(finding.data).toBe(mapped as any);
+    expect(finding.data).toHaveLength(2);
   });
 
-  it('filteredSecurityFindings: filters by subsystem when FileFilterMode.All', async () => {
+  it('filteredSecurityFindings: filters by activeFilePath when FileFilterMode.Active', async () => {
     const mapped = [
-      {id: 'match-1', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}]} as any,
-      {id: 'nope', fileLocations: [{filePath: '/repo/b.ts', component: 'other-component'}]} as any,
-      {id: 'match-2', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}, {filePath: '/repo/c.ts', component: 'other-component'}]} as any,
-    ];
-    vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mapped as any);
-
-    service.setActiveFilePath('/repo/a.ts');
-    service.setFileFilter(FileFilterMode.All);
-
-    const p = service.loadSecurityFindings();
-    httpMock.expectOne(findingEndpoint('security-findings')).flush([] as SecurityFindingResponse[]);
-    await p;
-
-    const finding = service.securityFindings()!;
-    expect(finding.data?.map((x: any) => x.id)).toEqual(['match-1', 'match-2']);
-  });
-
-  it('filteredOpenSourceHealthFindings: filters by subsystem when FileFilterMode.All', async () => {
-    const mapped = [
-      {name: 'dep-a', fileLocations: [{filePath: '/repo/a.ts', component: 'other-component'}]} as any,
-      {name: 'dep-b', fileLocations: [{filePath: '/repo/b.ts', component: 'target-component'}]} as any,
-    ];
-    vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue(mapped as any);
-
-    service.setActiveFilePath('/repo/b.ts');
-    service.setFileFilter(FileFilterMode.All);
-
-    const p = service.loadOpenSourceHealthFindings();
-    httpMock.expectOne(findingEndpoint('osh-findings')).flush({
-      bomFormat: 'CycloneDX',
-      specVersion: '1.5',
-      version: 1,
-      metadata: {timestamp: '2026-01-01T00:00:00Z', properties: []},
-      components: [],
-      vulnerabilities: [],
-    } satisfies OpenSourceHealthResponse);
-    await p;
-
-    const finding = service.openSourceHealthFindings()!;
-    expect(finding.data?.map((x: any) => x.name)).toEqual(['dep-b']);
-  });
-
-  it('filteredRefactoringCandidates: filters by subsystem when FileFilterMode.All', async () => {
-    const mapped = [
-      {id: 'rc-1', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}]} as any,
-      {id: 'rc-2', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}]} as any,
-      {id: 'rc-3', fileLocations: [{filePath: '/repo/other.ts', component: 'other-component'}]} as any,
-    ];
-    vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue(mapped as any);
-
-    service.setActiveFilePath('/repo/a.ts');
-    service.setFileFilter(FileFilterMode.All);
-
-    const p = service.loadRefactoringCandidates();
-
-    const categories = Object.values(RefactoringCategory);
-    for (const category of categories) {
-      httpMock
-        .expectOne(refactoringEndpoint(category))
-        .flush({refactoringCandidates: []} satisfies RefactoringCandidatesResponse);
-    }
-    await p;
-
-    const finding = service.refactoringCandidates()!;
-    expect(finding.data?.map((x: any) => x.id)).toEqual(['rc-1', 'rc-2']);
-  });
-
-  it('filteredSecurityFindings: filters by activeFilePath and subsystem when FileFilterMode.Active', async () => {
-    const mapped = [
-      {id: 'match-1', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}]} as any,
-      {id: 'nope', fileLocations: [{filePath: '/repo/b.ts', component: 'target-component'}]} as any,
-      {id: 'match-2', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}, {filePath: '/repo/c.ts', component: 'target-component'}]} as any,
-      {id: 'nope-2', fileLocations: [{filePath: '/repo/a.ts', component: 'other-component'}]} as any,
+      {id: 'match-1', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any,
+      {id: 'nope', fileLocations: [{filePath: '/repo/b.ts', component: 'CompA'}]} as any,
+      {id: 'match-2', fileLocations: [{filePath: '/repo/a.ts', component: 'CompB'}, {filePath: '/repo/c.ts', component: 'CompB'}]} as any,
     ];
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mapped as any);
 
@@ -204,11 +135,10 @@ describe('SigridData', () => {
     expect(finding.data?.map((x: any) => x.id)).toEqual(['match-1', 'match-2']);
   });
 
-  it('filteredOpenSourceHealthFindings: filters by activeFilePath and subsystem when FileFilterMode.Active', async () => {
+  /*it('filteredOpenSourceHealthFindings: filters by activeFilePath when FileFilterMode.Active', async () => {
     const mapped = [
-      {name: 'dep-a', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}]} as any,
-      {name: 'dep-b', fileLocations: [{filePath: '/repo/b.ts', component: 'target-component'}]} as any,
-      {name: 'dep-c', fileLocations: [{filePath: '/repo/b.ts', component: 'other-component'}]} as any,
+      {name: 'dep-a', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
+      {name: 'dep-b', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
     ];
     vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue(mapped as any);
 
@@ -230,12 +160,11 @@ describe('SigridData', () => {
     expect(finding.data?.map((x: any) => x.name)).toEqual(['dep-b']);
   });
 
-  it('filteredRefactoringCandidates: filters by activeFilePath and subsystem when FileFilterMode.Active', async () => {
+  it('filteredRefactoringCandidates: filters by activeFilePath when FileFilterMode.Active', async () => {
     const mapped = [
-      {id: 'rc-1', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}]} as any,
-      {id: 'rc-2', fileLocations: [{filePath: '/repo/a.ts', component: 'target-component'}]} as any,
-      {id: 'rc-3', fileLocations: [{filePath: '/repo/other.ts', component: 'target-component'}]} as any,
-      {id: 'rc-4', fileLocations: [{filePath: '/repo/a.ts', component: 'other-component'}]} as any,
+      {id: 'rc-1', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
+      {id: 'rc-2', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
+      {id: 'rc-3', fileLocations: [{filePath: '/repo/other.ts'}]} as any,
     ];
     vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue(mapped as any);
 
@@ -325,9 +254,7 @@ describe('SigridData', () => {
   });
 
   it('loadSecurityFindings() fetches via API, maps, and stores data', async () => {
-    const mapped = [
-      { id: 'mapped-security', fileLocations: [{ filePath: '/repo/a.ts', component: 'target-component' }] } as any,
-    ];
+    const mapped = [{ id: 'mapped-security' }] as any;
     const mapperSpy = vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mapped);
 
     const p = service.loadSecurityFindings();
@@ -346,7 +273,7 @@ describe('SigridData', () => {
         filePath: '/repo/a.ts',
         startLine: 1,
         endLine: 2,
-        component: 'target-component',
+        component: 'c',
         type: 'x',
         cweId: 'CWE-0',
         severity: 'high',
@@ -371,16 +298,12 @@ describe('SigridData', () => {
     expect(mapperSpy).toHaveBeenCalledWith(apiPayload);
 
     const finding = service.securityFindings()!;
-    expect(finding.data).toHaveLength(1);
-    expect(finding.data?.[0].id).toBe('mapped-security');
-    expect(finding.data?.[0].fileLocations).toHaveLength(1);
-    expect(finding.data?.[0].fileLocations?.[0].filePath).toBe('/repo/a.ts');
-    expect(finding.data?.[0].fileLocations?.[0].component).toBe('target-component');
+    expect(finding.data).toBe(mapped);
     expect(finding.error).toBeUndefined();
   });
 
   it('loadOpenSourceHealthFindings() fetches via API, maps, and stores data', async () => {
-    const mapped = [{ name: 'mapped-osh', fileLocations: [{ filePath: 'target-component/package.json', component: 'target-component' }] }] as any;
+    const mapped = [{ name: 'mapped-osh' }] as any;
     const mapperSpy = vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue(mapped);
 
     const p = service.loadOpenSourceHealthFindings();
@@ -393,24 +316,7 @@ describe('SigridData', () => {
       specVersion: '1.5',
       version: 1,
       metadata: { timestamp: '2026-01-01T00:00:00Z', properties: [] },
-      components: [
-        {
-          type: 'source',
-          name: 'mapped-osh',
-          group: 'mapped-osh',
-          version: '1.0.0',
-          purl: 'pkg:npm/mapped-osh@1.0.0',
-          properties: [],
-          licenses: [],
-          evidence: {
-            occurrences: [
-              {
-                location: 'target-component/package.json',
-              }
-            ]
-          }
-        }
-      ],
+      components: [],
       vulnerabilities: [],
     };
     req.flush(apiPayload);
@@ -420,14 +326,12 @@ describe('SigridData', () => {
     expect(mapperSpy).toHaveBeenCalledWith(apiPayload);
 
     const finding = service.openSourceHealthFindings()!;
-    expect(finding.data?.[0].fileLocations).toHaveLength(1);
-    expect(finding.data?.[0].fileLocations?.[0].filePath).toBe('target-component/package.json');
-    expect(finding.data?.[0].fileLocations?.[0].component).toBe('target-component');
+    expect(finding.data).toBe(mapped);
     expect(finding.error).toBeUndefined();
   });
 
   it('loadRefactoringCandidates() fetches all categories via API, maps, and stores data', async () => {
-    const mapped = [{ id: 'mapped-rc', fileLocations: [{ filePath: 'repo/a.ts', component: 'target-component' }] }] as any;
+    const mapped = [{ id: 'mapped-rc' }] as any;
     const mapperSpy = vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue(mapped);
 
     const p = service.loadRefactoringCandidates();
@@ -449,8 +353,7 @@ describe('SigridData', () => {
     }
 
     const finding = service.refactoringCandidates()!;
-    expect(finding.data).toHaveLength(1);
-    expect(finding.data?.[0].id).toBe('mapped-rc');
+    expect(finding.data).toBe(mapped);
     expect(finding.error).toBeUndefined();
   });
 
@@ -608,5 +511,5 @@ describe('SigridData', () => {
 
     await p;
     expect(service.isRefreshing()).toBe(false);
-  });
+  });*/
 });

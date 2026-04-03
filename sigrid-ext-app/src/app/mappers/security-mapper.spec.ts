@@ -46,7 +46,7 @@ describe('SecurityFindingMapper', () => {
       }),
     ];
 
-    const [mapped] = SecurityFindingMapper.map(input);
+    const [mapped] = SecurityFindingMapper.map(input, '');
 
     expect(mapped.id).toBe('x');
     expect(mapped.href).toBe('https://example.invalid/finding/1');
@@ -71,7 +71,7 @@ describe('SecurityFindingMapper', () => {
       baseResponse({
         status: 'in_progress',
       }),
-    ]);
+    ], '');
 
     expect(mapped.status).toBe(FindingStatus.Raw);
     expect(mapped.statusLabel).toBe('In Progress');
@@ -84,7 +84,7 @@ describe('SecurityFindingMapper', () => {
       baseResponse({ id: 'medium', severity: 'medium', filePath: '/repo/src/app/m.ts' }),
     ];
 
-    const result = SecurityFindingMapper.map(input);
+    const result = SecurityFindingMapper.map(input, '');
 
     expect(result.map((r) => r.id)).toEqual(['critical', 'medium', 'low']);
   });
@@ -95,7 +95,7 @@ describe('SecurityFindingMapper', () => {
       baseResponse({ id: 'a', severity: 'high', filePath: '/repo/src/app/a.ts' }),
     ];
 
-    const result = SecurityFindingMapper.map(input);
+    const result = SecurityFindingMapper.map(input, '');
 
     // With the current implementation this ends up ordering by displayFilePath.localeCompare(b.filePath)
     // For these inputs it deterministically places 'a' before 'b'.

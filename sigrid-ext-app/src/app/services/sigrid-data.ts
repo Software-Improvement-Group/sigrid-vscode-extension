@@ -9,10 +9,10 @@ import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
 import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {FileFilterMode} from '../models/file-filter-mode';
-import {filterFindings} from '../utilities/filter-findings';
 import {getFileName} from '../utilities/path';
 import {HttpErrorResponse} from '@angular/common/http';
 import {SigridConfiguration} from './sigrid-configuration';
+import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
 
 @Injectable({
   providedIn: 'root',
@@ -29,15 +29,21 @@ export class SigridData {
   readonly displayActivePath = computed(() => this._fileFilter() === FileFilterMode.Active ? getFileName(this._activeFilePath()) : '');
 
   private filteredRefactoringCandidates = computed(() => {
-    return filterFindings(this._refactoringCandidates(), this.getFindingLocationFilter()) as SigridFinding<RefactoringCandidate[]>;
+    return this._fileFilter() === FileFilterMode.All
+      ? this._refactoringCandidates()
+      : filterFindingsByPath(this._refactoringCandidates(), this._activeFilePath() ?? '') as SigridFinding<RefactoringCandidate[]>;
   });
 
   private filteredSecurityFindings = computed(() => {
-    return filterFindings(this._securityFindings(), this.getFindingLocationFilter()) as SigridFinding<SecurityFinding[]>;
+    return this._fileFilter() === FileFilterMode.All
+      ? this._securityFindings()
+      : filterFindingsByPath(this._securityFindings(), this._activeFilePath() ?? '') as SigridFinding<SecurityFinding[]>;
   });
 
   private filteredOpenSourceHealthFindings = computed(() => {
-    return filterFindings(this._openSourceHealthFindings(), this.getFindingLocationFilter()) as SigridFinding<OpenSourceHealthDependency[]>;
+    return this._fileFilter() === FileFilterMode.All
+      ? this._openSourceHealthFindings()
+      : filterFindingsByPath(this._openSourceHealthFindings(), this._activeFilePath() ?? '') as SigridFinding<OpenSourceHealthDependency[]>;
   })
 
   get refactoringCandidates() {
@@ -103,7 +109,7 @@ export class SigridData {
   private async fetchFindings<Response, Finding>(
     httpFn: () => Observable<Response>,
     findingSignal: WritableSignal<SigridFinding<Finding> | null>,
-    mapperFn: (response: Response) => Finding,
+    mapperFn: (response: Response, subsystem: string) => Finding,
     findingLabel: string,
     forceRefresh?: boolean,
   ): Promise<void> {
@@ -113,9 +119,10 @@ export class SigridData {
 
     try {
       const data = await firstValueFrom(httpFn());
+      const subsystem = this.configuration.subsystem();
 
       try {
-        const mappedData = mapperFn(data);
+        const mappedData = mapperFn(data, subsystem);
         findingSignal.set({data: mappedData} as SigridFinding<Finding>);
       } catch (mapperError) {
         console.error(`Error mapping response to ${findingLabel} findings:`, mapperError);
@@ -167,13 +174,5 @@ export class SigridData {
 
   get activeFilePath() {
     return this._activeFilePath;
-  }
-
-  private getFindingLocationFilter() {
-    return {
-      component: this.configuration.subsystem(),
-      path: this._activeFilePath() ?? '',
-      fileFilterMode: this._fileFilter()
-    }
   }
 }

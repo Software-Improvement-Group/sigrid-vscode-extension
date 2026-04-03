@@ -24,7 +24,7 @@ describe('OpenSourceHealthMapper', () => {
   it('returns [] when response.components is not an array', () => {
     const response = baseResponse({ components: undefined as any });
 
-    expect(OpenSourceHealthMapper.map(response)).toEqual([]);
+    expect(OpenSourceHealthMapper.map(response, '')).toEqual([]);
   });
 
   it('maps component fields, computes overall risk as max risk, and formats displayName + dependencyType', () => {
@@ -50,7 +50,7 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const [dep] = OpenSourceHealthMapper.map(response);
+    const [dep] = OpenSourceHealthMapper.map(response, '');
 
     expect(dep.name).toBe('lib-a');
     expect(dep.group).toBe('acme');
@@ -83,7 +83,7 @@ describe('OpenSourceHealthMapper', () => {
           licenses: [],
           evidence: {
             occurrences: [
-              { location: 'package-lock.json' },
+              { location: 'tests/package-lock.json' },
               { location: 'frontend/package.json' },
             ],
           },
@@ -91,10 +91,10 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const [dep] = OpenSourceHealthMapper.map(response);
+    const [dep] = OpenSourceHealthMapper.map(response, '');
 
     expect(dep.fileLocations).toEqual([
-      { filePath: 'package-lock.json', component: 'package-lock.json' },
+      { filePath: 'tests/package-lock.json', component: 'tests' },
       { filePath: 'frontend/package.json', component: 'frontend' },
     ]);
   });
@@ -115,7 +115,7 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const [dep] = OpenSourceHealthMapper.map(response);
+    const [dep] = OpenSourceHealthMapper.map(response, '');
 
     expect(dep.fileLocations).toEqual([]);
   });
@@ -138,7 +138,7 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const [dep] = OpenSourceHealthMapper.map(response);
+    const [dep] = OpenSourceHealthMapper.map(response, '');
 
     expect(dep.fileLocations).toEqual([
       { filePath: '', component: '' },
@@ -203,7 +203,7 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const result = OpenSourceHealthMapper.map(response);
+    const result = OpenSourceHealthMapper.map(response, '');
 
     // Highest risk first
     expect(result[0].name).toBe('zzz');

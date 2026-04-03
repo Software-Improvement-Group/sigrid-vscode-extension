@@ -4,6 +4,7 @@ import {asRecord} from '../utilities/as-record';
 import {RiskSeverity, toRiskSeverity} from '../models/risk-severity';
 import {findMaxValue} from '../utilities/find-max-value';
 import {sortFileLocations} from '../utilities/sort-file-locations';
+import {normalizePath} from '../utilities/path';
 
 export class OpenSourceHealthMapper {
   private static readonly dependencyTypeKey = 'sigrid:transitive';
@@ -14,7 +15,7 @@ export class OpenSourceHealthMapper {
   private static readonly stabilityRiskKey = 'sigrid:risk:stability';
   private static readonly managementRiskKey = 'sigrid:risk:management';
 
-  static map(response: OpenSourceHealthResponse): OpenSourceHealthDependency[] {
+  static map(response: OpenSourceHealthResponse, subsystem: string): OpenSourceHealthDependency[] {
     if (Array.isArray(response?.components)) {
       return response.components.map(component => {
         const properties = asRecord(component.properties);
@@ -36,11 +37,14 @@ export class OpenSourceHealthMapper {
         oshDependency.risk = findMaxValue(oshDependency.licenseRisk, oshDependency.vulnerabilityRisk,
           oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk,
           oshDependency.managementRisk) ?? RiskSeverity.Unknown;
-        oshDependency.fileLocations = sortFileLocations(component.evidence?.occurrences?.map(evidence =>
-          ({filePath: evidence.location ?? '', component: OpenSourceHealthMapper.getLocationComponent(evidence.location)})) ?? []);
+        oshDependency.fileLocations = sortFileLocations(component.evidence?.occurrences?.map(evidence => ({
+          filePath: normalizePath(evidence.location, subsystem),
+          component: OpenSourceHealthMapper.getLocationComponent(evidence.location)
+        }))?.filter(location => !subsystem ||  location.component === subsystem) ?? []);
 
         return oshDependency;
-      }).sort((a, b) => {
+      }).filter(dependency => !subsystem || dependency.fileLocations.some(location => location.component === subsystem))
+        .sort((a, b) => {
         if (b.risk > a.risk) return 1;
         if (b.risk < a.risk) return -1;
         return a.displayName.localeCompare(b.displayName);
