@@ -3,7 +3,7 @@ import { window, workspace } from "vscode";
 
 function getActiveWorkspace() {
     if (window.activeTextEditor) {
-        const activeEditorPath = window.activeTextEditor.document.uri.path;
+        const activeEditorPath = window.activeTextEditor.document.uri.fsPath;
         const matchingWorkspace = workspace.workspaceFolders?.find((wsFolder) => {
             const relative = path.relative(wsFolder.uri.fsPath, activeEditorPath);
             return relative && !relative.startsWith('..') && !path.isAbsolute(relative);
