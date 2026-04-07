@@ -12,11 +12,13 @@ describe('utilities/path', () => {
       expect(toDisplayFilePath('/repo/src/app/file.ts')).toBe('.../file.ts');
       expect(toDisplayFilePath('file.ts')).toBe('.../file.ts');
       expect(toDisplayFilePath('a/b/c')).toBe('.../c');
+      expect(toDisplayFilePath('c:\\repo\\src\app\\file.ts')).toBe( '.../file.ts');
     });
 
     it('supports a custom prefix', () => {
       expect(toDisplayFilePath('/repo/src/app/file.ts', '')).toBe('file.ts');
       expect(toDisplayFilePath('/repo/src/app/file.ts', 'FILE: ')).toBe('FILE: file.ts');
+      expect(toDisplayFilePath('c:\\repo\\src\app\\file.ts', '')).toBe('file.ts');
     });
 
     it('returns empty string when the last path segment is empty (trailing slash)', () => {

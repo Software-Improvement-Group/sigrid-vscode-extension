@@ -34,7 +34,6 @@ export class SigridPanel implements WebviewViewProvider {
   private getWebviewContent(webview: Webview) {
     const styleUri = getWebviewUri(webview, this.extensionUri, AngularApp.outputFolder, 'styles.css');
     const scriptUri = getWebviewUri(webview, this.extensionUri, AngularApp.outputFolder, 'main.js');
-    console.log("Script URI:", scriptUri);
 
     // Use a nonce to whitelist which scripts can be run
     const nonce = getNonce();
