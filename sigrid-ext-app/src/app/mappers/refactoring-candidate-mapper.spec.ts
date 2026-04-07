@@ -265,4 +265,93 @@ describe('RefactoringCandidateMapper', () => {
 
     expect(candidate.description).toBe('coupled.ts has 9 incoming dependencies from other units.');
   });
+
+  it('filters out candidates that do not match the specified subsystem', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.UnitSize] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'match',
+          component: 'frontend',
+        }),
+        baseCandidate({
+          id: 'no-match',
+          component: 'backend',
+        }),
+      ],
+    };
+
+    const result = RefactoringCandidateMapper.map(record, 'frontend');
+
+    expect(result.map((candidate) => candidate.id)).toEqual(['match']);
+  });
+
+  it('normalizes UnitSize fileLocations using the specified subsystem', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.UnitSize] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'subsystem-path',
+          component: 'frontend',
+          file: 'frontend/src/app/app.component.ts',
+          lineRanges: [{ startLine: 1, endLine: 3 }],
+        }),
+      ],
+    };
+
+    const [candidate] = RefactoringCandidateMapper.map(record, 'frontend').filter((c) => c.id === 'subsystem-path');
+
+    expect(candidate.fileLocations).toEqual([
+      {
+        component: 'frontend',
+        filePath: 'src/app/app.component.ts',
+        startLine: 1,
+        endLine: 3,
+      },
+    ]);
+  });
+
+  it('keeps Duplication fileLocations for matching subsystem entries only when subsystem is specified', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.Duplication] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'dup-subsystem',
+          component: 'frontend',
+          locations: [
+            { component: 'frontend', file: 'frontend/src/app/a.ts', moduleId: 1, startLine: 11, endLine: 22 },
+            { component: 'backend', file: 'backend/src/app/b.ts', moduleId: 1, startLine: 33, endLine: 44 },
+          ],
+        }),
+      ],
+    };
+
+    const [candidate] = RefactoringCandidateMapper.map(record, 'frontend').filter((c) => c.id === 'dup-subsystem');
+
+    expect(candidate.fileLocations).toEqual([
+      { component: 'frontend', filePath: 'src/app/a.ts', startLine: 11, endLine: 22 },
+      { component: 'backend', filePath: 'backend/src/app/b.ts', startLine: 33, endLine: 44 },
+    ]);
+  });
+
+  it('maps displayLocation and description the same way when subsystem is specified', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.UnitSize] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'subsystem-metadata',
+          component: 'frontend',
+          file: 'frontend/src/app/widget.ts',
+          name: 'widget',
+          weight: 17,
+          lineRanges: [{ startLine: 1, endLine: 17 }],
+        }),
+      ],
+    };
+
+    const [candidate] = RefactoringCandidateMapper.map(record, 'frontend').filter((c) => c.id === 'subsystem-metadata');
+
+    expect(candidate.displayLocation).toBe('.../widget.ts');
+    expect(candidate.description).toBe('widget contains 17 lines of code.');
+  });
 });

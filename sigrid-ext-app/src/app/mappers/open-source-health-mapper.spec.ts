@@ -99,6 +99,66 @@ describe('OpenSourceHealthMapper', () => {
     ]);
   });
 
+  it('filters out components with no fileLocations in the specified subsystem', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-match',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-match@1.0.0',
+          properties: [],
+          licenses: [],
+          evidence: {
+            occurrences: [{ location: 'frontend/package.json' }],
+          },
+        } as any,
+        {
+          type: 'library',
+          name: 'lib-no-match',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-no-match@1.0.0',
+          properties: [],
+          licenses: [],
+          evidence: {
+            occurrences: [{ location: 'backend/package.json' }],
+          },
+        } as any,
+      ],
+    });
+
+    const result = OpenSourceHealthMapper.map(response, 'frontend');
+
+    expect(result.map((dep) => dep.name)).toEqual(['lib-match']);
+  });
+
+  it('normalizes file locations using the specified subsystem', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-normalized',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-normalized@1.0.0',
+          properties: [],
+          licenses: [],
+          evidence: {
+            occurrences: [{ location: 'frontend/src/app/widget.ts' }],
+          },
+        } as any,
+      ],
+    });
+
+    const [dep] = OpenSourceHealthMapper.map(response, 'frontend');
+
+    expect(dep.fileLocations).toEqual([
+      { filePath: 'src/app/widget.ts', component: 'frontend' },
+    ]);
+  });
+
   it('sets fileLocations to [] when evidence.occurrences is missing/undefined', () => {
     const response = baseResponse({
       components: [

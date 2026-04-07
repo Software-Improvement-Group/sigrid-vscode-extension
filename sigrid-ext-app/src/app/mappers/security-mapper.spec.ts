@@ -77,6 +77,40 @@ describe('SecurityFindingMapper', () => {
     expect(mapped.statusLabel).toBe('In Progress');
   });
 
+  it('filters out findings that do not match the specified subsystem', () => {
+    const input = [
+      baseResponse({ id: 'match', component: 'frontend', filePath: 'frontend/src/app/a.ts' }),
+      baseResponse({ id: 'no-match', component: 'backend', filePath: 'backend/src/app/b.ts' }),
+    ];
+
+    const result = SecurityFindingMapper.map(input, 'frontend');
+
+    expect(result.map((r) => r.id)).toEqual(['match']);
+  });
+
+  it('normalizes file locations when a subsystem is specified', () => {
+    const input = [
+      baseResponse({
+        id: 'subsystem-path',
+        component: 'frontend',
+        filePath: 'frontend/src/app/a.ts',
+        severity: 'high',
+      }),
+    ];
+
+    const [mapped] = SecurityFindingMapper.map(input, 'frontend');
+
+    expect(mapped.filePath).toBe('frontend/src/app/a.ts');
+    expect(mapped.fileLocations).toEqual([
+      {
+        component: 'frontend',
+        filePath: 'src/app/a.ts',
+        startLine: 10,
+        endLine: 20,
+      },
+    ]);
+  });
+
   it('sorts by severity descending', () => {
     const input = [
       baseResponse({ id: 'low', severity: 'low', filePath: '/repo/src/app/z.ts' }),

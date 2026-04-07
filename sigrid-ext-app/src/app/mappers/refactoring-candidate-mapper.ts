@@ -101,7 +101,7 @@ export class RefactoringCandidateMapper {
         return response.locations?.map(location => {
           return {
             component: location.component,
-            filePath: normalizePath(location.file, location.component),
+            filePath: normalizePath(location.file, subsystem),
             startLine: location.startLine,
             endLine: location.endLine
           } as FileLocation
@@ -109,7 +109,7 @@ export class RefactoringCandidateMapper {
       case RefactoringCategory.ModuleCoupling:
         return [{
           component: response.component,
-          filePath: normalizePath(response.file, response.component),
+          filePath: normalizePath(response.file, subsystem),
           startLine: 0,
           endLine: response.loc ?? 0
         } as FileLocation];
