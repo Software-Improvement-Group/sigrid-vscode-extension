@@ -15,8 +15,13 @@ export class SigridConfiguration {
   });
 
   private readonly sigridApiBaseUrl = computed(() => {
-    const configuration = this.getConfiguration()() ?? this.getEmptyConfiguration();
+    const configuration = this.getConfigurationOrEmpty();
     return joinUrl(!!configuration.sigridUrl ? configuration.sigridUrl : SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL);
+  });
+
+  readonly subsystem = computed(() => {
+    const configuration = this.getConfigurationOrEmpty();
+    return configuration.subsystem?.trim() ?? '';
   });
 
   getConfiguration() {
@@ -27,11 +32,16 @@ export class SigridConfiguration {
     this.config.set(config);
   }
 
+  getConfigurationOrEmpty() {
+    return this.getConfiguration()() ?? this.getEmptyConfiguration();
+  }
+
   getEmptyConfiguration(): Configuration {
     return {
       apiKey: '',
       customer: '',
       system: '',
+      subsystem: '',
       sigridUrl: SIGRID_DEFAULT_URL
     };
   }

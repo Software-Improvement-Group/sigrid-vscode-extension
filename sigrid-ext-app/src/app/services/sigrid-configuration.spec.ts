@@ -30,6 +30,7 @@ describe('SigridConfiguration', () => {
       apiKey: '',
       customer: '',
       system: '',
+      subsystem: '',
       sigridUrl: SIGRID_DEFAULT_URL,
     });
   });
@@ -39,6 +40,7 @@ describe('SigridConfiguration', () => {
       apiKey: 'placeholder-api-key',
       customer: 'customer-1',
       system: 'system-1',
+      subsystem: 'subsystem-1',
       sigridUrl: SIGRID_DEFAULT_URL,
     };
 
@@ -47,17 +49,29 @@ describe('SigridConfiguration', () => {
     expect(service.getConfiguration()()).toEqual(config);
   });
 
+  it('subsystem is trimmed and falls back to empty string', () => {
+    service.setConfiguration({
+      apiKey: 'k',
+      customer: 'c',
+      system: 's',
+      subsystem: '  trimmed-subsystem  ',
+      sigridUrl: SIGRID_DEFAULT_URL,
+    });
+
+    expect(service.subsystem()).toBe('trimmed-subsystem');
+  });
+
   it('isConfigurationValid becomes true only when apiKey, customer, and system are all non-empty', () => {
-    service.setConfiguration({ apiKey: '', customer: 'c', system: 's', sigridUrl: SIGRID_DEFAULT_URL });
+    service.setConfiguration({ apiKey: '', customer: 'c', system: 's', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL });
     expect(service.isConfigurationValid()).toBe(false);
 
-    service.setConfiguration({ apiKey: 'k', customer: '', system: 's', sigridUrl: SIGRID_DEFAULT_URL });
+    service.setConfiguration({ apiKey: 'k', customer: '', system: 's', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL });
     expect(service.isConfigurationValid()).toBe(false);
 
-    service.setConfiguration({ apiKey: 'k', customer: 'c', system: '', sigridUrl: SIGRID_DEFAULT_URL });
+    service.setConfiguration({ apiKey: 'k', customer: 'c', system: '', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL });
     expect(service.isConfigurationValid()).toBe(false);
 
-    service.setConfiguration({ apiKey: 'k', customer: 'c', system: 's', sigridUrl: SIGRID_DEFAULT_URL });
+    service.setConfiguration({ apiKey: 'k', customer: 'c', system: 's', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL });
     expect(service.isConfigurationValid()).toBe(true);
   });
 

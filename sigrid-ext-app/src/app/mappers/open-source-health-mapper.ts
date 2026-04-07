@@ -1,9 +1,14 @@
-import {OpenSourceHealthDependency, OpenSourceHealthResponse} from '../models/open-source-health-dependency';
+import {
+  OpenSourceHealthDependency,
+  OpenSourceHealthResponse,
+  OshDependencyResponse
+} from '../models/open-source-health-dependency';
 import {asStringOrDefault, snakeCaseToTitleCase} from '../utilities/string';
 import {asRecord} from '../utilities/as-record';
 import {RiskSeverity, toRiskSeverity} from '../models/risk-severity';
 import {findMaxValue} from '../utilities/find-max-value';
 import {sortFileLocations} from '../utilities/sort-file-locations';
+import {normalizePath} from '../utilities/path';
 
 export class OpenSourceHealthMapper {
   private static readonly dependencyTypeKey = 'sigrid:transitive';
@@ -14,33 +19,11 @@ export class OpenSourceHealthMapper {
   private static readonly stabilityRiskKey = 'sigrid:risk:stability';
   private static readonly managementRiskKey = 'sigrid:risk:management';
 
-  static map(response: OpenSourceHealthResponse): OpenSourceHealthDependency[] {
+  static map(response: OpenSourceHealthResponse, subsystem: string): OpenSourceHealthDependency[] {
     if (Array.isArray(response?.components)) {
-      return response.components.map(component => {
-        const properties = asRecord(component.properties);
-
-        const oshDependency = new OpenSourceHealthDependency();
-        oshDependency.name = component.name;
-        oshDependency.displayName = !!component.group ? `${component.group}/${component.name}` : component.name;
-        oshDependency.version = asStringOrDefault(component.version);
-        oshDependency.group = component.group;
-        oshDependency.dependencyType = properties[OpenSourceHealthMapper.dependencyTypeKey] ?
-          snakeCaseToTitleCase(properties[OpenSourceHealthMapper.dependencyTypeKey]) : 'Unknown';
-        oshDependency.purl = component.purl;
-        oshDependency.licenseRisk = toRiskSeverity(properties[OpenSourceHealthMapper.licenseRiskKey]);
-        oshDependency.vulnerabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.vulnerabilityRiskKey]);
-        oshDependency.freshnessRisk = toRiskSeverity(properties[OpenSourceHealthMapper.freshnessRiskKey]);
-        oshDependency.activityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.activityRiskKey]);
-        oshDependency.stabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.stabilityRiskKey]);
-        oshDependency.managementRisk = toRiskSeverity(properties[OpenSourceHealthMapper.managementRiskKey]);
-        oshDependency.risk = findMaxValue(oshDependency.licenseRisk, oshDependency.vulnerabilityRisk,
-          oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk,
-          oshDependency.managementRisk) ?? RiskSeverity.Unknown;
-        oshDependency.fileLocations = sortFileLocations(component.evidence?.occurrences?.map(evidence =>
-          ({filePath: evidence.location ?? ''})) ?? []);
-
-        return oshDependency;
-      }).sort((a, b) => {
+      return response.components.map(component => OpenSourceHealthMapper.createOshDependency(component, subsystem))
+        .filter(dependency => !subsystem || dependency.fileLocations.some(location => location.component === subsystem))
+        .sort((a, b) => {
         if (b.risk > a.risk) return 1;
         if (b.risk < a.risk) return -1;
         return a.displayName.localeCompare(b.displayName);
@@ -48,5 +31,37 @@ export class OpenSourceHealthMapper {
     }
 
     return [];
+  }
+
+  private static createOshDependency(component: OshDependencyResponse, subsystem: string) {
+    const properties = asRecord(component.properties);
+
+    const oshDependency = new OpenSourceHealthDependency();
+    oshDependency.name = component.name;
+    oshDependency.displayName = !!component.group ? `${component.group}/${component.name}` : component.name;
+    oshDependency.version = asStringOrDefault(component.version);
+    oshDependency.group = component.group;
+    oshDependency.dependencyType = properties[OpenSourceHealthMapper.dependencyTypeKey] ?
+      snakeCaseToTitleCase(properties[OpenSourceHealthMapper.dependencyTypeKey]) : 'Unknown';
+    oshDependency.purl = component.purl;
+    oshDependency.licenseRisk = toRiskSeverity(properties[OpenSourceHealthMapper.licenseRiskKey]);
+    oshDependency.vulnerabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.vulnerabilityRiskKey]);
+    oshDependency.freshnessRisk = toRiskSeverity(properties[OpenSourceHealthMapper.freshnessRiskKey]);
+    oshDependency.activityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.activityRiskKey]);
+    oshDependency.stabilityRisk = toRiskSeverity(properties[OpenSourceHealthMapper.stabilityRiskKey]);
+    oshDependency.managementRisk = toRiskSeverity(properties[OpenSourceHealthMapper.managementRiskKey]);
+    oshDependency.risk = findMaxValue(oshDependency.licenseRisk, oshDependency.vulnerabilityRisk,
+      oshDependency.freshnessRisk, oshDependency.activityRisk, oshDependency.stabilityRisk,
+      oshDependency.managementRisk) ?? RiskSeverity.Unknown;
+    oshDependency.fileLocations = sortFileLocations(component.evidence?.occurrences?.map(evidence => ({
+      filePath: normalizePath(evidence.location, subsystem),
+      component: OpenSourceHealthMapper.getLocationComponent(evidence.location)
+    }))?.filter(location => !subsystem ||  location.component === subsystem) ?? []);
+
+    return oshDependency;
+  }
+
+  private static getLocationComponent(location?: string): string {
+    return location?.split('/')[0] ?? '';
   }
 }

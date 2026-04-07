@@ -31,18 +31,26 @@ describe('SigridData', () => {
       customer: string;
       system: string;
       sigridUrl?: string;
+      subsystem: string;
     } | null>({
       apiKey: 'placeholder-api-key',
       customer: 'cust',
       system: 'sys',
+      subsystem: ''
       // sigridUrl intentionally omitted to exercise SIGRID_DEFAULT_URL fallback
     });
+
+    readonly subsystem = signal('');
+
+    setSubsystem(subsystem: string) {
+      this.subsystem.set(subsystem);
+    }
 
     getConfiguration() {
       return this.configSig.asReadonly();
     }
 
-    setConfiguration(config: { apiKey: string; customer: string; system: string; sigridUrl?: string }) {
+    setConfiguration(config: { apiKey: string; customer: string; system: string; subsystem: string, sigridUrl?: string }) {
       this.configSig.set(config);
     }
 
@@ -91,8 +99,8 @@ describe('SigridData', () => {
 
   it('filteredSecurityFindings: returns unfiltered findings when FileFilterMode.All', async () => {
     const mapped = [
-      {id: 'a', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
-      {id: 'b', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
+      {id: 'a', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any,
+      {id: 'b', fileLocations: [{filePath: '/repo/b.ts', component: 'CompB'}]} as any,
     ];
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mapped as any);
 
@@ -110,9 +118,9 @@ describe('SigridData', () => {
 
   it('filteredSecurityFindings: filters by activeFilePath when FileFilterMode.Active', async () => {
     const mapped = [
-      {id: 'match-1', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
-      {id: 'nope', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
-      {id: 'match-2', fileLocations: [{filePath: '/repo/a.ts'}, {filePath: '/repo/c.ts'}]} as any,
+      {id: 'match-1', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any,
+      {id: 'nope', fileLocations: [{filePath: '/repo/b.ts', component: 'CompA'}]} as any,
+      {id: 'match-2', fileLocations: [{filePath: '/repo/a.ts', component: 'CompB'}, {filePath: '/repo/c.ts', component: 'CompB'}]} as any,
     ];
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mapped as any);
 
@@ -129,8 +137,8 @@ describe('SigridData', () => {
 
   it('filteredOpenSourceHealthFindings: filters by activeFilePath when FileFilterMode.Active', async () => {
     const mapped = [
-      {name: 'dep-a', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
-      {name: 'dep-b', fileLocations: [{filePath: '/repo/b.ts'}]} as any,
+      {name: 'dep-a', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any,
+      {name: 'dep-b', fileLocations: [{filePath: '/repo/b.ts', component: 'CompA'}]} as any,
     ];
     vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue(mapped as any);
 
@@ -154,9 +162,9 @@ describe('SigridData', () => {
 
   it('filteredRefactoringCandidates: filters by activeFilePath when FileFilterMode.Active', async () => {
     const mapped = [
-      {id: 'rc-1', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
-      {id: 'rc-2', fileLocations: [{filePath: '/repo/a.ts'}]} as any,
-      {id: 'rc-3', fileLocations: [{filePath: '/repo/other.ts'}]} as any,
+      {id: 'rc-1', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any,
+      {id: 'rc-2', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any,
+      {id: 'rc-3', fileLocations: [{filePath: '/repo/other.ts', component: 'CompA'}]} as any,
     ];
     vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue(mapped as any);
 
@@ -178,9 +186,9 @@ describe('SigridData', () => {
   });
 
   it('filtered* signals: when Active filter is set but activeFilePath is undefined, data becomes empty (documents current behavior)', async () => {
-    const mappedSecurity = [{id: 's1', fileLocations: [{filePath: '/repo/a.ts'}]} as any];
-    const mappedOsh = [{name: 'd1', fileLocations: [{filePath: '/repo/a.ts'}]} as any];
-    const mappedRc = [{id: 'rc1', fileLocations: [{filePath: '/repo/a.ts'}]} as any];
+    const mappedSecurity = [{id: 's1', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any];
+    const mappedOsh = [{name: 'd1', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any];
+    const mappedRc = [{id: 'rc1', fileLocations: [{filePath: '/repo/a.ts', component: 'CompA'}]} as any];
 
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue(mappedSecurity as any);
     vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue(mappedOsh as any);
@@ -287,7 +295,7 @@ describe('SigridData', () => {
     await p;
 
     expect(mapperSpy).toHaveBeenCalledTimes(1);
-    expect(mapperSpy).toHaveBeenCalledWith(apiPayload);
+    expect(mapperSpy).toHaveBeenCalledWith(apiPayload, '');
 
     const finding = service.securityFindings()!;
     expect(finding.data).toBe(mapped);
@@ -315,7 +323,7 @@ describe('SigridData', () => {
     await p;
 
     expect(mapperSpy).toHaveBeenCalledTimes(1);
-    expect(mapperSpy).toHaveBeenCalledWith(apiPayload);
+    expect(mapperSpy).toHaveBeenCalledWith(apiPayload, '');
 
     const finding = service.openSourceHealthFindings()!;
     expect(finding.data).toBe(mapped);

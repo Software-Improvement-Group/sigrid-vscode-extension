@@ -23,6 +23,7 @@ describe('InitializeCommand', () => {
       apiKey: '<api-key>',
       customer: 'acme',
       system: 'my-system',
+      subsystem: 'my-subsystem',
       sigridUrl: 'https://example.invalid',
     };
 
@@ -50,6 +51,7 @@ describe('InitializeCommand', () => {
       apiKey: '<api-key>',
       customer: 'acme',
       system: 'my-system',
+      subsystem: 'my-subsystem',
       sigridUrl: 'https://example.invalid',
     };
 

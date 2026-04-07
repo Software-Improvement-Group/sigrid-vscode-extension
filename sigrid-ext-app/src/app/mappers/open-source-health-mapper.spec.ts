@@ -24,7 +24,7 @@ describe('OpenSourceHealthMapper', () => {
   it('returns [] when response.components is not an array', () => {
     const response = baseResponse({ components: undefined as any });
 
-    expect(OpenSourceHealthMapper.map(response)).toEqual([]);
+    expect(OpenSourceHealthMapper.map(response, '')).toEqual([]);
   });
 
   it('maps component fields, computes overall risk as max risk, and formats displayName + dependencyType', () => {
@@ -50,7 +50,7 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const [dep] = OpenSourceHealthMapper.map(response);
+    const [dep] = OpenSourceHealthMapper.map(response, '');
 
     expect(dep.name).toBe('lib-a');
     expect(dep.group).toBe('acme');
@@ -83,7 +83,7 @@ describe('OpenSourceHealthMapper', () => {
           licenses: [],
           evidence: {
             occurrences: [
-              { location: 'package-lock.json' },
+              { location: 'tests/package-lock.json' },
               { location: 'frontend/package.json' },
             ],
           },
@@ -91,11 +91,71 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const [dep] = OpenSourceHealthMapper.map(response);
+    const [dep] = OpenSourceHealthMapper.map(response, '');
 
     expect(dep.fileLocations).toEqual([
-      { filePath: 'package-lock.json' },
-      { filePath: 'frontend/package.json' },
+      { filePath: 'tests/package-lock.json', component: 'tests' },
+      { filePath: 'frontend/package.json', component: 'frontend' },
+    ]);
+  });
+
+  it('filters out components with no fileLocations in the specified subsystem', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-match',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-match@1.0.0',
+          properties: [],
+          licenses: [],
+          evidence: {
+            occurrences: [{ location: 'frontend/package.json' }],
+          },
+        } as any,
+        {
+          type: 'library',
+          name: 'lib-no-match',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-no-match@1.0.0',
+          properties: [],
+          licenses: [],
+          evidence: {
+            occurrences: [{ location: 'backend/package.json' }],
+          },
+        } as any,
+      ],
+    });
+
+    const result = OpenSourceHealthMapper.map(response, 'frontend');
+
+    expect(result.map((dep) => dep.name)).toEqual(['lib-match']);
+  });
+
+  it('normalizes file locations using the specified subsystem', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-normalized',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-normalized@1.0.0',
+          properties: [],
+          licenses: [],
+          evidence: {
+            occurrences: [{ location: 'frontend/src/app/widget.ts' }],
+          },
+        } as any,
+      ],
+    });
+
+    const [dep] = OpenSourceHealthMapper.map(response, 'frontend');
+
+    expect(dep.fileLocations).toEqual([
+      { filePath: 'src/app/widget.ts', component: 'frontend' },
     ]);
   });
 
@@ -115,7 +175,7 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const [dep] = OpenSourceHealthMapper.map(response);
+    const [dep] = OpenSourceHealthMapper.map(response, '');
 
     expect(dep.fileLocations).toEqual([]);
   });
@@ -138,9 +198,12 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const [dep] = OpenSourceHealthMapper.map(response);
+    const [dep] = OpenSourceHealthMapper.map(response, '');
 
-    expect(dep.fileLocations).toEqual([{ filePath: '' }, { filePath: '' }]);
+    expect(dep.fileLocations).toEqual([
+      { filePath: '', component: '' },
+      { filePath: '', component: '' },
+    ]);
   });
 
   it('uses component.name as displayName when group is empty and sorts by risk desc then displayName asc', () => {
@@ -200,7 +263,7 @@ describe('OpenSourceHealthMapper', () => {
       ],
     });
 
-    const result = OpenSourceHealthMapper.map(response);
+    const result = OpenSourceHealthMapper.map(response, '');
 
     // Highest risk first
     expect(result[0].name).toBe('zzz');

@@ -6,50 +6,58 @@ import {
 import {RefactoringCategory} from '../models/refactoring-category';
 import {snakeCaseToTitleCase} from '../utilities/string';
 import {toMaintainabilitySeverity} from '../models/maintainability-severity';
-import {toDisplayFilePath} from '../utilities/path';
+import {normalizePath, toDisplayFilePath} from '../utilities/path';
 import {FileLocation} from '../models/file-location';
 import {sortFileLocations} from '../utilities/sort-file-locations';
 import {MaintainabilityFindingStatus} from '../models/finding-status';
 import {stringToEnumValue} from '../utilities/string-to-enum-value';
 
 export class RefactoringCandidateMapper {
-  static map(response: Record<string, RefactoringCandidatesResponse>): RefactoringCandidate[] {
+  static map(response: Record<string, RefactoringCandidatesResponse>, subsystem: string): RefactoringCandidate[] {
     const refactoringCandidates: RefactoringCandidate[] = [];
 
     for (const category of Object.values(RefactoringCategory)) {
       const candidateResponses = response[category];
-      refactoringCandidates.push(...RefactoringCandidateMapper.mapRefactoringCandidate(category, candidateResponses));
+      refactoringCandidates.push(...RefactoringCandidateMapper.mapRefactoringCandidate(category, candidateResponses, subsystem));
     }
 
     return refactoringCandidates;
   }
 
-  private static mapRefactoringCandidate(category: RefactoringCategory, candidateResponse: RefactoringCandidatesResponse): RefactoringCandidate[] {
+  private static mapRefactoringCandidate(category: RefactoringCategory, candidateResponse: RefactoringCandidatesResponse, subsystem: string): RefactoringCandidate[] {
     if (Array.isArray(candidateResponse?.refactoringCandidates)) {
-      return candidateResponse.refactoringCandidates.map(response => {
-        const refactoringCandidate = new RefactoringCandidate();
-        refactoringCandidate.id = response.id;
-        refactoringCandidate.category = category;
-        refactoringCandidate.severity = toMaintainabilitySeverity(response.severity);
-        refactoringCandidate.weight = response.weight;
-        refactoringCandidate.status = stringToEnumValue(MaintainabilityFindingStatus, response.status) ?? MaintainabilityFindingStatus.Raw;
-        refactoringCandidate.statusLabel = snakeCaseToTitleCase(response.status);
-        refactoringCandidate.technology = response.technology;
-        refactoringCandidate.snapshotDate = response.snapshotDate;
-        refactoringCandidate.fileLocations = sortFileLocations(RefactoringCandidateMapper.getFileLocations(category, response));
-        refactoringCandidate.name = response.name ?? '';
-        refactoringCandidate.mcCabe = response.mcCabe;
-        refactoringCandidate.fanIn = response.fanIn;
-        refactoringCandidate.component = response.component;
-        refactoringCandidate.parameters = response.parameters;
-        refactoringCandidate.displayLocation = RefactoringCandidateMapper.getDisplayLocation(response);
-        refactoringCandidate.description = RefactoringCandidateMapper.getDescription(category, response);
-
-        return refactoringCandidate;
-      });
+      return candidateResponse.refactoringCandidates
+        .filter(response => !subsystem || response.component === subsystem)
+        .map(response => RefactoringCandidateMapper.createRefactoringCandidate(category, response, subsystem));
     }
 
     return [];
+  }
+
+  private static createRefactoringCandidate(
+    category: RefactoringCategory,
+    response: RefactoringCandidateResponse,
+    subsystem: string
+  ): RefactoringCandidate {
+    const refactoringCandidate = new RefactoringCandidate();
+    refactoringCandidate.id = response.id;
+    refactoringCandidate.category = category;
+    refactoringCandidate.severity = toMaintainabilitySeverity(response.severity);
+    refactoringCandidate.weight = response.weight;
+    refactoringCandidate.status = stringToEnumValue(MaintainabilityFindingStatus, response.status) ?? MaintainabilityFindingStatus.Raw;
+    refactoringCandidate.statusLabel = snakeCaseToTitleCase(response.status);
+    refactoringCandidate.technology = response.technology;
+    refactoringCandidate.snapshotDate = response.snapshotDate;
+    refactoringCandidate.fileLocations = sortFileLocations(RefactoringCandidateMapper.getFileLocations(category, response, subsystem));
+    refactoringCandidate.name = response.name ?? '';
+    refactoringCandidate.mcCabe = response.mcCabe;
+    refactoringCandidate.fanIn = response.fanIn;
+    refactoringCandidate.component = response.component;
+    refactoringCandidate.parameters = response.parameters;
+    refactoringCandidate.displayLocation = RefactoringCandidateMapper.getDisplayLocation(response);
+    refactoringCandidate.description = RefactoringCandidateMapper.getDescription(category, response);
+
+    return refactoringCandidate;
   }
 
   private static getDisplayLocation(response: RefactoringCandidateResponse, noPathPrefix: boolean = false): string {
@@ -88,27 +96,33 @@ export class RefactoringCandidateMapper {
         return `${name} has ${response.parameters} parameters.`;
       case RefactoringCategory.ModuleCoupling:
         return `${toDisplayFilePath(response.file, '')} has ${response.fanIn} incoming dependencies from other units.`;
+      default:
+        return ''
     }
-
-    return '';
   }
 
-  private static getFileLocations(category: RefactoringCategory, response: RefactoringCandidateResponse): FileLocation[] {
+  private static getFileLocations(category: RefactoringCategory, response: RefactoringCandidateResponse, subsystem: string): FileLocation[] {
     switch (category) {
       case RefactoringCategory.Duplication:
-        return response.locations?.map(location => {
-          return {filePath: location.file, startLine: location.startLine, endLine: location.endLine} as FileLocation
-        }) ?? [];
+        return response.locations?.map(location => RefactoringCandidateMapper.toFileLocation(
+            location.component, normalizePath(location.file, subsystem), location.startLine, location.endLine))
+          ?? [];
       case RefactoringCategory.ModuleCoupling:
-        return [{filePath: response.file, startLine: 0, endLine: response.loc ?? 0} as FileLocation];
+        return [RefactoringCandidateMapper.toFileLocation(
+          response.component ?? '', normalizePath(response.file, subsystem), 0, response.loc ?? 0)
+        ];
       case RefactoringCategory.UnitSize:
       case RefactoringCategory.UnitComplexity:
       case RefactoringCategory.UnitInterfacing:
-        return response.lineRanges?.map(range => {
-          return {filePath: response.file, startLine: range.startLine, endLine: range.endLine} as FileLocation
-        }) ?? [];
+        return response.lineRanges?.map(range => RefactoringCandidateMapper.toFileLocation(
+            response.component ?? '', normalizePath(response.file, subsystem), range.startLine, range.endLine))
+          ?? [];
       default:
         return [];
     }
+  }
+
+  private static toFileLocation(component: string, filePath: string, startLine: number, endLine: number): FileLocation {
+    return {component, filePath, startLine, endLine};
   }
 }

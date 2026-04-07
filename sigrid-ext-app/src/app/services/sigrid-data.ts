@@ -9,9 +9,10 @@ import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
 import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {FileFilterMode} from '../models/file-filter-mode';
-import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
 import {getFileName} from '../utilities/path';
 import {HttpErrorResponse} from '@angular/common/http';
+import {SigridConfiguration} from './sigrid-configuration';
+import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
 
 @Injectable({
   providedIn: 'root',
@@ -24,6 +25,7 @@ export class SigridData {
   private readonly _activeFilePath = signal<string | null | undefined>(undefined);
   private readonly _isRefreshing = signal(false);
   private readonly sigridApi = inject(SigridApi);
+  private readonly configuration = inject(SigridConfiguration);
   readonly displayActivePath = computed(() => this._fileFilter() === FileFilterMode.Active ? getFileName(this._activeFilePath()) : '');
 
   private filteredRefactoringCandidates = computed(() => {
@@ -107,7 +109,7 @@ export class SigridData {
   private async fetchFindings<Response, Finding>(
     httpFn: () => Observable<Response>,
     findingSignal: WritableSignal<SigridFinding<Finding> | null>,
-    mapperFn: (response: Response) => Finding,
+    mapperFn: (response: Response, subsystem: string) => Finding,
     findingLabel: string,
     forceRefresh?: boolean,
   ): Promise<void> {
@@ -117,9 +119,10 @@ export class SigridData {
 
     try {
       const data = await firstValueFrom(httpFn());
+      const subsystem = this.configuration.subsystem();
 
       try {
-        const mappedData = mapperFn(data);
+        const mappedData = mapperFn(data, subsystem);
         findingSignal.set({data: mappedData} as SigridFinding<Finding>);
       } catch (mapperError) {
         console.error(`Error mapping response to ${findingLabel} findings:`, mapperError);

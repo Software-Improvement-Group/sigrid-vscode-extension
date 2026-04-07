@@ -4,7 +4,10 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [0.0.6] - 2026-04-01
+## [0.0.6] - 2026-04-07
+
+### Added
+- Support for filtering findings by subsystem.
 
 ### Fixed
 - Resolved Windows path compatibility issue in workspace path detection (`getActiveWorkspace`) by using `uri.fsPath` instead of `uri.path`.

@@ -25,6 +25,7 @@ describe('RefactoringCandidateMapper', () => {
       status: 'in_progress',
       technology: 'typescript',
       snapshotDate: '2026-01-01',
+      component: 'c',
       file: '/repo/src/app/a.ts',
       name: 'myFunction',
       mcCabe: 3,
@@ -39,7 +40,7 @@ describe('RefactoringCandidateMapper', () => {
       refactoringCandidates: [baseCandidate({ id: 'no-locations', locations: undefined, file: '/x/y/z.ts' })],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'no-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'no-locations');
 
     expect(candidate.displayLocation).toBe('.../z.ts');
   });
@@ -55,7 +56,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'status-mapped');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'status-mapped');
 
     expect(candidate.status).toBe(MaintainabilityFindingStatus.Raw);
     expect(candidate.statusLabel).toBe('False Positive');
@@ -72,7 +73,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'status-fallback');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'status-fallback');
 
     expect(candidate.status).toBe(MaintainabilityFindingStatus.Raw);
     expect(candidate.statusLabel).toBe('In Progress');
@@ -91,7 +92,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'one-location');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'one-location');
 
     expect(candidate.displayLocation).toBe('.../only.ts');
   });
@@ -110,7 +111,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'two-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'two-locations');
 
     expect(candidate.displayLocation).toBe('.../first.ts and .../second.ts');
   });
@@ -130,7 +131,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'many-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'many-locations');
 
     expect(candidate.displayLocation).toBe('.../one.ts, .../two.ts and 1 other files');
   });
@@ -149,11 +150,11 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'dup-file-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'dup-file-locations');
 
     expect(candidate.fileLocations).toEqual([
-      { filePath: '/repo/src/app/a.ts', startLine: 11, endLine: 22 },
-      { filePath: '/repo/src/app/b.ts', startLine: 33, endLine: 44 },
+      { component: 'c', filePath: '/repo/src/app/a.ts', startLine: 11, endLine: 22 },
+      { component: 'c', filePath: '/repo/src/app/b.ts', startLine: 33, endLine: 44 },
     ]);
   });
 
@@ -172,11 +173,11 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'complexity-file-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'complexity-file-locations');
 
     expect(candidate.fileLocations).toEqual([
-      { filePath: '/repo/src/app/complex.ts', startLine: 5, endLine: 15 },
-      { filePath: '/repo/src/app/complex.ts', startLine: 20, endLine: 25 },
+      { component: 'c', filePath: '/repo/src/app/complex.ts', startLine: 5, endLine: 15 },
+      { component: 'c', filePath: '/repo/src/app/complex.ts', startLine: 20, endLine: 25 },
     ]);
   });
 
@@ -192,10 +193,10 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'coupling-file-locations');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'coupling-file-locations');
 
     expect(candidate.fileLocations).toEqual([
-      { filePath: '/repo/src/app/coupled.ts', startLine: 0, endLine: 123 },
+      { component: 'c', filePath: '/repo/src/app/coupled.ts', startLine: 0, endLine: 123 },
     ]);
   });
 
@@ -219,7 +220,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const all = RefactoringCandidateMapper.map(record);
+    const all = RefactoringCandidateMapper.map(record, '');
 
     const dup = all.find((c) => c.id === 'dup-no-locations-array')!;
     const unitSize = all.find((c) => c.id === 'unit-size-no-lineRanges-array')!;
@@ -243,7 +244,7 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'dup-desc');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'dup-desc');
 
     expect(candidate.description).toBe('42 lines of code are duplicated between a.ts and b.ts.');
   });
@@ -260,8 +261,97 @@ describe('RefactoringCandidateMapper', () => {
       ],
     };
 
-    const [candidate] = RefactoringCandidateMapper.map(record).filter((c) => c.id === 'coupling-desc');
+    const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'coupling-desc');
 
     expect(candidate.description).toBe('coupled.ts has 9 incoming dependencies from other units.');
+  });
+
+  it('filters out candidates that do not match the specified subsystem', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.UnitSize] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'match',
+          component: 'frontend',
+        }),
+        baseCandidate({
+          id: 'no-match',
+          component: 'backend',
+        }),
+      ],
+    };
+
+    const result = RefactoringCandidateMapper.map(record, 'frontend');
+
+    expect(result.map((candidate) => candidate.id)).toEqual(['match']);
+  });
+
+  it('normalizes UnitSize fileLocations using the specified subsystem', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.UnitSize] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'subsystem-path',
+          component: 'frontend',
+          file: 'frontend/src/app/app.component.ts',
+          lineRanges: [{ startLine: 1, endLine: 3 }],
+        }),
+      ],
+    };
+
+    const [candidate] = RefactoringCandidateMapper.map(record, 'frontend').filter((c) => c.id === 'subsystem-path');
+
+    expect(candidate.fileLocations).toEqual([
+      {
+        component: 'frontend',
+        filePath: 'src/app/app.component.ts',
+        startLine: 1,
+        endLine: 3,
+      },
+    ]);
+  });
+
+  it('keeps Duplication fileLocations for matching subsystem entries only when subsystem is specified', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.Duplication] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'dup-subsystem',
+          component: 'frontend',
+          locations: [
+            { component: 'frontend', file: 'frontend/src/app/a.ts', moduleId: 1, startLine: 11, endLine: 22 },
+            { component: 'backend', file: 'backend/src/app/b.ts', moduleId: 1, startLine: 33, endLine: 44 },
+          ],
+        }),
+      ],
+    };
+
+    const [candidate] = RefactoringCandidateMapper.map(record, 'frontend').filter((c) => c.id === 'dup-subsystem');
+
+    expect(candidate.fileLocations).toEqual([
+      { component: 'frontend', filePath: 'src/app/a.ts', startLine: 11, endLine: 22 },
+      { component: 'backend', filePath: 'backend/src/app/b.ts', startLine: 33, endLine: 44 },
+    ]);
+  });
+
+  it('maps displayLocation and description the same way when subsystem is specified', () => {
+    const record = baseRecord();
+    record[RefactoringCategory.UnitSize] = {
+      refactoringCandidates: [
+        baseCandidate({
+          id: 'subsystem-metadata',
+          component: 'frontend',
+          file: 'frontend/src/app/widget.ts',
+          name: 'widget',
+          weight: 17,
+          lineRanges: [{ startLine: 1, endLine: 17 }],
+        }),
+      ],
+    };
+
+    const [candidate] = RefactoringCandidateMapper.map(record, 'frontend').filter((c) => c.id === 'subsystem-metadata');
+
+    expect(candidate.displayLocation).toBe('.../widget.ts');
+    expect(candidate.description).toBe('widget contains 17 lines of code.');
   });
 });
