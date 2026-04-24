@@ -9,6 +9,7 @@ import {SigridDialog} from '../shared/dialog/sigrid-dialog';
 import {FindingEdit} from '../shared/finding-edit/finding-edit';
 import {IconButton} from '../shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
+import {FindingSelectionService, SelectedFinding} from '../services/finding-selection';
 
 @Component({
   selector: 'app-maintainability',
@@ -25,6 +26,7 @@ import {TooltipDirective} from 'ngx-smart-tooltip';
 export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
   private sigridData!: SigridData;
   private dialog = inject(SigridDialog);
+  protected selectionService = inject(FindingSelectionService);
 
   constructor() {
     const sigridData = inject(SigridData);
@@ -43,5 +45,16 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
         this.sigridData.loadRefactoringCandidates(true).then();
       }
     });
+  }
+
+  protected toggleSelection(finding: RefactoringCandidate) {
+    const selected: SelectedFinding = {
+      id: finding.id,
+      category: 'Maintainability',
+      title: `${finding.displayLocation}: ${finding.description}`,
+      severity: finding.severity,
+      fileLocations: finding.fileLocations,
+    };
+    this.selectionService.toggle(selected);
   }
 }

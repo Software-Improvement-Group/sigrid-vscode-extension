@@ -72,6 +72,28 @@ html, body {
     height: 20px;
   }
 
+  .checkbox-column {
+    width: auto;
+    text-align: center;
+    padding: 0.25rem 0.25rem;
+  }
+
+  .deselect-all {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--vscode-textLink-foreground);
+    font-size: 11px;
+    font-weight: normal;
+    padding: 2px 4px;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--vscode-textLink-activeForeground);
+      text-decoration: underline;
+    }
+  }
+
   th.status, td.status {
     text-wrap: nowrap;
     text-align: center;

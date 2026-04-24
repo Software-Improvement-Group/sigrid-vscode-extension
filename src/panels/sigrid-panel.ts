@@ -6,6 +6,7 @@ import { VsCodeCommandEvent } from "../commands/vscode-command-event";
 import { COMMANDS } from "../commands/command-registry";
 import { VsCodeCommandData } from "../commands/vscode-command-data";
 import { postActiveEditorChangedMessage } from "../utilities/editor";
+import { getSigridConfiguration } from "../utilities/configuration";
 
 export class SigridPanel implements WebviewViewProvider {
   private disposables: Disposable[] = [];
@@ -75,7 +76,7 @@ export class SigridPanel implements WebviewViewProvider {
   private setConfigurationChangeListener(webview: Webview) {
     workspace.onDidChangeConfiguration(event => {
       if (event.affectsConfiguration(EXTENSION_ID)) {
-        const newConfig = workspace.getConfiguration().get(EXTENSION_ID);
+        const newConfig = getSigridConfiguration();
         webview.postMessage({ command: "configurationChanged", data: newConfig });
       }
     }, undefined, this.disposables);

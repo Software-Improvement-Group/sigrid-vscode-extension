@@ -71,6 +71,30 @@
           "default": "https://sigrid-says.com",
           "description": "The URL of your Sigrid instance. Only change this if you are using a self-hosted version of Sigrid.",
           "order": 4
+        },
+        "sigrid-vscode.jiraBaseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Your JIRA base URL (e.g. https://jira.example.com).",
+          "order": 5
+        },
+        "sigrid-vscode.jiraUser": {
+          "type": "string",
+          "default": "",
+          "description": "Your JIRA username or email address.",
+          "order": 6
+        },
+        "sigrid-vscode.jiraToken": {
+          "type": "string",
+          "default": "",
+          "description": "Your JIRA personal access token.",
+          "order": 7
+        },
+        "sigrid-vscode.jiraProjectKey": {
+          "type": "string",
+          "default": "",
+          "description": "The JIRA project key to create issues in (e.g. AAP).",
+          "order": 8
         }
       }
     }

@@ -4,6 +4,11 @@
   <table class="findings-table">
     <thead>
       <tr>
+        <th class="checkbox-column">
+          @if (selectionService.selectedCount() > 0) {
+            <button class="deselect-all" (click)="selectionService.clear()">Deselect</button>
+          }
+        </th>
         <th class="text-center">Risk</th>
         <th>Library</th>
         <th>Version</th>
@@ -19,6 +24,9 @@
       @for (dependency of findings(); track dependency.purl) {
         <tr sigridFindingNavigator [locations]="dependency.fileLocations" tabindex="-1"
             [class.selected]="dependency.purl === selectedId" (click)="setSelectedId(dependency.purl)">
+          <td class="checkbox-column" (click)="$event.stopPropagation()">
+            <input type="checkbox" [checked]="selectionService.isSelected(dependency.purl)" (change)="toggleSelection(dependency)" />
+          </td>
           <td class="text-center"><sigrid-severity-icon [severity]="dependency.risk" /></td>
           <td>{{ dependency.displayName }}</td>
           <td>{{ dependency.version }}</td>

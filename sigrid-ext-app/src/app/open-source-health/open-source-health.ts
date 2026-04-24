@@ -5,6 +5,7 @@ import {SigridData} from '../services/sigrid-data';
 import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 import {FindingNavigator} from '../shared/finding-navigator';
 import {ExternalLink} from '../shared/external-link/external-link';
+import {FindingSelectionService, SelectedFinding} from '../services/finding-selection';
 
 @Component({
   selector: 'sigrid-open-source-health',
@@ -18,6 +19,7 @@ import {ExternalLink} from '../shared/external-link/external-link';
 })
 export class OpenSourceHealth extends FindingComponent<OpenSourceHealthDependency[]> {
   private sigridData!: SigridData;
+  protected selectionService = inject(FindingSelectionService);
 
   constructor() {
     const sigridData = inject(SigridData);
@@ -27,5 +29,16 @@ export class OpenSourceHealth extends FindingComponent<OpenSourceHealthDependenc
 
   protected override loadData() {
     this.sigridData.loadOpenSourceHealthFindings();
+  }
+
+  protected toggleSelection(dependency: OpenSourceHealthDependency) {
+    const selected: SelectedFinding = {
+      id: dependency.purl,
+      category: 'Open Source Health',
+      title: `${dependency.displayName} ${dependency.version}`,
+      severity: dependency.risk,
+      fileLocations: dependency.fileLocations,
+    };
+    this.selectionService.toggle(selected);
   }
 }
