@@ -1,0 +1,17 @@
+name: "Slack alerts for Sigrid findings"
+on:
+  schedule:
+    - cron: "0 6 * * 1-5"
+jobs:
+  slackalerts:
+    name: "Send Slack alerts"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check out repository"
+        uses: actions/checkout@v5
+        with:
+          repository: "Software-Improvement-Group/sigrid-integrations"
+      - run: "./slack-security-findings/daily_findings.py --customer sig --system sigrid-vscode-extension"
+        env:
+          SIGRID_CI_TOKEN: "${{ secrets.SIGRID_CI_TOKEN }}"
+          SECURITY_FINDINGS_WEBHOOK: "${{ secrets.SECURITY_FINDINGS_WEBHOOK }}"
