@@ -4,6 +4,11 @@
   <table class="findings-table">
     <thead>
       <tr>
+        <th class="checkbox-column">
+          @if (selectionService.selectedCount() > 0) {
+            <button class="deselect-all" (click)="selectionService.clear()">Deselect</button>
+          }
+        </th>
         <th class="text-center">Risk</th>
         <th>Location</th>
         <th>Description</th>
@@ -15,6 +20,9 @@
       @for (finding of findings(); track finding.id) {
         <tr sigridFindingNavigator [locations]="finding.fileLocations" tabindex="-1"
             [class.selected]="finding.id === selectedId" (click)="setSelectedId(finding.id)">
+          <td class="checkbox-column" (click)="$event.stopPropagation()">
+            <input type="checkbox" [checked]="selectionService.isSelected(finding.id)" (change)="toggleSelection(finding)" />
+          </td>
           <td class="text-center"><sigrid-severity-icon [severity]="finding.severity" /></td>
           <td><span [title]="finding.filePath"> {{ finding.displayFilePath }} </span></td>
           <td>{{ finding.type }}</td>

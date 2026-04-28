@@ -10,6 +10,9 @@ import {IconButton} from './shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {REFRESH_INTERVAL} from './utilities/constants';
 import {VsCode} from './services/vs-code';
+import {FindingSelectionService} from './services/finding-selection';
+import {SigridDialog} from './shared/dialog/sigrid-dialog';
+import {JiraIssueDialog} from './shared/jira-issue-dialog/jira-issue-dialog';
 
 @Component({
   selector: 'app-root',
@@ -23,7 +26,11 @@ export class App implements OnInit, OnDestroy {
   private commandRegistry = inject(VsCommandRegistry);
   private sigridData = inject(SigridData);
   private vscode = inject(VsCode);
+  private selectionService = inject(FindingSelectionService);
+  private dialog = inject(SigridDialog);
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
+  protected readonly isJiraConfigured = this.sigridConfig.isJiraConfigured;
+  protected readonly selectedFindingsCount = this.selectionService.selectedCount;
   protected fileFilterOptions = [
     {label: 'All', value: FileFilterMode.All},
     {label: 'Active', value: FileFilterMode.Active},
@@ -31,6 +38,7 @@ export class App implements OnInit, OnDestroy {
   protected readonly activeFilePath = this.sigridData.activeFilePath;
   protected readonly displayActivePath = this.sigridData.displayActivePath;
   protected readonly refreshButtonDisabled = this.sigridData.isRefreshing;
+  protected jiraBannerDismissed = false;
   private intervalId: any;
 
   constructor() {
@@ -62,6 +70,17 @@ export class App implements OnInit, OnDestroy {
 
   protected async refresh() {
     await this.sigridData.loadAllFindings();
+  }
+
+  protected dismissJiraBanner() {
+    this.jiraBannerDismissed = true;
+  }
+
+  protected onCreateJiraIssue() {
+    if (!this.isJiraConfigured() || this.selectedFindingsCount() === 0) {
+      return;
+    }
+    this.dialog.open(JiraIssueDialog);
   }
 
   ngOnDestroy() {

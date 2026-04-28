@@ -77,6 +77,47 @@
   flex: 0;
 }
 
+.jira-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #DBE1FF;
+  color: #1a1a2e;
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin: 4px 0;
+
+  .jira-banner-close {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    opacity: 0.6;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.jira-button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #2684FF;
+
+  &:hover {
+    color: #0065FF;
+  }
+
+  &.disabled {
+    cursor: default;
+    color: var(--vscode-disabledForeground);
+  }
+}
+
 .file-filter {
   display: flex;
   gap: 10px;

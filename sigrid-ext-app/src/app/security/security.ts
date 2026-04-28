@@ -9,6 +9,7 @@ import {IconButton} from '../shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {FindingEdit} from '../shared/finding-edit/finding-edit';
 import {SigridDialog} from '../shared/dialog/sigrid-dialog';
+import {FindingSelectionService, SelectedFinding} from '../services/finding-selection';
 
 @Component({
   selector: 'app-security',
@@ -25,6 +26,7 @@ import {SigridDialog} from '../shared/dialog/sigrid-dialog';
 export class Security extends FindingComponent<SecurityFinding[]> implements OnInit {
   private sigridData!: SigridData;
   private dialog = inject(SigridDialog);
+  protected selectionService = inject(FindingSelectionService);
 
   constructor() {
     const sigridData = inject(SigridData);
@@ -43,5 +45,16 @@ export class Security extends FindingComponent<SecurityFinding[]> implements OnI
         this.sigridData.loadSecurityFindings(true).then();
       }
     });
+  }
+
+  protected toggleSelection(finding: SecurityFinding) {
+    const selected: SelectedFinding = {
+      id: finding.id,
+      category: 'Security',
+      title: `${finding.displayFilePath}: ${finding.type}`,
+      severity: finding.severity,
+      fileLocations: finding.fileLocations,
+    };
+    this.selectionService.toggle(selected);
   }
 }
