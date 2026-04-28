@@ -12,6 +12,6 @@ export function getSigridConfiguration() {
         jiraBaseUrl: config.get<string>('jiraBaseUrl', ''),
         jiraUser: config.get<string>('jiraUser', ''),
         jiraToken: config.get<string>('jiraToken', ''),
-        jiraProjectKey: config.get<string>('jiraProjectKey', ''),
+        jiraProjectKey: config.get<string>('jiraSpaceKey', ''),
     };
 }

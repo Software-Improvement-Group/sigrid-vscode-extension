@@ -90,10 +90,10 @@
           "description": "Your JIRA personal access token.",
           "order": 7
         },
-        "sigrid-vscode.jiraProjectKey": {
+        "sigrid-vscode.jiraSpaceKey": {
           "type": "string",
           "default": "",
-          "description": "The JIRA project key to create issues in (e.g. AAP).",
+          "description": "The JIRA space key to create issues in (e.g. AAP).",
           "order": 8
         }
       }

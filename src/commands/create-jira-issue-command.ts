@@ -25,10 +25,10 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         const jiraBaseUrl = config.get<string>('jiraBaseUrl', '').trim().replace(/\/+$/, '');
         const jiraUser = config.get<string>('jiraUser', '').trim();
         const jiraToken = config.get<string>('jiraToken', '').trim();
-        const jiraProjectKey = config.get<string>('jiraProjectKey', '').trim();
+        const jiraProjectKey = config.get<string>('jiraSpaceKey', '').trim();
 
         if (!jiraBaseUrl || !jiraUser || !jiraToken || !jiraProjectKey) {
-            window.showErrorMessage('JIRA settings are incomplete. Please configure JIRA base URL, user, token, and project key in the extension settings.');
+            window.showErrorMessage('JIRA settings are incomplete. Please configure JIRA base URL, user, token, and space key in the extension settings.');
             return;
         }
 
