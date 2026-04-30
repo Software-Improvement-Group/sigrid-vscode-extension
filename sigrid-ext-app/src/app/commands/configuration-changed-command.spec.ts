@@ -12,6 +12,10 @@ describe('ConfigurationChangedCommand', () => {
     system: 'my-system',
     subsystem: 'my-subsystem',
     sigridUrl: 'https://example.invalid',
+    jiraBaseUrl: '',
+    jiraUser: '',
+    jiraToken: '',
+    jiraProjectKey: '',
   });
 
   const createCommand = () => {

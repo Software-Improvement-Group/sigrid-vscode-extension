@@ -32,6 +32,10 @@ describe('SigridConfiguration', () => {
       system: '',
       subsystem: '',
       sigridUrl: SIGRID_DEFAULT_URL,
+      jiraBaseUrl: '',
+      jiraUser: '',
+      jiraToken: '',
+      jiraProjectKey: '',
     });
   });
 
@@ -42,6 +46,10 @@ describe('SigridConfiguration', () => {
       system: 'system-1',
       subsystem: 'subsystem-1',
       sigridUrl: SIGRID_DEFAULT_URL,
+      jiraBaseUrl: '',
+      jiraUser: '',
+      jiraToken: '',
+      jiraProjectKey: '',
     };
 
     service.setConfiguration(config);
@@ -56,22 +64,26 @@ describe('SigridConfiguration', () => {
       system: 's',
       subsystem: '  trimmed-subsystem  ',
       sigridUrl: SIGRID_DEFAULT_URL,
+      jiraBaseUrl: '',
+      jiraUser: '',
+      jiraToken: '',
+      jiraProjectKey: '',
     });
 
     expect(service.subsystem()).toBe('trimmed-subsystem');
   });
 
   it('isConfigurationValid becomes true only when apiKey, customer, and system are all non-empty', () => {
-    service.setConfiguration({ apiKey: '', customer: 'c', system: 's', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL });
+    service.setConfiguration({ apiKey: '', customer: 'c', system: 's', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL, jiraBaseUrl: '', jiraUser: '', jiraToken: '', jiraProjectKey: '' });
     expect(service.isConfigurationValid()).toBe(false);
 
-    service.setConfiguration({ apiKey: 'k', customer: '', system: 's', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL });
+    service.setConfiguration({ apiKey: 'k', customer: '', system: 's', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL, jiraBaseUrl: '', jiraUser: '', jiraToken: '', jiraProjectKey: '' });
     expect(service.isConfigurationValid()).toBe(false);
 
-    service.setConfiguration({ apiKey: 'k', customer: 'c', system: '', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL });
+    service.setConfiguration({ apiKey: 'k', customer: 'c', system: '', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL, jiraBaseUrl: '', jiraUser: '', jiraToken: '', jiraProjectKey: '' });
     expect(service.isConfigurationValid()).toBe(false);
 
-    service.setConfiguration({ apiKey: 'k', customer: 'c', system: 's', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL });
+    service.setConfiguration({ apiKey: 'k', customer: 'c', system: 's', subsystem: '', sigridUrl: SIGRID_DEFAULT_URL, jiraBaseUrl: '', jiraUser: '', jiraToken: '', jiraProjectKey: '' });
     expect(service.isConfigurationValid()).toBe(true);
   });
 
