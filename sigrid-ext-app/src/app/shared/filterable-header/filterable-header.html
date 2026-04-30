@@ -1,0 +1,4 @@
+<div #headerEl class="filterable-header" [class.center]="centerLabel()" [class.active]="isActive" (click)="toggleDropdown()">
+  <span class="header-label">{{ label() }}</span>
+  <i class="codicon" [class.codicon-filter]="!isActive" [class.codicon-filter-filled]="isActive"></i>
+</div>

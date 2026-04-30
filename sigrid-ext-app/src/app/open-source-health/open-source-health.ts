@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, computed, inject} from '@angular/core';
 import {OpenSourceHealthDependency} from '../models/open-source-health-dependency';
 import {FindingComponent} from '../shared/finding-component';
 import {SigridData} from '../services/sigrid-data';
@@ -6,20 +6,37 @@ import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 import {FindingNavigator} from '../shared/finding-navigator';
 import {ExternalLink} from '../shared/external-link/external-link';
 import {FindingSelectionService, SelectedFinding} from '../services/finding-selection';
+import {FilterableHeader} from '../shared/filterable-header/filterable-header';
+import {RiskSeverity} from '../models/risk-severity';
 
 @Component({
   selector: 'sigrid-open-source-health',
   imports: [
     SeverityIcon,
     FindingNavigator,
-    ExternalLink
+    ExternalLink,
+    FilterableHeader
   ],
   templateUrl: './open-source-health.html',
   styleUrl: './open-source-health.scss',
 })
 export class OpenSourceHealth extends FindingComponent<OpenSourceHealthDependency[]> {
+  protected readonly tabId = 'open-source-health';
   private sigridData!: SigridData;
   protected selectionService = inject(FindingSelectionService);
+
+  protected riskFilter = this.filterService.getColumnFilter('open-source-health', 'risk');
+  protected libraryFilter = this.filterService.getColumnFilter('open-source-health', 'library');
+
+  protected riskOptions = computed(() => {
+    const values = this.findings().map(d => RiskSeverity[d.risk]);
+    return this.buildFilterOptions(values);
+  });
+
+  protected libraryOptions = computed(() => {
+    const values = this.findings().map(d => d.displayName);
+    return this.buildFilterOptions(values);
+  });
 
   constructor() {
     const sigridData = inject(SigridData);
@@ -29,6 +46,28 @@ export class OpenSourceHealth extends FindingComponent<OpenSourceHealthDependenc
 
   protected override loadData() {
     this.sigridData.loadOpenSourceHealthFindings();
+  }
+
+  protected override matchesSearch(finding: OpenSourceHealthDependency, term: string): boolean {
+    return finding.displayName.toLowerCase().includes(term)
+      || finding.version.toLowerCase().includes(term)
+      || finding.dependencyType.toLowerCase().includes(term);
+  }
+
+  protected override matchesColumnFilters(finding: OpenSourceHealthDependency): boolean {
+    const risk = this.riskFilter();
+    if (risk.size > 0 && !risk.has(RiskSeverity[finding.risk])) return false;
+    const library = this.libraryFilter();
+    if (library.size > 0 && !library.has(finding.displayName)) return false;
+    return true;
+  }
+
+  protected onRiskFilterChange(values: Set<string>) {
+    this.filterService.setColumnFilter('open-source-health', 'risk', values);
+  }
+
+  protected onLibraryFilterChange(values: Set<string>) {
+    this.filterService.setColumnFilter('open-source-health', 'library', values);
   }
 
   protected toggleSelection(dependency: OpenSourceHealthDependency) {

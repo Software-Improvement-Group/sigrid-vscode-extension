@@ -9,15 +9,15 @@
             <button class="deselect-all" (click)="selectionService.clear()">Deselect</button>
           }
         </th>
-        <th class="text-center">Risk</th>
-        <th>Location</th>
+        <th class="text-center"><sigrid-filterable-header label="Risk" [centerLabel]="true" [options]="riskOptions()" [selected]="riskFilter()" (selectionChange)="onRiskFilterChange($event)" /></th>
+        <th><sigrid-filterable-header label="Location" [options]="locationOptions()" [selected]="locationFilter()" (selectionChange)="onLocationFilterChange($event)" /></th>
         <th>Description</th>
-        <th class="text-center">Status</th>
+        <th class="text-center"><sigrid-filterable-header label="Status" [centerLabel]="true" [options]="statusOptions()" [selected]="statusFilter()" (selectionChange)="onStatusFilterChange($event)" /></th>
         <th></th>
       </tr>
     </thead>
     <tbody>
-      @for (finding of findings(); track finding.id) {
+      @for (finding of filteredFindings(); track finding.id) {
         <tr sigridFindingNavigator [locations]="finding.fileLocations" tabindex="-1"
             [class.selected]="finding.id === selectedId" (click)="setSelectedId(finding.id)">
           <td class="checkbox-column" (click)="$event.stopPropagation()">

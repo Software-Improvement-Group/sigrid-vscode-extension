@@ -1,0 +1,15 @@
+<div class="filter-dropdown">
+  @if (currentSelected().size > 0) {
+    <div class="filter-actions">
+      <button class="clear-btn" (click)="clearAll()">Clear</button>
+    </div>
+  }
+  <ul>
+    @for (option of options(); track option.value) {
+      <li (click)="toggle(option.value)">
+        <input type="checkbox" [checked]="currentSelected().has(option.value)" tabindex="-1" />
+        <span class="option-label">{{ option.label }}</span>
+      </li>
+    }
+  </ul>
+</div>
