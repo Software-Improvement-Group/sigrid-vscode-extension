@@ -19,7 +19,7 @@ export class AppResource {
     try {
       const url = this.getWebviewUrl(fileName);
       if (!url) {
-        throw new Error('Webview base URI not set');
+        return ''
       }
       const response = await fetch(url);
       if (!response.ok) {

@@ -5,7 +5,8 @@ import {SigridData} from '../services/sigrid-data';
 import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 import {FindingNavigator} from '../shared/finding-navigator';
 import {ExternalLink} from '../shared/external-link/external-link';
-import {FindingSelectionService, SelectedFinding} from '../services/finding-selection';
+import {FindingSelectionService} from '../services/finding-selection';
+import {SelectedFinding} from '../models/selected-finding';
 
 @Component({
   selector: 'sigrid-open-source-health',

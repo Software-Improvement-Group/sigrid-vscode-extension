@@ -14,6 +14,7 @@ import {VsCode} from './services/vs-code';
 import {FindingSelectionService} from './services/finding-selection';
 import {SigridDialog} from './shared/dialog/sigrid-dialog';
 import {JiraIssueDialog} from './shared/jira-issue-dialog/jira-issue-dialog';
+import {JIRA_BANNER_DISMISSED} from './utilities/storage-keys';
 
 @Component({
   selector: 'app-root',
@@ -39,7 +40,7 @@ export class App implements OnInit, OnDestroy {
   protected readonly activeFilePath = this.sigridData.activeFilePath;
   protected readonly displayActivePath = this.sigridData.displayActivePath;
   protected readonly refreshButtonDisabled = this.sigridData.isRefreshing;
-  protected jiraBannerDismissed = false;
+  protected jiraBannerDismissed = localStorage.getItem(JIRA_BANNER_DISMISSED) === 'true';
   private intervalId: any;
 
   constructor() {
@@ -75,6 +76,7 @@ export class App implements OnInit, OnDestroy {
 
   protected dismissJiraBanner() {
     this.jiraBannerDismissed = true;
+    localStorage.setItem(JIRA_BANNER_DISMISSED, 'true');
   }
 
   protected onCreateJiraIssue() {

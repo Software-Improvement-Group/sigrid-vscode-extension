@@ -9,7 +9,8 @@ import {SigridDialog} from '../shared/dialog/sigrid-dialog';
 import {FindingEdit} from '../shared/finding-edit/finding-edit';
 import {IconButton} from '../shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
-import {FindingSelectionService, SelectedFinding} from '../services/finding-selection';
+import {FindingSelectionService} from '../services/finding-selection';
+import {SelectedFinding} from '../models/selected-finding';
 
 @Component({
   selector: 'app-maintainability',

@@ -2,7 +2,7 @@ import {Component, inject} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {DialogRef} from '../dialog/dialog-ref';
 import {IconButton} from '../icon-button/icon-button';
-import {FindingSelectionService, SelectedFinding} from '../../services/finding-selection';
+import {FindingSelectionService} from '../../services/finding-selection';
 import {VsCode} from '../../services/vs-code';
 import {SigridConfiguration} from '../../services/sigrid-configuration';
 import {RiskSeverity} from '../../models/risk-severity';

@@ -25,6 +25,8 @@ export class SvgIcon {
 
   private async loadSvgIcon(fileName: string) {
     const svgContent = await this.appResource.loadSvgContent(fileName);
-    this.svgHtml.set(svgContent ? this.sanitizer.bypassSecurityTrustHtml(svgContent) : ('' as SafeHtml));
+    if (svgContent) {
+      this.svgHtml.set(svgContent ? this.sanitizer.bypassSecurityTrustHtml(svgContent) : ('' as SafeHtml));
+    }
   }
 }

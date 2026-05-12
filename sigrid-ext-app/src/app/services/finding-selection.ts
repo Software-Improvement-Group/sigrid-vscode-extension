@@ -1,15 +1,5 @@
 import {computed, Injectable, signal} from '@angular/core';
-import {FileLocation} from '../models/file-location';
-import {RiskSeverity} from '../models/risk-severity';
-import {MaintainabilitySeverity} from '../models/maintainability-severity';
-
-export interface SelectedFinding {
-  id: string;
-  category: string;
-  title: string;
-  severity: string | RiskSeverity | MaintainabilitySeverity;
-  fileLocations: FileLocation[];
-}
+import {SelectedFinding} from '../models/selected-finding';
 
 @Injectable({
   providedIn: 'root',
