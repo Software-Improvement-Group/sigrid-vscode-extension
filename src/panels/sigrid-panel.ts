@@ -60,7 +60,7 @@ export class SigridPanel implements WebviewViewProvider {
   private setWebviewMessageListener(webview: Webview) {
     webview.onDidReceiveMessage(
       (message: VsCodeCommandEvent) => {
-        COMMANDS[message.command]?.execute(new VsCodeCommandData(webview, message.data));
+        COMMANDS[message.command]?.execute(new VsCodeCommandData(webview, this.extensionUri, message.data));
       },
       undefined,
       this.disposables
