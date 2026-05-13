@@ -7,7 +7,6 @@ import {SelectButton} from './shared/select-button/select-button';
 import {SigridData} from './services/sigrid-data';
 import {FileFilterMode} from './models/file-filter-mode';
 import {IconButton} from './shared/icon-button/icon-button';
-import {SvgIcon} from './shared/svg-icon/svg-icon';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {REFRESH_INTERVAL} from './utilities/constants';
 import {VsCode} from './services/vs-code';
@@ -18,7 +17,7 @@ import {JIRA_BANNER_DISMISSED} from './utilities/storage-keys';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SelectButton, IconButton, SvgIcon, TooltipDirective],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SelectButton, IconButton, TooltipDirective],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

@@ -13,9 +13,7 @@
         </div>
       </div>
       <div class="header-action-buttons">
-        <span class="jira-button" [class.disabled]="!isJiraConfigured() || selectedFindingsCount() === 0" ngxTooltip="Select the findings you want to create Jira issue from" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" (click)="onCreateJiraIssue()">
-          <sigrid-svg-icon iconName="jira"></sigrid-svg-icon>
-        </span>
+        <sigrid-icon-button svgIcon="jira" ngxTooltip="Select the findings you want to create Jira issue from" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!isJiraConfigured() || selectedFindingsCount() === 0" (onClick)="onCreateJiraIssue()"/>
         <sigrid-icon-button iconClass="codicon codicon-refresh" ngxTooltip="Refresh" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="refreshButtonDisabled()" (onClick)="refresh()"/>
       </div>
     </div>

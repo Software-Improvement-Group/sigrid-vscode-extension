@@ -7,13 +7,17 @@ import {FindingNavigator} from '../shared/finding-navigator';
 import {ExternalLink} from '../shared/external-link/external-link';
 import {FindingSelectionService} from '../services/finding-selection';
 import {SelectedFinding} from '../models/selected-finding';
+import {IconButton} from '../shared/icon-button/icon-button';
+import {TooltipDirective} from 'ngx-smart-tooltip';
 
 @Component({
   selector: 'sigrid-open-source-health',
   imports: [
     SeverityIcon,
     FindingNavigator,
-    ExternalLink
+    ExternalLink,
+    IconButton,
+    TooltipDirective
   ],
   templateUrl: './open-source-health.html',
   styleUrl: './open-source-health.scss',

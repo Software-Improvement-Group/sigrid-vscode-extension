@@ -1,3 +1,9 @@
 <span class="icon-button" [class.disabled]="disabled()" (click)="onButtonClick()">
-  <i [class]="iconClass()"></i>
+  @let codicon = iconClass();
+  @let svg = svgIcon();
+  @if (codicon) {
+    <i [class]="codicon"></i>
+  } @else if (svg) {
+    <sigrid-svg-icon [iconName]="svg"></sigrid-svg-icon>
+  }
 </span>

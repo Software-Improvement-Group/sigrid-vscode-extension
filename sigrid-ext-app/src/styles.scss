@@ -73,9 +73,10 @@ html, body {
   }
 
   .checkbox-column {
-    width: auto;
+    width: 30px !important;
+    max-width: 30px;
     text-align: center;
-    padding: 0.25rem 0.25rem;
+    padding: 2px 4px 0 4px;
   }
 
   .deselect-all {
@@ -83,15 +84,19 @@ html, body {
     background: none;
     border: none;
     color: var(--vscode-textLink-foreground);
-    font-size: 11px;
     font-weight: normal;
-    padding: 2px 4px;
     white-space: nowrap;
 
     &:hover {
       color: var(--vscode-textLink-activeForeground);
       text-decoration: underline;
     }
+  }
+
+  .risk-column {
+    max-width: 30px;
+    width: 30px !important;
+    text-align: center;
   }
 
   th.status, td.status {
