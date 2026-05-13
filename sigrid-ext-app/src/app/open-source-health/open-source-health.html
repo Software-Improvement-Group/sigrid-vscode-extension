@@ -30,7 +30,7 @@
       @for (dependency of findings(); track dependency.purl) {
         <tr sigridFindingNavigator [locations]="dependency.fileLocations" tabindex="-1"
             [class.selected]="dependency.purl === selectedId" (click)="setSelectedId(dependency.purl)">
-          <td class="checkbox-column" (click)="$event.stopPropagation()">
+          <td class="checkbox-column" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
             <input type="checkbox" [checked]="selectionService.isSelected(dependency.purl)" (change)="toggleSelection(dependency)" />
           </td>
           <td class="risk-column"><sigrid-severity-icon [severity]="dependency.risk" /></td>

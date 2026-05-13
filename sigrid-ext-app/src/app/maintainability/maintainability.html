@@ -26,7 +26,7 @@
       @for (finding of findings(); track finding.id) {
         <tr sigridFindingNavigator [locations]="finding.fileLocations" tabindex="-1"
             [class.selected]="finding.id === selectedId" (click)="setSelectedId(finding.id)">
-          <td class="checkbox-column" (click)="$event.stopPropagation()">
+          <td class="checkbox-column" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
             <input type="checkbox" [checked]="selectionService.isSelected(finding.id)" (change)="toggleSelection(finding)" />
           </td>
           <td class="risk-column">
