@@ -8,6 +8,16 @@ export enum RiskSeverity {
   Critical
 }
 
+export const riskSeverityStringValues: Record<RiskSeverity, string> = {
+  [RiskSeverity.None]: 'none',
+  [RiskSeverity.Unknown]: 'unknown',
+  [RiskSeverity.Information]: 'information',
+  [RiskSeverity.Low]: 'low',
+  [RiskSeverity.Medium]: 'medium',
+  [RiskSeverity.High]: 'high',
+  [RiskSeverity.Critical]: 'critical',
+};
+
 export function toRiskSeverity(severityStr: string | undefined | null): RiskSeverity {
   switch (severityStr?.toLowerCase() ?? '') {
     case 'none':

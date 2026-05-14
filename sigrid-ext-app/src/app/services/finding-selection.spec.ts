@@ -1,123 +1,131 @@
-import { TestBed } from '@angular/core/testing';
-import { FindingSelectionService, SelectedFinding } from './finding-selection';
-import { RiskSeverity } from '../models/risk-severity';
+import {TestBed} from '@angular/core/testing';
+import {beforeEach, describe, expect, it} from 'vitest';
+import {SelectedFinding} from '../models/selected-finding';
+import {FindingSelection} from './finding-selection';
 
-function makeFinding(id: string): SelectedFinding {
-  return {
-    id,
-    category: 'Security',
-    title: `Finding ${id}`,
-    severity: RiskSeverity.High,
-    fileLocations: [{ component: 'comp', filePath: 'src/file.ts' }],
+describe('FindingSelection', () => {
+  let service: FindingSelection;
+
+  const findingOne: SelectedFinding = {
+    id: 'maintainability-1',
+    category: 'Maintainability',
+    title: 'Long method',
+    severity: 'high',
+    fileLocations: [
+      {
+        filePath: 'src/app/example.ts',
+        startLine: 10,
+        endLine: 20,
+        component: 'component-1',
+      },
+    ],
   };
-}
 
-describe('FindingSelectionService', () => {
-  let service: FindingSelectionService;
+  const findingTwo: SelectedFinding = {
+    id: 'security-1',
+    category: 'Security',
+    title: 'SQL injection',
+    severity: 'critical',
+    fileLocations: [
+      {
+        filePath: 'src/app/security.ts',
+        startLine: 42,
+        endLine: 42,
+        component: 'component-2',
+      },
+    ],
+  };
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [FindingSelectionService],
-    });
-
-    service = TestBed.inject(FindingSelectionService);
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(FindingSelection);
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('toggle', () => {
-    it('adds a finding to the selection when not already selected', () => {
-      const finding = makeFinding('f1');
-      service.toggle(finding);
-      expect(service.isSelected('f1')).toBe(true);
-    });
-
-    it('removes a finding from the selection when already selected', () => {
-      const finding = makeFinding('f1');
-      service.toggle(finding);
-      service.toggle(finding);
-      expect(service.isSelected('f1')).toBe(false);
-    });
-
-    it('supports toggling multiple different findings', () => {
-      service.toggle(makeFinding('f1'));
-      service.toggle(makeFinding('f2'));
-      expect(service.isSelected('f1')).toBe(true);
-      expect(service.isSelected('f2')).toBe(true);
-    });
+  it('starts with no selected findings', () => {
+    expect(service.selectedCount()).toBe(0);
+    expect(service.getAll()).toEqual([]);
+    expect(service.isSelected(findingOne.id)).toBe(false);
   });
 
-  describe('isSelected', () => {
-    it('returns false for an id that was never added', () => {
-      expect(service.isSelected('nonexistent')).toBe(false);
-    });
+  it('selects a finding when toggled on', () => {
+    service.toggle(findingOne);
+
+    expect(service.selectedCount()).toBe(1);
+    expect(service.isSelected(findingOne.id)).toBe(true);
+    expect(service.getAll()).toEqual([findingOne]);
   });
 
-  describe('selectedCount', () => {
-    it('is 0 initially', () => {
-      expect(service.selectedCount()).toBe(0);
-    });
+  it('unselects a selected finding when toggled again', () => {
+    service.toggle(findingOne);
+    service.toggle(findingOne);
 
-    it('increments when a finding is toggled in', () => {
-      service.toggle(makeFinding('f1'));
-      expect(service.selectedCount()).toBe(1);
-    });
-
-    it('decrements when a finding is toggled out', () => {
-      service.toggle(makeFinding('f1'));
-      service.toggle(makeFinding('f1'));
-      expect(service.selectedCount()).toBe(0);
-    });
+    expect(service.selectedCount()).toBe(0);
+    expect(service.isSelected(findingOne.id)).toBe(false);
+    expect(service.getAll()).toEqual([]);
   });
 
-  describe('getAll', () => {
-    it('returns an empty array initially', () => {
-      expect(service.getAll()).toEqual([]);
-    });
+  it('tracks multiple selected findings', () => {
+    service.toggle(findingOne);
+    service.toggle(findingTwo);
 
-    it('returns all toggled-in findings', () => {
-      const f1 = makeFinding('f1');
-      const f2 = makeFinding('f2');
-      service.toggle(f1);
-      service.toggle(f2);
-
-      const all = service.getAll();
-      expect(all).toHaveLength(2);
-      expect(all).toContainEqual(f1);
-      expect(all).toContainEqual(f2);
-    });
-
-    it('does not include findings that were toggled out', () => {
-      service.toggle(makeFinding('f1'));
-      service.toggle(makeFinding('f2'));
-      service.toggle(makeFinding('f1'));
-
-      const all = service.getAll();
-      expect(all).toHaveLength(1);
-      expect(all[0].id).toBe('f2');
-    });
+    expect(service.selectedCount()).toBe(2);
+    expect(service.isSelected(findingOne.id)).toBe(true);
+    expect(service.isSelected(findingTwo.id)).toBe(true);
+    expect(service.getAll()).toEqual([findingOne, findingTwo]);
   });
 
-  describe('clear', () => {
-    it('removes all selections', () => {
-      service.toggle(makeFinding('f1'));
-      service.toggle(makeFinding('f2'));
-      service.clear();
-      expect(service.getAll()).toEqual([]);
-    });
+  it('removes only the matching finding when toggling one of multiple selections', () => {
+    service.toggle(findingOne);
+    service.toggle(findingTwo);
 
-    it('resets selectedCount to 0', () => {
-      service.toggle(makeFinding('f1'));
-      service.clear();
-      expect(service.selectedCount()).toBe(0);
-    });
+    service.toggle(findingOne);
 
-    it('causes isSelected to return false for previously selected items', () => {
-      service.toggle(makeFinding('f1'));
-      service.clear();
-      expect(service.isSelected('f1')).toBe(false);
-    });
+    expect(service.selectedCount()).toBe(1);
+    expect(service.isSelected(findingOne.id)).toBe(false);
+    expect(service.isSelected(findingTwo.id)).toBe(true);
+    expect(service.getAll()).toEqual([findingTwo]);
+  });
+
+  it('uses the finding id to determine whether an item is already selected', () => {
+    const updatedFindingOne: SelectedFinding = {
+      ...findingOne,
+      title: 'Updated title',
+      severity: 'medium',
+    };
+
+    service.toggle(findingOne);
+    service.toggle(updatedFindingOne);
+
+    expect(service.selectedCount()).toBe(0);
+    expect(service.isSelected(findingOne.id)).toBe(false);
+    expect(service.getAll()).toEqual([]);
+  });
+
+  it('clears all selected findings', () => {
+    service.toggle(findingOne);
+    service.toggle(findingTwo);
+
+    service.clear();
+
+    expect(service.selectedCount()).toBe(0);
+    expect(service.isSelected(findingOne.id)).toBe(false);
+    expect(service.isSelected(findingTwo.id)).toBe(false);
+    expect(service.getAll()).toEqual([]);
+  });
+
+  it('can select a finding again after clearing', () => {
+    service.toggle(findingOne);
+    service.clear();
+
+    service.toggle(findingTwo);
+
+    expect(service.selectedCount()).toBe(1);
+    expect(service.isSelected(findingOne.id)).toBe(false);
+    expect(service.isSelected(findingTwo.id)).toBe(true);
+    expect(service.getAll()).toEqual([findingTwo]);
   });
 });

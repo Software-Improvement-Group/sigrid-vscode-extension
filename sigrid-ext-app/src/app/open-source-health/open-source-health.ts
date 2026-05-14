@@ -5,7 +5,11 @@ import {SigridData} from '../services/sigrid-data';
 import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 import {FindingNavigator} from '../shared/finding-navigator';
 import {ExternalLink} from '../shared/external-link/external-link';
-import {FindingSelectionService, SelectedFinding} from '../services/finding-selection';
+import {FindingSelection} from '../services/finding-selection';
+import {SelectedFinding} from '../models/selected-finding';
+import {IconButton} from '../shared/icon-button/icon-button';
+import {TooltipDirective} from 'ngx-smart-tooltip';
+import {riskSeverityStringValues} from '../models/risk-severity';
 import {FilterableHeader} from '../shared/filterable-header/filterable-header';
 import {RiskSeverity} from '../models/risk-severity';
 
@@ -15,6 +19,8 @@ import {RiskSeverity} from '../models/risk-severity';
     SeverityIcon,
     FindingNavigator,
     ExternalLink,
+    IconButton,
+    TooltipDirective,
     FilterableHeader
   ],
   templateUrl: './open-source-health.html',
@@ -23,7 +29,7 @@ import {RiskSeverity} from '../models/risk-severity';
 export class OpenSourceHealth extends FindingComponent<OpenSourceHealthDependency[]> {
   protected readonly tabId = 'open-source-health';
   private sigridData!: SigridData;
-  protected selectionService = inject(FindingSelectionService);
+  protected selectionService = inject(FindingSelection);
 
   protected riskFilter = this.filterService.getColumnFilter('open-source-health', 'risk');
   protected libraryFilter = this.filterService.getColumnFilter('open-source-health', 'library');
@@ -75,7 +81,7 @@ export class OpenSourceHealth extends FindingComponent<OpenSourceHealthDependenc
       id: dependency.purl,
       category: 'Open Source Health',
       title: `${dependency.displayName} ${dependency.version}`,
-      severity: dependency.risk,
+      severity: riskSeverityStringValues[dependency.risk],
       fileLocations: dependency.fileLocations,
     };
     this.selectionService.toggle(selected);

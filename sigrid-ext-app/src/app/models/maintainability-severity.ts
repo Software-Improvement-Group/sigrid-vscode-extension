@@ -7,6 +7,15 @@ export enum MaintainabilitySeverity {
   VeryHigh
 }
 
+export const maintainabilitySeverityStringValues: Record<MaintainabilitySeverity, string> = {
+  [MaintainabilitySeverity.Unknown]: 'unknown',
+  [MaintainabilitySeverity.Low]: 'low',
+  [MaintainabilitySeverity.Medium]: 'medium',
+  [MaintainabilitySeverity.Moderate]: 'moderate',
+  [MaintainabilitySeverity.High]: 'high',
+  [MaintainabilitySeverity.VeryHigh]: 'veryhigh',
+};
+
 export function toMaintainabilitySeverity(severityStr: string): MaintainabilitySeverity {
   switch (severityStr.toLowerCase()) {
     case 'very_high':

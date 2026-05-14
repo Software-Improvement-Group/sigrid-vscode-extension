@@ -136,10 +136,18 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  color: #2684FF;
+  justify-content: center;
+  color: var(--vscode-icon-foreground);
+  min-width: 16px;
+
+  svg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   &:hover {
-    color: #0065FF;
+    color: var(--vscode-textLink-activeForeground);
   }
 
   &.disabled {

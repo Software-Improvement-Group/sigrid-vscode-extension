@@ -10,9 +10,10 @@ import {IconButton} from './shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {REFRESH_INTERVAL} from './utilities/constants';
 import {VsCode} from './services/vs-code';
-import {FindingSelectionService} from './services/finding-selection';
+import {FindingSelection} from './services/finding-selection';
 import {SigridDialog} from './shared/dialog/sigrid-dialog';
 import {JiraIssueDialog} from './shared/jira-issue-dialog/jira-issue-dialog';
+import {JIRA_BANNER_DISMISSED} from './utilities/storage-keys';
 import {FindingFilterService} from './services/finding-filter';
 
 @Component({
@@ -27,7 +28,7 @@ export class App implements OnInit, OnDestroy {
   private commandRegistry = inject(VsCommandRegistry);
   private sigridData = inject(SigridData);
   private vscode = inject(VsCode);
-  private selectionService = inject(FindingSelectionService);
+  private selectionService = inject(FindingSelection);
   private dialog = inject(SigridDialog);
   protected filterService = inject(FindingFilterService);
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
@@ -40,7 +41,7 @@ export class App implements OnInit, OnDestroy {
   protected readonly activeFilePath = this.sigridData.activeFilePath;
   protected readonly displayActivePath = this.sigridData.displayActivePath;
   protected readonly refreshButtonDisabled = this.sigridData.isRefreshing;
-  protected jiraBannerDismissed = false;
+  protected jiraBannerDismissed = localStorage.getItem(JIRA_BANNER_DISMISSED) === 'true';
   private intervalId: any;
 
   constructor() {
@@ -81,6 +82,7 @@ export class App implements OnInit, OnDestroy {
 
   protected dismissJiraBanner() {
     this.jiraBannerDismissed = true;
+    localStorage.setItem(JIRA_BANNER_DISMISSED, 'true');
   }
 
   protected onCreateJiraIssue() {

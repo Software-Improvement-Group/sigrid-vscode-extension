@@ -36,6 +36,7 @@ If you don’t have these values, contact your Sigrid administrator or refer to 
    - `sigrid-vscode.apiKey` – your Sigrid API key
    - `sigrid-vscode.customer` – your Sigrid customer ID
    - `sigrid-vscode.system` – your Sigrid system ID
+   - `sigrid-vscode.subsystem` - (optional) your Sigrid subsystem ID
    - `sigrid-vscode.sigridUrl` – (optional) your Sigrid instance URL. Defaults to `https://sigrid-says.com`.
 3. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run:
    - **Sigrid: Show Findings**
@@ -60,7 +61,7 @@ This extension contributes the following settings:
 To build and test the extension locally:
 
 ```bash
-npm install:all
+npm run install:all
 npm run build:webview
 npm run compile
 ```
