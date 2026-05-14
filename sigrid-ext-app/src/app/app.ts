@@ -10,7 +10,7 @@ import {IconButton} from './shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {REFRESH_INTERVAL} from './utilities/constants';
 import {VsCode} from './services/vs-code';
-import {FindingSelectionService} from './services/finding-selection';
+import {FindingSelection} from './services/finding-selection';
 import {SigridDialog} from './shared/dialog/sigrid-dialog';
 import {JiraIssueDialog} from './shared/jira-issue-dialog/jira-issue-dialog';
 import {JIRA_BANNER_DISMISSED} from './utilities/storage-keys';
@@ -27,7 +27,7 @@ export class App implements OnInit, OnDestroy {
   private commandRegistry = inject(VsCommandRegistry);
   private sigridData = inject(SigridData);
   private vscode = inject(VsCode);
-  private selectionService = inject(FindingSelectionService);
+  private selectionService = inject(FindingSelection);
   private dialog = inject(SigridDialog);
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
   protected readonly isJiraConfigured = this.sigridConfig.isJiraConfigured;

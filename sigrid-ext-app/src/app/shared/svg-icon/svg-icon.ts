@@ -1,6 +1,6 @@
 import {Component, effect, inject, input, signal} from '@angular/core';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
-import {AppResource} from '../../services/app-resource.service';
+import {AppResource} from '../../services/app-resource';
 
 @Component({
   selector: 'sigrid-svg-icon',

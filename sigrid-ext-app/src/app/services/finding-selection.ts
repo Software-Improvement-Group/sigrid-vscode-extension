@@ -4,7 +4,7 @@ import {SelectedFinding} from '../models/selected-finding';
 @Injectable({
   providedIn: 'root',
 })
-export class FindingSelectionService {
+export class FindingSelection {
   private readonly _selected = signal<Map<string, SelectedFinding>>(new Map());
 
   readonly selectedCount = computed(() => this._selected().size);

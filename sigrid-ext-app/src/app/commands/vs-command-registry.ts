@@ -7,7 +7,7 @@ import {SigridData} from '../services/sigrid-data';
 import {ConfigurationChangedCommand} from './configuration-changed-command';
 import {UsageStatistics} from '../services/usage-statistics';
 import {WebviewBaseUriCommand} from './webview-base-uri-command';
-import {AppResource} from '../services/app-resource.service';
+import {AppResource} from '../services/app-resource';
 
 @Injectable({
   providedIn: 'root'

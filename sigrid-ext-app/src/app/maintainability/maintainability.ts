@@ -9,8 +9,9 @@ import {SigridDialog} from '../shared/dialog/sigrid-dialog';
 import {FindingEdit} from '../shared/finding-edit/finding-edit';
 import {IconButton} from '../shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
-import {FindingSelectionService} from '../services/finding-selection';
+import {FindingSelection} from '../services/finding-selection';
 import {SelectedFinding} from '../models/selected-finding';
+import {maintainabilitySeverityStringValues} from '../models/maintainability-severity';
 
 @Component({
   selector: 'app-maintainability',
@@ -27,7 +28,7 @@ import {SelectedFinding} from '../models/selected-finding';
 export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
   private sigridData!: SigridData;
   private dialog = inject(SigridDialog);
-  protected selectionService = inject(FindingSelectionService);
+  protected selectionService = inject(FindingSelection);
 
   constructor() {
     const sigridData = inject(SigridData);
@@ -53,7 +54,7 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
       id: finding.id,
       category: 'Maintainability',
       title: `${finding.displayLocation}: ${finding.description}`,
-      severity: finding.severity,
+      severity: maintainabilitySeverityStringValues[finding.severity],
       fileLocations: finding.fileLocations,
     };
     this.selectionService.toggle(selected);
