@@ -4,6 +4,11 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.7] - unreleased
+
+### Added
+- Creation of Jira issues from selected Sigrid findings.
+
 ## [0.0.6] - 2026-04-07
 
 ### Added

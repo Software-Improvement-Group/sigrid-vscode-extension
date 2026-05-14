@@ -4,7 +4,18 @@
   <table class="findings-table">
     <thead>
       <tr>
-        <th class="text-center">Risk</th>
+        <th class="checkbox-column">
+          @if (selectionService.selectedCount() > 0) {
+            <sigrid-icon-button
+              iconClass="codicon codicon-close-all deselect-all"
+              ngxTooltip="Deselect All"
+              tooltipClass="sigrid-tooltip"
+              [tooltipArrow]="false"
+              tooltipPosition="bottom"
+              (onClick)="selectionService.clear()"/>
+          }
+        </th>
+        <th class="risk-column">Risk</th>
         <th>Library</th>
         <th>Version</th>
         <th class="text-center">Transitive</th>
@@ -19,7 +30,10 @@
       @for (dependency of findings(); track dependency.purl) {
         <tr sigridFindingNavigator [locations]="dependency.fileLocations" tabindex="-1"
             [class.selected]="dependency.purl === selectedId" (click)="setSelectedId(dependency.purl)">
-          <td class="text-center"><sigrid-severity-icon [severity]="dependency.risk" /></td>
+          <td class="checkbox-column" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
+            <input type="checkbox" [checked]="selectionService.isSelected(dependency.purl)" (change)="toggleSelection(dependency)" />
+          </td>
+          <td class="risk-column"><sigrid-severity-icon [severity]="dependency.risk" /></td>
           <td>{{ dependency.displayName }}</td>
           <td>{{ dependency.version }}</td>
           <td class="text-center">{{ dependency.dependencyType }}</td>

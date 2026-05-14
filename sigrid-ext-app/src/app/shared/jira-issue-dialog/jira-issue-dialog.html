@@ -1,0 +1,16 @@
+<div class="header action-button-container">
+  <h2>Create JIRA Issue</h2>
+  <sigrid-icon-button iconClass="codicon codicon-close" (onClick)="close()" />
+</div>
+<form [formGroup]="jiraForm">
+  <div class="form-row">
+    <label for="jira-title">Title</label>
+    <input id="jira-title" type="text" formControlName="title" placeholder="Enter issue title" />
+  </div>
+  <div class="form-row">
+    <span class="selected-count">{{ selectedCount() }} finding(s) selected</span>
+  </div>
+  <div class="form-submit-row">
+    <button class="primary" type="submit" (click)="onSubmit()" [disabled]="!jiraForm.valid">Create Issue</button>
+  </div>
+</form>

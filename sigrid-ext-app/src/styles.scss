@@ -72,6 +72,33 @@ html, body {
     height: 20px;
   }
 
+  .checkbox-column {
+    width: 30px !important;
+    max-width: 30px;
+    text-align: center;
+    padding: 2px 4px 0 4px;
+  }
+
+  .deselect-all {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--vscode-textLink-foreground);
+    font-weight: normal;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--vscode-textLink-activeForeground);
+      text-decoration: underline;
+    }
+  }
+
+  .risk-column {
+    max-width: 30px;
+    width: 30px !important;
+    text-align: center;
+  }
+
   th.status, td.status {
     text-wrap: nowrap;
     text-align: center;

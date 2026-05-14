@@ -7,7 +7,7 @@
   }
 
   &.disabled {
-    cursor: pointer;
+    cursor: default;
     color: var(--vscode-disabledForeground) !important;
   }
 }

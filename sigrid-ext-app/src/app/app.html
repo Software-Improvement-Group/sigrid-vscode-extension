@@ -13,6 +13,7 @@
         </div>
       </div>
       <div class="header-action-buttons">
+        <sigrid-icon-button svgIcon="jira" ngxTooltip="Select the findings you want to create Jira issue from" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!isJiraConfigured() || selectedFindingsCount() === 0" (onClick)="onCreateJiraIssue()"/>
         <sigrid-icon-button iconClass="codicon codicon-refresh" ngxTooltip="Refresh" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="refreshButtonDisabled()" (onClick)="refresh()"/>
       </div>
     </div>
@@ -24,6 +25,15 @@
       }
     </div>
   </div>
+
+  @if (!isJiraConfigured() && !jiraBannerDismissed) {
+    <div class="jira-banner">
+      <span>You can create JIRA issues from selected findings now! Complete your JIRA credentials setting to try it out.</span>
+      <span class="jira-banner-close" (click)="dismissJiraBanner()">
+        <i class="codicon codicon-close"></i>
+      </span>
+    </div>
+  }
 
   <div class="main">
     <router-outlet/>

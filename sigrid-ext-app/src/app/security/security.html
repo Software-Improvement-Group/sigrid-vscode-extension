@@ -4,7 +4,18 @@
   <table class="findings-table">
     <thead>
       <tr>
-        <th class="text-center">Risk</th>
+        <th class="checkbox-column">
+          @if (selectionService.selectedCount() > 0) {
+            <sigrid-icon-button
+              iconClass="codicon codicon-close-all deselect-all"
+              ngxTooltip="Deselect All"
+              tooltipClass="sigrid-tooltip"
+              [tooltipArrow]="false"
+              tooltipPosition="bottom"
+              (onClick)="selectionService.clear()"/>
+          }
+        </th>
+        <th class="risk-column">Risk</th>
         <th>Location</th>
         <th>Description</th>
         <th class="text-center">Status</th>
@@ -15,7 +26,10 @@
       @for (finding of findings(); track finding.id) {
         <tr sigridFindingNavigator [locations]="finding.fileLocations" tabindex="-1"
             [class.selected]="finding.id === selectedId" (click)="setSelectedId(finding.id)">
-          <td class="text-center"><sigrid-severity-icon [severity]="finding.severity" /></td>
+          <td class="checkbox-column" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
+            <input type="checkbox" [checked]="selectionService.isSelected(finding.id)" (change)="toggleSelection(finding)" />
+          </td>
+          <td class="risk-column"><sigrid-severity-icon [severity]="finding.severity" /></td>
           <td><span [title]="finding.filePath"> {{ finding.displayFilePath }} </span></td>
           <td>{{ finding.type }}</td>
           <td class="status">

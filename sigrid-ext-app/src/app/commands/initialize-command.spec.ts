@@ -25,6 +25,10 @@ describe('InitializeCommand', () => {
       system: 'my-system',
       subsystem: 'my-subsystem',
       sigridUrl: 'https://example.invalid',
+      jiraBaseUrl: 'https://jira.example.invalid',
+      jiraUser: 'jira-user',
+      jiraToken: 'jira-token',
+      jiraProjectKey: 'SIG',
     };
 
     cmd.execute(cfg);
@@ -53,6 +57,10 @@ describe('InitializeCommand', () => {
       system: 'my-system',
       subsystem: 'my-subsystem',
       sigridUrl: 'https://example.invalid',
+      jiraBaseUrl: 'https://jira.example.invalid',
+      jiraUser: 'jira-user',
+      jiraToken: 'jira-token',
+      jiraProjectKey: 'SIG',
     };
 
     cmd.execute(cfg);
