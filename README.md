@@ -9,9 +9,11 @@ A Visual Studio Code extension that brings Sigrid findings directly into your ed
 ## ✅ Features
 
 - **View Sigrid findings in VS Code** without leaving your editor
-- **Interactive dashboard** with filtering and navigation support
+- **Search and filter findings** directly within the Sigrid dashboard
+- **Interactive dashboard** with filtering, navigation, and table controls
 - **Deep link** from findings to the Sigrid web UI
 - **Configurable Sigrid instance URL** (supports self-hosted deployments)
+- **Create Jira issues** from selected findings (when JIRA settings are configured)
 
 ---
 
@@ -52,7 +54,12 @@ This extension contributes the following settings:
 | `sigrid-vscode.apiKey` | Your Sigrid API Key. |
 | `sigrid-vscode.customer` | Your Sigrid Customer ID. |
 | `sigrid-vscode.system` | Your Sigrid System ID. |
+| `sigrid-vscode.subsystem` | Your Sigrid Subsystem ID (optional). |
 | `sigrid-vscode.sigridUrl` | The URL of your Sigrid instance (default: `https://sigrid-says.com`). |
+| `sigrid-vscode.jiraBaseUrl` | Your JIRA base URL (e.g. `https://jira.example.com`). |
+| `sigrid-vscode.jiraUser` | Your JIRA username or email address. |
+| `sigrid-vscode.jiraToken` | Your JIRA personal access token. |
+| `sigrid-vscode.jiraSpaceKey` | The JIRA space key to create issues in (e.g. `AAP`). |
 
 ---
 
