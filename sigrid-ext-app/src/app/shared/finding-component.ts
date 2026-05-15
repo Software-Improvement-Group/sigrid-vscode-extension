@@ -6,6 +6,10 @@ import {toObservable} from '@angular/core/rxjs-interop';
 import {FindingStatusEmoji} from '../models/finding-status';
 import {FindingFilterService} from '../services/finding-filter';
 import {FilterOption} from './column-filter-dropdown/column-filter-dropdown';
+import {pascalCaseToTitleCase} from '../utilities/string';
+import {sortBySeverity} from '../utilities/severity-sort';
+
+type FindingItem<T> = T extends readonly (infer U)[] ? U : T;
 
 @Directive()
 export abstract class FindingComponent<T> implements OnInit {
@@ -15,7 +19,6 @@ export abstract class FindingComponent<T> implements OnInit {
   protected readonly DataState = DataState;
   protected readonly FindingStatusEmoji = FindingStatusEmoji;
   protected selectedId: string | null = '';
-
   protected abstract readonly tabId: string;
 
   protected findings = computed(() => {
@@ -34,8 +37,8 @@ export abstract class FindingComponent<T> implements OnInit {
 
     return (all as any[]).filter(finding => {
       if (!this.matchesColumnFilters(finding)) return false;
-      if (searchTerm && !this.matchesSearch(finding, searchTerm)) return false;
-      return true;
+      return !(searchTerm && !this.matchesSearch(finding, searchTerm));
+
     }) as T;
   });
 
@@ -57,6 +60,11 @@ export abstract class FindingComponent<T> implements OnInit {
     return '';
   });
 
+  protected riskOptions = computed(() => {
+    const values = (this.findings() as FindingItem<T>[]).map((finding) => this.getRiskFilterValue(finding));
+    return this.buildFilterOptions(values, {labelFn: pascalCaseToTitleCase, sortFn: sortBySeverity});
+  });
+
   protected constructor(private findingSignal: Signal<SigridFinding<T> | null>) {
   }
 
@@ -69,13 +77,21 @@ export abstract class FindingComponent<T> implements OnInit {
   }
 
   protected abstract loadData(): void;
-  protected abstract matchesSearch(finding: any, term: string): boolean;
-  protected abstract matchesColumnFilters(finding: any): boolean;
+  protected abstract matchesSearch(finding: FindingItem<T>, term: string): boolean;
+  protected abstract matchesColumnFilters(finding: FindingItem<T>): boolean;
+  protected abstract getRiskFilterValue(finding: FindingItem<T>): string;
 
-  protected buildFilterOptions(values: string[]): FilterOption[] {
+  protected buildFilterOptions(values: string[], options?: {
+    labelFn?: (value: any) => string,
+    sortFn?: (a: any, b: any) => number
+  }): FilterOption[] {
     const unique = [...new Set(values)].filter(v => v != null && v !== '');
-    unique.sort();
-    return unique.map(v => ({value: v, label: v}));
+    if (options?.sortFn) {
+      unique.sort(options.sortFn);
+    } else {
+      unique.sort();
+    }
+    return unique.map(v => ({value: v, label: options?.labelFn ? options.labelFn(v) : v}));
   }
 
   setSelectedId(id: string | null) {

@@ -1,4 +1,4 @@
-import { asStringOrDefault, snakeCaseToSentenceCase, snakeCaseToTitleCase } from './string';
+import { asStringOrDefault, pascalCaseToTitleCase, snakeCaseToSentenceCase, snakeCaseToTitleCase } from './string';
 
 describe('utilities/string', () => {
   describe('snakeCaseToTitleCase', () => {
@@ -30,6 +30,34 @@ describe('utilities/string', () => {
 
     it('returns empty string for empty input', () => {
       expect(snakeCaseToSentenceCase('')).toBe('');
+    });
+  });
+
+  describe('pascalCaseToTitleCase', () => {
+    it('converts PascalCase to Title Case', () => {
+      expect(pascalCaseToTitleCase('VeryHigh')).toBe('Very High');
+      expect(pascalCaseToTitleCase('InProgress')).toBe('In Progress');
+      expect(pascalCaseToTitleCase('AlreadyTitle')).toBe('Already Title');
+    });
+
+    it('handles acronyms followed by regular words', () => {
+      expect(pascalCaseToTitleCase('HTTPServerError')).toBe('Http Server Error');
+      expect(pascalCaseToTitleCase('XMLParser')).toBe('Xml Parser');
+    });
+
+    it('normalizes casing for single words', () => {
+      expect(pascalCaseToTitleCase('HIGH')).toBe('High');
+      expect(pascalCaseToTitleCase('low')).toBe('Low');
+      expect(pascalCaseToTitleCase('medium')).toBe('Medium');
+    });
+
+    it('preserves existing word boundaries', () => {
+      expect(pascalCaseToTitleCase('Very High')).toBe('Very High');
+      expect(pascalCaseToTitleCase('HTTP Server Error')).toBe('Http Server Error');
+    });
+
+    it('returns empty string for empty input', () => {
+      expect(pascalCaseToTitleCase('')).toBe('');
     });
   });
 

@@ -1,4 +1,4 @@
-import {Component, computed, inject} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {OpenSourceHealthDependency} from '../models/open-source-health-dependency';
 import {FindingComponent} from '../shared/finding-component';
 import {SigridData} from '../services/sigrid-data';
@@ -9,9 +9,8 @@ import {FindingSelection} from '../services/finding-selection';
 import {SelectedFinding} from '../models/selected-finding';
 import {IconButton} from '../shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
-import {riskSeverityStringValues} from '../models/risk-severity';
+import {RiskSeverity, riskSeverityStringValues} from '../models/risk-severity';
 import {FilterableHeader} from '../shared/filterable-header/filterable-header';
-import {RiskSeverity} from '../models/risk-severity';
 
 @Component({
   selector: 'sigrid-open-source-health',
@@ -32,17 +31,6 @@ export class OpenSourceHealth extends FindingComponent<OpenSourceHealthDependenc
   protected selectionService = inject(FindingSelection);
 
   protected riskFilter = this.filterService.getColumnFilter('open-source-health', 'risk');
-  protected libraryFilter = this.filterService.getColumnFilter('open-source-health', 'library');
-
-  protected riskOptions = computed(() => {
-    const values = this.findings().map(d => RiskSeverity[d.risk]);
-    return this.buildFilterOptions(values);
-  });
-
-  protected libraryOptions = computed(() => {
-    const values = this.findings().map(d => d.displayName);
-    return this.buildFilterOptions(values);
-  });
 
   constructor() {
     const sigridData = inject(SigridData);
@@ -62,18 +50,15 @@ export class OpenSourceHealth extends FindingComponent<OpenSourceHealthDependenc
 
   protected override matchesColumnFilters(finding: OpenSourceHealthDependency): boolean {
     const risk = this.riskFilter();
-    if (risk.size > 0 && !risk.has(RiskSeverity[finding.risk])) return false;
-    const library = this.libraryFilter();
-    if (library.size > 0 && !library.has(finding.displayName)) return false;
-    return true;
+    return !(risk.size > 0 && !risk.has(RiskSeverity[finding.risk]));
   }
 
   protected onRiskFilterChange(values: Set<string>) {
     this.filterService.setColumnFilter('open-source-health', 'risk', values);
   }
 
-  protected onLibraryFilterChange(values: Set<string>) {
-    this.filterService.setColumnFilter('open-source-health', 'library', values);
+  protected override getRiskFilterValue(finding: OpenSourceHealthDependency): string {
+    return RiskSeverity[finding.risk];
   }
 
   protected toggleSelection(dependency: OpenSourceHealthDependency) {

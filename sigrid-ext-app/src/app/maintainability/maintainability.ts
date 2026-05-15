@@ -11,9 +11,8 @@ import {IconButton} from '../shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {FindingSelection} from '../services/finding-selection';
 import {SelectedFinding} from '../models/selected-finding';
-import {maintainabilitySeverityStringValues} from '../models/maintainability-severity';
+import {MaintainabilitySeverity, maintainabilitySeverityStringValues} from '../models/maintainability-severity';
 import {FilterableHeader} from '../shared/filterable-header/filterable-header';
-import {MaintainabilitySeverity} from '../models/maintainability-severity';
 
 @Component({
   selector: 'app-maintainability',
@@ -36,20 +35,9 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
 
   protected riskFilter = this.filterService.getColumnFilter('maintainability', 'risk');
   protected statusFilter = this.filterService.getColumnFilter('maintainability', 'status');
-  protected locationFilter = this.filterService.getColumnFilter('maintainability', 'location');
-
-  protected riskOptions = computed(() => {
-    const values = this.findings().map(f => MaintainabilitySeverity[f.severity]);
-    return this.buildFilterOptions(values);
-  });
 
   protected statusOptions = computed(() => {
     const values = this.findings().map(f => f.status);
-    return this.buildFilterOptions(values);
-  });
-
-  protected locationOptions = computed(() => {
-    const values = this.findings().map(f => f.displayLocation);
     return this.buildFilterOptions(values);
   });
 
@@ -59,8 +47,8 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
     this.sigridData = sigridData;
   }
 
-  protected override loadData(): void {
-    this.sigridData.loadRefactoringCandidates()
+  protected override async loadData() {
+    this.sigridData.loadRefactoringCandidates();
   }
 
   protected override matchesSearch(finding: RefactoringCandidate, term: string): boolean {
@@ -72,10 +60,10 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
   protected override matchesColumnFilters(finding: RefactoringCandidate): boolean {
     const risk = this.riskFilter();
     if (risk.size > 0 && !risk.has(MaintainabilitySeverity[finding.severity])) return false;
+
     const status = this.statusFilter();
     if (status.size > 0 && !status.has(finding.status)) return false;
-    const location = this.locationFilter();
-    if (location.size > 0 && !location.has(finding.displayLocation)) return false;
+
     return true;
   }
 
@@ -87,8 +75,8 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
     this.filterService.setColumnFilter('maintainability', 'status', values);
   }
 
-  protected onLocationFilterChange(values: Set<string>) {
-    this.filterService.setColumnFilter('maintainability', 'location', values);
+  protected override getRiskFilterValue(finding: RefactoringCandidate): string {
+    return MaintainabilitySeverity[finding.severity];
   }
 
   protected onStatusClick(finding: RefactoringCandidate) {
