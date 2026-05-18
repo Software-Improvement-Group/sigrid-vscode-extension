@@ -87,7 +87,7 @@ To run the extension in VS Code for debugging:
 To build a Visual Studio Code VSIX package file:
 
 ```bash
-npm install:all
+npm run install:all
 npm run package
 ```
 
