@@ -94,6 +94,8 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': authHeader,
+                    'X-Force-Accept-Language': 'true',
+                    'Accept-Language': 'en-US',
                 },
                 body,
             });

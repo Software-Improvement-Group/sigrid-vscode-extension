@@ -1,0 +1,63 @@
+.filter-dropdown {
+  background-color: var(--vscode-quickInput-background);
+  border: 1px solid var(--vscode-widget-border);
+  box-shadow: 0 0 8px 2px var(--vscode-widget-shadow);
+  min-width: 160px;
+  max-width: 300px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--vscode-widget-border);
+}
+
+.clear-btn {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--vscode-textLink-foreground);
+  font-size: 11px;
+  padding: 2px 4px;
+
+  &:hover {
+    color: var(--vscode-textLink-activeForeground);
+    text-decoration: underline;
+  }
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  color: var(--vscode-quickInputList-foreground);
+  font-size: 12px;
+
+  &:hover {
+    background-color: var(--vscode-list-hoverBackground);
+  }
+}
+
+input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.option-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

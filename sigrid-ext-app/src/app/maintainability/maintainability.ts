@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, computed, inject} from '@angular/core';
 import {FindingComponent} from '../shared/finding-component';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {SigridData} from '../services/sigrid-data';
@@ -11,7 +11,9 @@ import {IconButton} from '../shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {FindingSelection} from '../services/finding-selection';
 import {SelectedFinding} from '../models/selected-finding';
-import {maintainabilitySeverityStringValues} from '../models/maintainability-severity';
+import {MaintainabilitySeverity, maintainabilitySeverityStringValues} from '../models/maintainability-severity';
+import {FilterableHeader} from '../shared/filterable-header/filterable-header';
+import {pascalCaseToTitleCase} from '../utilities/string';
 
 @Component({
   selector: 'app-maintainability',
@@ -20,15 +22,25 @@ import {maintainabilitySeverityStringValues} from '../models/maintainability-sev
     FindingNavigator,
     ExternalLink,
     IconButton,
-    TooltipDirective
+    TooltipDirective,
+    FilterableHeader
   ],
   templateUrl: './maintainability.html',
   styleUrl: './maintainability.scss',
 })
 export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
+  protected readonly tabId = 'maintainability';
   private sigridData!: SigridData;
   private dialog = inject(SigridDialog);
   protected selectionService = inject(FindingSelection);
+
+  protected riskFilter = this.filterService.getColumnFilter('maintainability', 'risk');
+  protected statusFilter = this.filterService.getColumnFilter('maintainability', 'status');
+
+  protected statusOptions = computed(() => {
+    const values = this.findings().map(f => f.status);
+    return this.buildFilterOptions(values, {labelFn: pascalCaseToTitleCase});
+  });
 
   constructor() {
     const sigridData = inject(SigridData);
@@ -36,8 +48,36 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
     this.sigridData = sigridData;
   }
 
-  protected override loadData(): void {
-    this.sigridData.loadRefactoringCandidates()
+  protected override async loadData() {
+    this.sigridData.loadRefactoringCandidates();
+  }
+
+  protected override matchesSearch(finding: RefactoringCandidate, term: string): boolean {
+    return finding.displayLocation.toLowerCase().includes(term)
+      || finding.description.toLowerCase().includes(term)
+      || finding.statusLabel.toLowerCase().includes(term);
+  }
+
+  protected override matchesColumnFilters(finding: RefactoringCandidate): boolean {
+    const risk = this.riskFilter();
+    if (risk.size > 0 && !risk.has(MaintainabilitySeverity[finding.severity])) return false;
+
+    const status = this.statusFilter();
+    if (status.size > 0 && !status.has(finding.status)) return false;
+
+    return true;
+  }
+
+  protected onRiskFilterChange(values: Set<string>) {
+    this.filterService.setColumnFilter('maintainability', 'risk', values);
+  }
+
+  protected onStatusFilterChange(values: Set<string>) {
+    this.filterService.setColumnFilter('maintainability', 'status', values);
+  }
+
+  protected override getRiskFilterValue(finding: RefactoringCandidate): string {
+    return MaintainabilitySeverity[finding.severity];
   }
 
   protected onStatusClick(finding: RefactoringCandidate) {

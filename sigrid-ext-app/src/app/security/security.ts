@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, computed, inject, OnInit} from '@angular/core';
 import {SigridData} from '../services/sigrid-data';
 import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 import {FindingComponent} from '../shared/finding-component';
@@ -11,7 +11,9 @@ import {FindingEdit} from '../shared/finding-edit/finding-edit';
 import {SigridDialog} from '../shared/dialog/sigrid-dialog';
 import {FindingSelection} from '../services/finding-selection';
 import {SelectedFinding} from '../models/selected-finding';
-import {riskSeverityStringValues} from '../models/risk-severity';
+import {RiskSeverity, riskSeverityStringValues} from '../models/risk-severity';
+import {FilterableHeader} from '../shared/filterable-header/filterable-header';
+import {pascalCaseToTitleCase} from '../utilities/string';
 
 @Component({
   selector: 'app-security',
@@ -20,15 +22,25 @@ import {riskSeverityStringValues} from '../models/risk-severity';
     FindingNavigator,
     ExternalLink,
     IconButton,
-    TooltipDirective
+    TooltipDirective,
+    FilterableHeader
   ],
   templateUrl: './security.html',
   styleUrl: './security.scss',
 })
 export class Security extends FindingComponent<SecurityFinding[]> implements OnInit {
+  protected readonly tabId = 'security';
   private sigridData!: SigridData;
   private dialog = inject(SigridDialog);
   protected selectionService = inject(FindingSelection);
+
+  protected riskFilter = this.filterService.getColumnFilter('security', 'risk');
+  protected statusFilter = this.filterService.getColumnFilter('security', 'status');
+
+  protected statusOptions = computed(() => {
+    const values = this.findings().map(f => f.status);
+    return this.buildFilterOptions(values, {labelFn: pascalCaseToTitleCase});
+  });
 
   constructor() {
     const sigridData = inject(SigridData);
@@ -40,6 +52,30 @@ export class Security extends FindingComponent<SecurityFinding[]> implements OnI
     this.sigridData.loadSecurityFindings();
   }
 
+  protected override matchesSearch(finding: SecurityFinding, term: string): boolean {
+    return finding.displayFilePath.toLowerCase().includes(term)
+      || finding.type.toLowerCase().includes(term)
+      || finding.statusLabel.toLowerCase().includes(term);
+  }
+
+  protected override matchesColumnFilters(finding: SecurityFinding): boolean {
+    const risk = this.riskFilter();
+    if (risk.size > 0 && !risk.has(RiskSeverity[finding.severity])) return false;
+
+    const status = this.statusFilter();
+    if (status.size > 0 && !status.has(finding.status)) return false;
+
+    return true;
+  }
+
+  protected onRiskFilterChange(values: Set<string>) {
+    this.filterService.setColumnFilter('security', 'risk', values);
+  }
+
+  protected onStatusFilterChange(values: Set<string>) {
+    this.filterService.setColumnFilter('security', 'status', values);
+  }
+
   protected onStatusClick(finding: any) {
     const ref = this.dialog.open(FindingEdit, {finding: finding});
     ref.afterClosed().subscribe(result => {
@@ -47,6 +83,10 @@ export class Security extends FindingComponent<SecurityFinding[]> implements OnI
         this.sigridData.loadSecurityFindings(true).then();
       }
     });
+  }
+
+  protected override getRiskFilterValue(finding: SecurityFinding): string {
+    return RiskSeverity[finding.severity];
   }
 
   protected toggleSelection(finding: SecurityFinding) {

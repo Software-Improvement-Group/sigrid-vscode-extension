@@ -14,6 +14,7 @@ import {FindingSelection} from './services/finding-selection';
 import {SigridDialog} from './shared/dialog/sigrid-dialog';
 import {JiraIssueDialog} from './shared/jira-issue-dialog/jira-issue-dialog';
 import {JIRA_BANNER_DISMISSED} from './utilities/storage-keys';
+import {FindingFilterService} from './services/finding-filter';
 
 @Component({
   selector: 'app-root',
@@ -29,6 +30,7 @@ export class App implements OnInit, OnDestroy {
   private vscode = inject(VsCode);
   private selectionService = inject(FindingSelection);
   private dialog = inject(SigridDialog);
+  protected filterService = inject(FindingFilterService);
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
   protected readonly isJiraConfigured = this.sigridConfig.isJiraConfigured;
   protected readonly selectedFindingsCount = this.selectionService.selectedCount;
@@ -67,6 +69,11 @@ export class App implements OnInit, OnDestroy {
 
   protected onFileFilterChange(mode: FileFilterMode) {
     this.sigridData.setFileFilter(mode);
+  }
+
+  protected onSearchInput(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.filterService.searchTerm.set(value);
   }
 
   protected async refresh() {

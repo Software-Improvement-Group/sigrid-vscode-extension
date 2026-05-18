@@ -15,7 +15,7 @@
               (onClick)="selectionService.clear()"/>
           }
         </th>
-        <th class="risk-column">Risk</th>
+        <th class="risk-column"><sigrid-filterable-header label="Risk" [centerLabel]="true" [options]="riskOptions()" [selected]="riskFilter()" (selectionChange)="onRiskFilterChange($event)" /></th>
         <th>Library</th>
         <th>Version</th>
         <th class="text-center">Transitive</th>
@@ -27,7 +27,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (dependency of findings(); track dependency.purl) {
+      @for (dependency of filteredFindings(); track dependency.purl) {
         <tr sigridFindingNavigator [locations]="dependency.fileLocations" tabindex="-1"
             [class.selected]="dependency.purl === selectedId" (click)="setSelectedId(dependency.purl)">
           <td class="checkbox-column" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">

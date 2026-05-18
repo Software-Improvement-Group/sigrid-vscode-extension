@@ -23,6 +23,10 @@
       @if (filteredFileName) {
         <span class="file-name" [title]="activeFilePath()">{{ filteredFileName }}</span>
       }
+      <div class="search-container">
+        <i class="codicon codicon-search search-icon"></i>
+        <input type="text" class="search-input" placeholder="Search..." (input)="onSearchInput($event)" />
+      </div>
     </div>
   </div>
 
