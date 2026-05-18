@@ -13,6 +13,7 @@ import {FindingSelection} from '../services/finding-selection';
 import {SelectedFinding} from '../models/selected-finding';
 import {MaintainabilitySeverity, maintainabilitySeverityStringValues} from '../models/maintainability-severity';
 import {FilterableHeader} from '../shared/filterable-header/filterable-header';
+import {pascalCaseToTitleCase} from '../utilities/string';
 
 @Component({
   selector: 'app-maintainability',
@@ -38,7 +39,7 @@ export class Maintainability extends FindingComponent<RefactoringCandidate[]> {
 
   protected statusOptions = computed(() => {
     const values = this.findings().map(f => f.status);
-    return this.buildFilterOptions(values);
+    return this.buildFilterOptions(values, {labelFn: pascalCaseToTitleCase});
   });
 
   constructor() {

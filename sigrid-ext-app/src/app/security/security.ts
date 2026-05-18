@@ -13,6 +13,7 @@ import {FindingSelection} from '../services/finding-selection';
 import {SelectedFinding} from '../models/selected-finding';
 import {RiskSeverity, riskSeverityStringValues} from '../models/risk-severity';
 import {FilterableHeader} from '../shared/filterable-header/filterable-header';
+import {pascalCaseToTitleCase} from '../utilities/string';
 
 @Component({
   selector: 'app-security',
@@ -38,7 +39,7 @@ export class Security extends FindingComponent<SecurityFinding[]> implements OnI
 
   protected statusOptions = computed(() => {
     const values = this.findings().map(f => f.status);
-    return this.buildFilterOptions(values);
+    return this.buildFilterOptions(values, {labelFn: pascalCaseToTitleCase});
   });
 
   constructor() {
