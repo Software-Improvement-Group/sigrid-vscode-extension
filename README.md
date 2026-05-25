@@ -15,6 +15,10 @@ A Visual Studio Code extension that brings Sigrid findings directly into your ed
 - **Configurable Sigrid instance URL** (supports self-hosted deployments)
 - **Create Jira issues** from selected findings (when JIRA settings are configured)
 
+![Visual Studio Code window showing the Sigrid extension dashboard with a findings panel](media/sigrid-vscode-window.png)
+![Sigrid findings panel in VS Code with a table of findings](media/sigrid-vscode-panel.png)
+![Sigrid extension's Open Source Health tab with filtering options](media/sigrid-vscode-osh-with-filter.png)
+
 ---
 
 ## ⚙️ Requirements
@@ -47,7 +51,9 @@ If you don’t have these values, contact your Sigrid administrator or refer to 
 
 ## 🧩 Extension Settings
 
-This extension contributes the following settings:
+### General Settings
+
+This extension contributes the following Sigrid-related settings:
 
 | Setting | Description |
 |--------|-------------|
@@ -56,10 +62,22 @@ This extension contributes the following settings:
 | `sigrid-vscode.system` | Your Sigrid System ID. |
 | `sigrid-vscode.subsystem` | Your Sigrid Subsystem ID (optional). |
 | `sigrid-vscode.sigridUrl` | The URL of your Sigrid instance (default: `https://sigrid-says.com`). |
+
+### Jira Settings
+
+These settings are required only if you want to create Jira issues from Sigrid findings:
+
+| Setting | Description |
+|--------|-------------|
 | `sigrid-vscode.jiraBaseUrl` | Your JIRA base URL (e.g. `https://jira.example.com`). |
 | `sigrid-vscode.jiraUser` | Your JIRA username or email address. |
 | `sigrid-vscode.jiraToken` | Your JIRA personal access token. |
 | `sigrid-vscode.jiraSpaceKey` | The JIRA space key to create issues in (e.g. `AAP`). |
+
+---
+
+## 🔵 Creating Jira issues from findings
+
 
 ---
 
@@ -96,6 +114,7 @@ npm run package
 ## 🐞 Known Issues
 
 - If the panel stays blank, verify that your API credentials are correct and that your network allows requests to your Sigrid instance.
+- In the Maintainability and Open Source Health tabs, opening issues in Sigrid may not navigate to the exact finding.
 
 ---
 
