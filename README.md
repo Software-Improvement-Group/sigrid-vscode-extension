@@ -74,10 +74,7 @@ These settings are required only if you want to create Jira issues from Sigrid f
 | `sigrid-vscode.jiraToken` | Your JIRA personal access token. |
 | `sigrid-vscode.jiraSpaceKey` | The JIRA space key to create issues in (e.g. `AAP`). |
 
----
-
-## 🔵 Creating Jira issues from findings
-
+![Jira settings](media/sigrid-jira-settings.png)
 
 ---
 
