@@ -17,6 +17,7 @@ A Visual Studio Code extension that brings Sigrid findings directly into your ed
 
 ![Visual Studio Code window showing the Sigrid extension dashboard with a findings panel](media/sigrid-vscode-window.png)
 ![Sigrid findings panel in VS Code with a table of findings](media/sigrid-vscode-panel.png)
+
 ![Sigrid extension's Open Source Health tab with filtering options](media/sigrid-vscode-osh-with-filter.png)
 
 ---
