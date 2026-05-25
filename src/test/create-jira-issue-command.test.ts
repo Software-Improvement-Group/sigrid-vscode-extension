@@ -3,6 +3,40 @@ import * as vscode from 'vscode';
 import { CreateJiraIssueCommand } from '../commands/create-jira-issue-command';
 import { VsCodeCommandData } from '../commands/vscode-command-data';
 
+interface JiraConfig {
+    jiraBaseUrl: string;
+    jiraUser: string;
+    jiraToken: string;
+    jiraSpaceKey: string;
+    customer: string;
+}
+
+const DEFAULT_JIRA_CONFIG: JiraConfig = {
+    jiraBaseUrl: 'https://jira.example.com/',
+    jiraUser: 'user@example.com',
+    jiraToken: 'token',
+    jiraSpaceKey: 'APP',
+    customer: '',
+};
+
+function setupConfig(overrides: Partial<JiraConfig> = {}) {
+    const config = { ...DEFAULT_JIRA_CONFIG, ...overrides };
+    (vscode.workspace as any).getConfiguration = () => ({
+        get: (key: string, defaultValue: any) => (config as any)[key] ?? defaultValue,
+    });
+}
+
+function setupDefaultMocks() {
+    (vscode.window as any).showInformationMessage = (_message: string, option: string) => Promise.resolve(option as any);
+    (vscode.window as any).showErrorMessage = (_message: string) => Promise.resolve(undefined);
+    (vscode.env as any).openExternal = async (_uri: vscode.Uri) => true;
+}
+
+async function executeCommand(payload: { title: string; findings: any[]; sigridUrl: string } = { title: 'Test', findings: [], sigridUrl: 'https://sigrid.example.com' }) {
+    const command = new CreateJiraIssueCommand();
+    await command.execute(new VsCodeCommandData({} as any, {} as any, payload));
+}
+
 suite('CreateJiraIssueCommand', () => {
     let originalShowErrorMessage: any;
     let originalShowInformationMessage: any;
@@ -43,35 +77,18 @@ suite('CreateJiraIssueCommand', () => {
             return {} as any;
         };
 
-        const command = new CreateJiraIssueCommand();
-        await command.execute(new VsCodeCommandData({} as any, {} as any, {
-            title: 'Test',
-            findings: [],
-            sigridUrl: 'https://sigrid.example.com',
-        }));
+        await executeCommand();
 
         assert.strictEqual(fetchCalled, false);
         assert.strictEqual(errorMessage, 'JIRA settings are incomplete. Please configure JIRA base URL, user, token, and space key in the extension settings.');
     });
 
     test('creates an issue with the JIRA API v3 schema and opens the created issue in browser', async () => {
-        const jiraConfig = {
-            jiraBaseUrl: 'https://jira.example.com/',
-            jiraUser: 'user@example.com',
-            jiraToken: 'token',
-            jiraSpaceKey: 'APP',
-            customer: '',
-        } as const;
-
-        (vscode.workspace as any).getConfiguration = () => ({
-            get: (key: string, defaultValue: any) => (jiraConfig as any)[key] ?? defaultValue,
-        });
+        setupConfig();
+        setupDefaultMocks();
 
         let requestedUrl = '';
         let requestedBody = '';
-        (vscode.window as any).showInformationMessage = (_message: string, option: string) => Promise.resolve(option as any);
-        (vscode.window as any).showErrorMessage = (_message: string) => Promise.resolve(undefined);
-
         let openedUri = '';
         (vscode.env as any).openExternal = async (uri: vscode.Uri) => {
             openedUri = uri.toString();
@@ -81,26 +98,14 @@ suite('CreateJiraIssueCommand', () => {
         globalThis.fetch = async (input: any, init: any) => {
             requestedUrl = input.toString();
             requestedBody = init.body;
-            return {
-                ok: true,
-                status: 201,
-                json: async () => ({ key: 'APP-123' }),
-                text: async () => '',
-            } as any;
+            return { ok: true, status: 201, json: async () => ({ key: 'APP-123' }), text: async () => '' } as any;
         };
 
-        const command = new CreateJiraIssueCommand();
-        await command.execute(new VsCodeCommandData({} as any, {} as any, {
+        await executeCommand({
             title: 'Refactor component',
-            findings: [
-                {
-                    emoji: '⚠️',
-                    title: 'Duplicate code',
-                    fileLocations: [{ filePath: 'src/foo.ts', startLine: 24 }],
-                },
-            ],
+            findings: [{ emoji: '⚠️', title: 'Duplicate code', fileLocations: [{ filePath: 'src/foo.ts', startLine: 24 }] }],
             sigridUrl: 'https://sigrid.example.com',
-        }));
+        });
 
         assert.strictEqual(requestedUrl, 'https://jira.example.com/rest/api/3/issue');
 
@@ -111,59 +116,59 @@ suite('CreateJiraIssueCommand', () => {
         assert.strictEqual(openedUri, 'https://jira.example.com/browse/APP-123');
     });
 
-    test('falls back to JIRA API v2 plain text description when API v3 returns 400', async () => {
-        const jiraConfig = {
-            jiraBaseUrl: 'https://jira.example.com/',
-            jiraUser: 'user@example.com',
-            jiraToken: 'token',
-            jiraSpaceKey: 'APP',
-            customer: '',
-        } as const;
+    test('prepends https:// to jiraBaseUrl when no protocol is present', async () => {
+        setupConfig({ jiraBaseUrl: 'jira.example.com' });
+        setupDefaultMocks();
 
-        (vscode.workspace as any).getConfiguration = () => ({
-            get: (key: string, defaultValue: any) => (jiraConfig as any)[key] ?? defaultValue,
-        });
+        let requestedUrl = '';
+        globalThis.fetch = async (input: any, _init: any) => {
+            requestedUrl = input.toString();
+            return { ok: true, status: 201, json: async () => ({ key: 'APP-1' }), text: async () => '' } as any;
+        };
+
+        await executeCommand();
+
+        assert.strictEqual(requestedUrl, 'https://jira.example.com/rest/api/3/issue');
+    });
+
+    test('does not prepend https:// when jiraBaseUrl already has http://', async () => {
+        setupConfig({ jiraBaseUrl: 'http://jira.internal/' });
+        setupDefaultMocks();
+
+        let requestedUrl = '';
+        globalThis.fetch = async (input: any, _init: any) => {
+            requestedUrl = input.toString();
+            return { ok: true, status: 201, json: async () => ({ key: 'APP-2' }), text: async () => '' } as any;
+        };
+
+        await executeCommand();
+
+        assert.strictEqual(requestedUrl, 'http://jira.internal/rest/api/3/issue');
+    });
+
+    test('falls back to JIRA API v2 plain text description when API v3 returns 400', async () => {
+        setupConfig();
+        setupDefaultMocks();
 
         let fetchCount = 0;
         const capturedRequests: Array<{ url: string; body: string }> = [];
-
-        (vscode.window as any).showInformationMessage = (_message: string, option: string) => Promise.resolve(option as any);
-        (vscode.window as any).showErrorMessage = (_message: string) => Promise.resolve(undefined);
-        (vscode.env as any).openExternal = async (_uri: vscode.Uri) => true;
 
         globalThis.fetch = async (input: any, init: any) => {
             fetchCount += 1;
             capturedRequests.push({ url: input.toString(), body: init.body });
 
             if (fetchCount === 1) {
-                return {
-                    ok: false,
-                    status: 400,
-                    text: async () => 'Bad Request',
-                    json: async () => ({ key: 'SHOULD_NOT_BE_USED' }),
-                } as any;
+                return { ok: false, status: 400, text: async () => 'Bad Request', json: async () => ({ key: 'SHOULD_NOT_BE_USED' }) } as any;
             }
 
-            return {
-                ok: true,
-                status: 201,
-                json: async () => ({ key: 'APP-456' }),
-                text: async () => '',
-            } as any;
+            return { ok: true, status: 201, json: async () => ({ key: 'APP-456' }), text: async () => '' } as any;
         };
 
-        const command = new CreateJiraIssueCommand();
-        await command.execute(new VsCodeCommandData({} as any, {} as any, {
+        await executeCommand({
             title: 'Refactor module',
-            findings: [
-                {
-                    emoji: '🐛',
-                    title: 'Complex method',
-                    fileLocations: [{ filePath: 'src/bar.ts' }],
-                },
-            ],
+            findings: [{ emoji: '🐛', title: 'Complex method', fileLocations: [{ filePath: 'src/bar.ts' }] }],
             sigridUrl: 'https://sigrid.example.com',
-        }));
+        });
 
         assert.strictEqual(fetchCount, 2);
         assert.strictEqual(capturedRequests[0].url, 'https://jira.example.com/rest/api/3/issue');

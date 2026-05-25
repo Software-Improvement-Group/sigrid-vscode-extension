@@ -22,7 +22,10 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         const { title, findings, sigridUrl } = data.payload;
         const config = workspace.getConfiguration(EXTENSION_ID);
 
-        const jiraBaseUrl = config.get<string>('jiraBaseUrl', '').trim().replace(/\/+$/, '');
+        let jiraBaseUrl = config.get<string>('jiraBaseUrl', '').trim().replace(/\/+$/, '');
+        if (jiraBaseUrl && !jiraBaseUrl.startsWith('http://') && !jiraBaseUrl.startsWith('https://')) {
+            jiraBaseUrl = 'https://' + jiraBaseUrl;
+        }
         const jiraUser = config.get<string>('jiraUser', '').trim();
         const jiraToken = config.get<string>('jiraToken', '').trim();
         const jiraProjectKey = config.get<string>('jiraSpaceKey', '').trim();
