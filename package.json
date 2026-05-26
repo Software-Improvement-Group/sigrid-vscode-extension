@@ -9,7 +9,23 @@
     "vscode": "^1.108.0"
   },
   "categories": [
+    "Linters",
     "Other"
+  ],
+  "keywords": [
+    "sigrid",
+    "code-quality",
+    "quality",
+    "code-analysis",
+    "findings",
+    "maintainability",
+    "security",
+    "refactoring",
+    "open-source-health",
+    "code-inspection",
+    "technical-debt",
+    "software-improvement",
+    "jira"
   ],
   "activationEvents": [
     "onStartupFinished"
