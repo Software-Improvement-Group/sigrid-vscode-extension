@@ -4,6 +4,11 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.8] - 2026-05-26
+
+### Added
+- Support for Jira base URLs without an explicit protocol (`https://` is automatically prepended).
+
 ## [0.0.7] - 2026-05-18
 
 ### Added
