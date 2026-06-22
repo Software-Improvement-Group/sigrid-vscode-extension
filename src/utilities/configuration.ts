@@ -5,7 +5,7 @@ export function getSigridConfiguration() {
     const config = workspace.getConfiguration(EXTENSION_ID);
     return {
         apiKey: config.get<string>('apiKey', ''),
-        customer: config.get<string>('customer', ''),
+        customer: config.get<string>('portfolioName', '') || config.get<string>('customer', ''),
         system: config.get<string>('system', ''),
         subsystem: config.get<string>('subsystem', ''),
         sigridUrl: config.get<string>('sigridUrl', 'https://sigrid-says.com'),
