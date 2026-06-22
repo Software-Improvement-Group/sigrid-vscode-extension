@@ -4,6 +4,16 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.9] - 2026-06-23
+
+### Added
+- Per-finding deep links to the Sigrid web UI for refactoring candidates (duplication and other categories).
+- `disabled` input on `ExternalLink` component to suppress the link when no URL is available.
+
+### Changed
+- Renamed `sigrid-vscode.customer` setting to `sigrid-vscode.portfolioName`. Existing values are automatically migrated on first activation.
+- Updated Angular and related dependencies to v21.2.
+
 ## [0.0.8] - 2026-05-26
 
 ### Added
