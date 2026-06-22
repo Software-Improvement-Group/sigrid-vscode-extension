@@ -29,6 +29,7 @@ export interface RefactoringCandidateResponse {
   startLine?: number;
   endLine?: number;
   lineRanges?: LineRange[]
+  href?: string;
 }
 
 export interface Location {
@@ -37,6 +38,7 @@ export interface Location {
   moduleId: number;
   startLine: number;
   endLine: number;
+  href?: string;
 }
 
 export class RefactoringCandidate implements FindingLocation {
@@ -56,6 +58,7 @@ export class RefactoringCandidate implements FindingLocation {
   component?: string;
   parameters?: number;
   name: string = '';
+  href: string = '';
 }
 
 export interface LineRange {
