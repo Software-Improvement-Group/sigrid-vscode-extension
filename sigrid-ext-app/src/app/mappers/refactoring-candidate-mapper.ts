@@ -56,6 +56,7 @@ export class RefactoringCandidateMapper {
     refactoringCandidate.parameters = response.parameters;
     refactoringCandidate.displayLocation = RefactoringCandidateMapper.getDisplayLocation(response);
     refactoringCandidate.description = RefactoringCandidateMapper.getDescription(category, response);
+    refactoringCandidate.href = RefactoringCandidateMapper.getSigridUrl(category, response);
 
     return refactoringCandidate;
   }
@@ -124,5 +125,9 @@ export class RefactoringCandidateMapper {
 
   private static toFileLocation(component: string, filePath: string, startLine: number, endLine: number): FileLocation {
     return {component, filePath, startLine, endLine};
+  }
+
+  private static getSigridUrl(category: RefactoringCategory, response: RefactoringCandidateResponse): string {
+    return category === RefactoringCategory.Duplication ? response.locations?.find(f => !!f.href)?.href ?? '' : response?.href ?? '';
   }
 }

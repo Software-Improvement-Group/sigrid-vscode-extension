@@ -334,6 +334,86 @@ describe('RefactoringCandidateMapper', () => {
     ]);
   });
 
+  describe('href mapping', () => {
+    it('uses response.href for non-Duplication categories', () => {
+      const record = baseRecord();
+      record[RefactoringCategory.UnitSize] = {
+        refactoringCandidates: [baseCandidate({ id: 'href-unit', href: 'https://sigrid.io/unit/1' })],
+      };
+
+      const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'href-unit');
+
+      expect(candidate.href).toBe('https://sigrid.io/unit/1');
+    });
+
+    it('sets href to empty string when response.href is absent for non-Duplication categories', () => {
+      const record = baseRecord();
+      record[RefactoringCategory.UnitComplexity] = {
+        refactoringCandidates: [baseCandidate({ id: 'href-missing', href: undefined })],
+      };
+
+      const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'href-missing');
+
+      expect(candidate.href).toBe('');
+    });
+
+    it('uses the first location href for Duplication', () => {
+      const record = baseRecord();
+      record[RefactoringCategory.Duplication] = {
+        refactoringCandidates: [
+          baseCandidate({
+            id: 'href-dup',
+            locations: [
+              { component: 'c', file: '/a.ts', moduleId: 1, startLine: 1, endLine: 2, href: 'https://sigrid.io/dup/a' },
+              { component: 'c', file: '/b.ts', moduleId: 1, startLine: 3, endLine: 4, href: 'https://sigrid.io/dup/b' },
+            ],
+          }),
+        ],
+      };
+
+      const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'href-dup');
+
+      expect(candidate.href).toBe('https://sigrid.io/dup/a');
+    });
+
+    it('skips locations without href and returns the first location that has one for Duplication', () => {
+      const record = baseRecord();
+      record[RefactoringCategory.Duplication] = {
+        refactoringCandidates: [
+          baseCandidate({
+            id: 'href-dup-skip',
+            locations: [
+              { component: 'c', file: '/a.ts', moduleId: 1, startLine: 1, endLine: 2 },
+              { component: 'c', file: '/b.ts', moduleId: 1, startLine: 3, endLine: 4, href: 'https://sigrid.io/dup/b' },
+            ],
+          }),
+        ],
+      };
+
+      const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'href-dup-skip');
+
+      expect(candidate.href).toBe('https://sigrid.io/dup/b');
+    });
+
+    it('sets href to empty string when no Duplication location has an href', () => {
+      const record = baseRecord();
+      record[RefactoringCategory.Duplication] = {
+        refactoringCandidates: [
+          baseCandidate({
+            id: 'href-dup-none',
+            locations: [
+              { component: 'c', file: '/a.ts', moduleId: 1, startLine: 1, endLine: 2 },
+            ],
+          }),
+        ],
+      };
+
+      const [candidate] = RefactoringCandidateMapper.map(record, '').filter((c) => c.id === 'href-dup-none');
+
+      expect(candidate.href).toBe('');
+    });
+  });
+
   it('maps displayLocation and description the same way when subsystem is specified', () => {
     const record = baseRecord();
     record[RefactoringCategory.UnitSize] = {

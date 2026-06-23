@@ -46,7 +46,7 @@
                                   tooltipPosition="bottom"
                                   (onClick)="onStatusClick(finding)"
               />
-              <sigrid-external-link [href]="'https://sigrid-says.com'"/>
+              <sigrid-external-link [href]="finding.href" [disabled]="!finding.href" />
             </div>
           </td>
         </tr>

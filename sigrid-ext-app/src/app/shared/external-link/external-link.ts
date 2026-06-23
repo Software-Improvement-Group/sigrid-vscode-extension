@@ -15,6 +15,7 @@ import {TooltipDirective} from 'ngx-smart-tooltip';
 export class ExternalLink {
   href = input.required<string>();
   tooltip = input('Open finding in Sigrid');
+  disabled = input(false);
   readonly vscode = inject(VsCode);
 
   protected openLink() {

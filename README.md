@@ -29,7 +29,7 @@ This extension requires a valid Sigrid account and API credentials.
 You will need:
 
 1. A **Sigrid API Key**
-2. Your **Sigrid Customer ID**
+2. Your **Sigrid Portfolio Name**
 3. Your **Sigrid System ID**
 
 If you don’t have these values, contact your Sigrid administrator or refer to your Sigrid documentation.
@@ -41,7 +41,7 @@ If you don’t have these values, contact your Sigrid administrator or refer to 
 1. Install the extension in VS Code.
 2. Open **Settings** and set the following configuration values:
    - `sigrid-vscode.apiKey` – your Sigrid API key
-   - `sigrid-vscode.customer` – your Sigrid customer ID
+   - `sigrid-vscode.portfolioName` – your Sigrid portfolio name (customer ID)
    - `sigrid-vscode.system` – your Sigrid system ID
    - `sigrid-vscode.subsystem` - (optional) your Sigrid subsystem ID
    - `sigrid-vscode.sigridUrl` – (optional) your Sigrid instance URL. Defaults to `https://sigrid-says.com`.
@@ -59,7 +59,7 @@ This extension contributes the following Sigrid-related settings:
 | Setting | Description |
 |--------|-------------|
 | `sigrid-vscode.apiKey` | Your Sigrid API Key. |
-| `sigrid-vscode.customer` | Your Sigrid Customer ID. |
+| `sigrid-vscode.portfolioName` | Your Sigrid Portfolio Name (formerly `customer`). |
 | `sigrid-vscode.system` | Your Sigrid System ID. |
 | `sigrid-vscode.subsystem` | Your Sigrid Subsystem ID (optional). |
 | `sigrid-vscode.sigridUrl` | The URL of your Sigrid instance (default: `https://sigrid-says.com`). |
