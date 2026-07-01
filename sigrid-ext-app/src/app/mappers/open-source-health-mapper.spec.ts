@@ -22,7 +22,7 @@ describe('OpenSourceHealthMapper', () => {
     Object.entries(record).map(([name, value]) => ({ name, value }));
 
   it('returns [] when response.components is not an array', () => {
-    const response = baseResponse({ components: undefined as any });
+    const response = baseResponse({ components: undefined });
 
     expect(OpenSourceHealthMapper.map(response, '')).toEqual([]);
   });
@@ -204,6 +204,98 @@ describe('OpenSourceHealthMapper', () => {
       { filePath: '', component: '' },
       { filePath: '', component: '' },
     ]);
+  });
+
+  it('maps the first website externalReference url to href', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-href',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-href@1.0.0',
+          properties: [],
+          licenses: [],
+          externalReferences: [
+            { type: 'vcs', url: 'https://github.com/acme/lib-href' },
+            { type: 'website', url: 'https://lib-href.acme.io' },
+            { type: 'website', url: 'https://other.acme.io' },
+          ],
+        } as any,
+      ],
+    });
+
+    const [dep] = OpenSourceHealthMapper.map(response, '');
+
+    expect(dep.href).toBe('https://lib-href.acme.io');
+  });
+
+  it('sets href to empty string when no website externalReference exists', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-no-href',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-no-href@1.0.0',
+          properties: [],
+          licenses: [],
+          externalReferences: [
+            { type: 'vcs', url: 'https://github.com/acme/lib-no-href' },
+          ],
+        } as any,
+      ],
+    });
+
+    const [dep] = OpenSourceHealthMapper.map(response, '');
+
+    expect(dep.href).toBe('');
+  });
+
+  it('sets href to empty string when externalReferences is absent', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-no-refs',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-no-refs@1.0.0',
+          properties: [],
+          licenses: [],
+        } as any,
+      ],
+    });
+
+    const [dep] = OpenSourceHealthMapper.map(response, '');
+
+    expect(dep.href).toBe('');
+  });
+
+  it('skips website externalReferences with empty url', () => {
+    const response = baseResponse({
+      components: [
+        {
+          type: 'library',
+          name: 'lib-empty-url',
+          group: 'acme',
+          version: '1.0.0',
+          purl: 'pkg:npm/acme/lib-empty-url@1.0.0',
+          properties: [],
+          licenses: [],
+          externalReferences: [
+            { type: 'website', url: '' },
+            { type: 'website', url: 'https://valid.acme.io' },
+          ],
+        } as any,
+      ],
+    });
+
+    const [dep] = OpenSourceHealthMapper.map(response, '');
+
+    expect(dep.href).toBe('https://valid.acme.io');
   });
 
   it('uses component.name as displayName when group is empty and sorts by risk desc then displayName asc', () => {
