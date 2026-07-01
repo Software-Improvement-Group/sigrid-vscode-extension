@@ -4,6 +4,11 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.10] - 2026-07-01
+
+### Added
+- Deep links from Open Source Health dependencies to the respective Sigrid page, sourced from `externalReferences` in the API response. The external link button is disabled when no URL is available.
+
 ## [0.0.9] - 2026-06-23
 
 ### Added

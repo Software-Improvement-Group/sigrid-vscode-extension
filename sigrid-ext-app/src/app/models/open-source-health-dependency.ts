@@ -8,7 +8,7 @@ export interface OpenSourceHealthResponse {
   specVersion: string;
   version: number;
   metadata: OshMetadataResponse;
-  components: OshDependencyResponse[];
+  components?: OshDependencyResponse[];
   vulnerabilities: any[];
 }
 
@@ -26,6 +26,7 @@ export interface OshDependencyResponse {
   properties: Property[];
   licenses: OshLicenseResponse[];
   evidence?: OshEvidenceResponse;
+  externalReferences?: OshExternalReference[];
 }
 
 export interface OshLicenseResponse {
@@ -36,6 +37,11 @@ export interface OshLicenseResponse {
 
 export interface OshEvidenceResponse {
   occurrences?: { location?: string }[];
+}
+
+export interface OshExternalReference {
+  type: string;
+  url?: string;
 }
 
 export class OpenSourceHealthDependency implements FindingLocation {
@@ -53,4 +59,5 @@ export class OpenSourceHealthDependency implements FindingLocation {
   stabilityRisk: RiskSeverity = RiskSeverity.Unknown;
   managementRisk: RiskSeverity = RiskSeverity.Unknown;
   fileLocations: FileLocation[] = [];
+  href: string = '';
 }

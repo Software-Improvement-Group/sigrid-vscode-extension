@@ -57,6 +57,7 @@ export class OpenSourceHealthMapper {
       filePath: normalizePath(evidence.location, subsystem),
       component: OpenSourceHealthMapper.getLocationComponent(evidence.location)
     }))?.filter(location => !subsystem ||  location.component === subsystem) ?? []);
+    oshDependency.href = component.externalReferences?.find(ref => ref.type === 'website' && !!ref.url)?.url ?? '';
 
     return oshDependency;
   }

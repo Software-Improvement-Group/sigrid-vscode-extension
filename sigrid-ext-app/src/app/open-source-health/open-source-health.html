@@ -43,7 +43,7 @@
           <td class="text-center"><sigrid-severity-icon [severity]="dependency.activityRisk" /></td>
           <td>
             <div class="action-buttons">
-              <sigrid-external-link [href]="'https://sigrid-says.com'" />
+              <sigrid-external-link [href]="dependency.href" [disabled]="!dependency.href" />
             </div>
           </td>
         </tr>
