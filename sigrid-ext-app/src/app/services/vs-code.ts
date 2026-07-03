@@ -6,6 +6,7 @@ import {VsMessageData, VsMessageSeverity} from '../models/vs-message-data';
 import {FileLocation} from '../models/file-location';
 import {UsageData} from '../models/usage-data';
 import {CreateJiraIssuePayload} from '../models/create-jira-issue-payload';
+import {DecorationUpdatePayload} from '../models/decoration-range';
 
 @Injectable({
   providedIn: 'root',
@@ -43,5 +44,9 @@ export class VsCode {
 
   createJiraIssue(payload: CreateJiraIssuePayload) {
     this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.CreateJiraIssue, payload));
+  }
+
+  updateDecorations(payload: DecorationUpdatePayload) {
+    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.UpdateDecorations, payload));
   }
 }

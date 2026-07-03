@@ -4,6 +4,7 @@ import { MessageCommand } from "./message-command";
 import { UrlOpenCommand } from "./url-open-command";
 import { UsageStatisticsCommand } from "./usage-statistics-command";
 import { CreateJiraIssueCommand } from "./create-jira-issue-command";
+import { UpdateDecorationsCommand } from "./update-decorations-command";
 import { VsCodeCommand } from "./vscode-command";
 
 export const COMMANDS: Record<string, VsCodeCommand<unknown>> = {
@@ -13,4 +14,5 @@ export const COMMANDS: Record<string, VsCodeCommand<unknown>> = {
     openUrl: new UrlOpenCommand(),
     sendUsageStatistics: new UsageStatisticsCommand(),
     createJiraIssue: new CreateJiraIssueCommand(),
+    updateDecorations: new UpdateDecorationsCommand(),
 };

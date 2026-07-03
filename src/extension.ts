@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { SigridPanel } from './panels/sigrid-panel';
 import { EXTENSION_ID } from './extension.config';
 import { migrateCustomerToPortfolioName } from './utilities/migrations';
+import { refactoringCandidateDecorationType } from './utilities/decorations';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -22,6 +23,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Create and show the status bar item for quick access to the Sigrid view
 	context.subscriptions.push(createSigridStatusBarItem());
+
+	context.subscriptions.push(refactoringCandidateDecorationType);
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand

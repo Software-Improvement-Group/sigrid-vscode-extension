@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, effect, inject, OnDestroy, OnInit} from '@angular/core';
 import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {SigridConfiguration} from './services/sigrid-configuration';
 import {WebviewMessage} from './models/webview-message';
@@ -46,6 +46,13 @@ export class App implements OnInit, OnDestroy {
 
   constructor() {
     window.addEventListener('message', this.onMessageReceived.bind(this));
+
+    effect(() => {
+      const decorations = this.sigridData.activeFileDecorations();
+      if (decorations) {
+        this.vscode.updateDecorations(decorations);
+      }
+    });
   }
 
   ngOnInit() {

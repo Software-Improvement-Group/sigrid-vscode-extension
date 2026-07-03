@@ -13,6 +13,7 @@ import {getFileName} from '../utilities/path';
 import {HttpErrorResponse} from '@angular/common/http';
 import {SigridConfiguration} from './sigrid-configuration';
 import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
+import {DecorationUpdatePayload} from '../models/decoration-range';
 
 @Injectable({
   providedIn: 'root',
@@ -45,6 +46,23 @@ export class SigridData {
       ? this._openSourceHealthFindings()
       : filterFindingsByPath(this._openSourceHealthFindings(), this._activeFilePath() ?? '') as SigridFinding<OpenSourceHealthDependency[]>;
   })
+
+  readonly activeFileDecorations = computed<DecorationUpdatePayload | null>(() => {
+    const activePath = this._activeFilePath();
+    if (activePath === undefined || activePath === null) {
+      return null;
+    }
+
+    const normalizedPath = activePath.replaceAll('\\', '/');
+    const candidates = this._refactoringCandidates()?.data ?? [];
+    const ranges = candidates.flatMap(candidate =>
+      candidate.fileLocations
+        .filter(location => location.filePath === normalizedPath && location.startLine !== undefined && location.endLine !== undefined)
+        .map(location => ({startLine: location.startLine!, endLine: location.endLine!, description: candidate.description, href: candidate.href}))
+    );
+
+    return {filePath: normalizedPath, ranges};
+  });
 
   get refactoringCandidates() {
     return this.filteredRefactoringCandidates;

@@ -5,4 +5,5 @@ export enum VsCommandType {
   OpenUrl = 'openUrl',
   SendUsageStatistics = 'sendUsageStatistics',
   CreateJiraIssue = 'createJiraIssue',
+  UpdateDecorations = 'updateDecorations',
 }
