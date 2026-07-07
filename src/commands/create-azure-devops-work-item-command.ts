@@ -5,8 +5,7 @@ import { EXTENSION_ID } from "../extension.config";
 import { IssueFinding } from "./issue-finding";
 import { normalizeBaseUrl } from "../utilities/normalize-base-url";
 import { escapeHtml } from "../utilities/escape-html";
-
-const STATISTICS_URL = 'https://sigrid-says.com/usage/matomo.php?idsite=5&rec=1&ca=1&e_c=vscode&e_a=';
+import { trackUsage } from "../utilities/usage-statistics";
 
 interface CreateAzureDevOpsWorkItemPayload {
     title: string;
@@ -63,7 +62,7 @@ export class CreateAzureDevOpsWorkItemCommand implements VsCodeCommand<CreateAzu
 
         const result = await response.json() as { id: number; _links: { html: { href: string } } };
 
-        this.trackUsage(config.get<string>('customer', ''));
+        trackUsage(config.get<string>('customer', ''), 'createAzureDevOpsWorkItem');
 
         const action = await window.showInformationMessage(
             `Work item created: #${result.id}`,
@@ -91,13 +90,5 @@ export class CreateAzureDevOpsWorkItemCommand implements VsCodeCommand<CreateAzu
             + `<p>The following Sigrid findings have been selected for improvement:</p>`
             + `<ul>${items}</ul>`
             + `<p>You can find more information in <a href="${escapeHtml(sigridUrl)}">Sigrid</a>.</p>`;
-    }
-
-    private trackUsage(customer: string) {
-        if (!customer) {
-            return;
-        }
-        fetch(STATISTICS_URL + encodeURIComponent(customer) + '&e_n=createAzureDevOpsWorkItem', { method: 'GET' })
-            .catch(err => console.error('Failed to send usage statistics:', err));
     }
 }

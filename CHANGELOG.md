@@ -10,9 +10,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Creation of Azure DevOps work items from selected Sigrid findings, with a dialog to choose the work item type and a generated description linking back to the findings in Sigrid.
 - `sigrid-vscode.azureDevOpsOrganizationUrl`, `sigrid-vscode.azureDevOpsPersonalAccessToken`, and `sigrid-vscode.azureDevOpsProjectName` settings.
 
-### Changed
-- Shared the finding-description generation and HTML escaping logic between the Jira and Azure DevOps issue/work item dialogs.
-
 ## [0.0.10] - 2026-07-01
 
 ### Added

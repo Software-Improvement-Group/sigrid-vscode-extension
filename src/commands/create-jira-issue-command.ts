@@ -4,8 +4,7 @@ import { VsCodeCommandData } from "./vscode-command-data";
 import { EXTENSION_ID } from "../extension.config";
 import { IssueFinding } from "./issue-finding";
 import { normalizeBaseUrl } from "../utilities/normalize-base-url";
-
-const STATISTICS_URL = 'https://sigrid-says.com/usage/matomo.php?idsite=5&rec=1&ca=1&e_c=vscode&e_a=';
+import { trackUsage } from "../utilities/usage-statistics";
 
 interface CreateJiraIssuePayload {
     title: string;
@@ -60,7 +59,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         const result = await response.json() as { key: string };
         const issueKey = result.key;
 
-        this.trackUsage(config.get<string>('customer', ''));
+        trackUsage(config.get<string>('customer', ''), 'createJiraIssue');
 
         const action = await window.showInformationMessage(
             `JIRA issue created: ${issueKey}`,
@@ -197,13 +196,5 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         lines.push(`You can find more information in [Sigrid|${sigridUrl}].`);
 
         return lines.join('\n');
-    }
-
-    private trackUsage(customer: string) {
-        if (!customer) {
-            return;
-        }
-        fetch(STATISTICS_URL + encodeURIComponent(customer) + '&e_n=createJiraIssue', { method: 'GET' })
-            .catch(err => console.error('Failed to send usage statistics:', err));
     }
 }
