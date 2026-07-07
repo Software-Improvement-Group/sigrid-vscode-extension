@@ -14,6 +14,7 @@ A Visual Studio Code extension that brings Sigrid findings directly into your ed
 - **Deep link** from findings to the Sigrid web UI
 - **Configurable Sigrid instance URL** (supports self-hosted deployments)
 - **Create Jira issues** from selected findings (when JIRA settings are configured)
+- **Create Azure DevOps work items** from selected findings (when Azure DevOps settings are configured)
 
 ![Visual Studio Code window showing the Sigrid extension dashboard with a findings panel](media/sigrid-vscode-window.png)
 ![Sigrid findings panel in VS Code with a table of findings](media/sigrid-vscode-panel.png)
@@ -76,6 +77,16 @@ These settings are required only if you want to create Jira issues from Sigrid f
 | `sigrid-vscode.jiraSpaceKey` | The JIRA space key to create issues in (e.g. `AAP`). |
 
 ![Jira settings](media/sigrid-jira-settings.png)
+
+### Azure DevOps Settings
+
+These settings are required only if you want to create Azure DevOps work items from Sigrid findings:
+
+| Setting | Description |
+|--------|-------------|
+| `sigrid-vscode.azureDevOpsOrganizationUrl` | Your Azure DevOps organization URL (e.g. `https://dev.azure.com/myorg` or `https://myorg.visualstudio.com`). |
+| `sigrid-vscode.azureDevOpsPersonalAccessToken` | Your Azure DevOps personal access token. |
+| `sigrid-vscode.azureDevOpsProjectName` | The Azure DevOps project to create work items in (e.g. `MyProject`). |
 
 ---
 
