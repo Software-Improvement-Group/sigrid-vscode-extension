@@ -129,6 +129,30 @@
             "order": 3
           }
         }
+      },
+      {
+        "id": "sigrid-azure-devops",
+        "title": "Azure DevOps",
+        "properties": {
+          "sigrid-vscode.azureDevOpsOrganizationUrl": {
+            "type": "string",
+            "default": "",
+            "description": "Your Azure DevOps organization URL (e.g. https://dev.azure.com/myorg or https://myorg.visualstudio.com).",
+            "order": 0
+          },
+          "sigrid-vscode.azureDevOpsPersonalAccessToken": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "Your Azure DevOps personal access token. [How to create a PAT](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate).",
+            "order": 1
+          },
+          "sigrid-vscode.azureDevOpsProjectName": {
+            "type": "string",
+            "default": "",
+            "description": "The Azure DevOps project to create work items in (e.g. MyProject).",
+            "order": 2
+          }
+        }
       }
     ]
   },

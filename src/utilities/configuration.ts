@@ -13,5 +13,8 @@ export function getSigridConfiguration() {
         jiraUser: config.get<string>('jiraUser', ''),
         jiraToken: config.get<string>('jiraToken', ''),
         jiraProjectKey: config.get<string>('jiraSpaceKey', ''),
+        azureDevOpsOrganizationUrl: config.get<string>('azureDevOpsOrganizationUrl', ''),
+        azureDevOpsPersonalAccessToken: config.get<string>('azureDevOpsPersonalAccessToken', ''),
+        azureDevOpsProjectName: config.get<string>('azureDevOpsProjectName', ''),
     };
 }

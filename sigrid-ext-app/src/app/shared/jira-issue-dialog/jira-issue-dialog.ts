@@ -5,7 +5,7 @@ import {IconButton} from '../icon-button/icon-button';
 import {FindingSelection} from '../../services/finding-selection';
 import {VsCode} from '../../services/vs-code';
 import {SigridConfiguration} from '../../services/sigrid-configuration';
-import {JiraFinding} from '../../models/create-jira-issue-payload';
+import {IssueFinding} from '../../models/issue-finding';
 import {getSeverityEmoji} from '../../utilities/severity-emoji';
 import {SIGRID_DEFAULT_URL} from '../../utilities/constants';
 
@@ -40,7 +40,7 @@ export class JiraIssueDialog {
     const sigridUrl = config.sigridUrl || SIGRID_DEFAULT_URL;
     const systemUrl = `${sigridUrl}/${config.customer}/${config.system}`;
 
-    const findings: JiraFinding[] = this.selectionService.getAll().map(f => ({
+    const findings: IssueFinding[] = this.selectionService.getAll().map(f => ({
       emoji: getSeverityEmoji(f.severity),
       title: f.title,
       fileLocations: f.fileLocations.map(loc => ({

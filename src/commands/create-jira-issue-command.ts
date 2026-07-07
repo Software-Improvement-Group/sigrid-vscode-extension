@@ -2,18 +2,14 @@ import { env, Uri, window, workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { EXTENSION_ID } from "../extension.config";
+import { IssueFinding } from "./issue-finding";
+import { normalizeBaseUrl } from "../utilities/normalize-base-url";
 
 const STATISTICS_URL = 'https://sigrid-says.com/usage/matomo.php?idsite=5&rec=1&ca=1&e_c=vscode&e_a=';
 
-interface JiraFinding {
-    emoji: string;
-    title: string;
-    fileLocations: { filePath: string; startLine?: number }[];
-}
-
 interface CreateJiraIssuePayload {
     title: string;
-    findings: JiraFinding[];
+    findings: IssueFinding[];
     sigridUrl: string;
 }
 
@@ -22,10 +18,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         const { title, findings, sigridUrl } = data.payload;
         const config = workspace.getConfiguration(EXTENSION_ID);
 
-        let jiraBaseUrl = config.get<string>('jiraBaseUrl', '').trim().replace(/\/+$/, '');
-        if (jiraBaseUrl && !jiraBaseUrl.startsWith('http://') && !jiraBaseUrl.startsWith('https://')) {
-            jiraBaseUrl = 'https://' + jiraBaseUrl;
-        }
+        const jiraBaseUrl = normalizeBaseUrl(config.get<string>('jiraBaseUrl', ''));
         const jiraUser = config.get<string>('jiraUser', '').trim();
         const jiraToken = config.get<string>('jiraToken', '').trim();
         const jiraProjectKey = config.get<string>('jiraSpaceKey', '').trim();
@@ -109,7 +102,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         }
     }
 
-    private buildAdfDescription(findings: JiraFinding[], sigridUrl: string): object {
+    private buildAdfDescription(findings: IssueFinding[], sigridUrl: string): object {
         const content: object[] = [];
 
         content.push({
@@ -184,7 +177,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         };
     }
 
-    private buildPlainTextDescription(findings: JiraFinding[], sigridUrl: string): string {
+    private buildPlainTextDescription(findings: IssueFinding[], sigridUrl: string): string {
         const lines: string[] = [
             'h2. Code selected for refactoring',
             '',

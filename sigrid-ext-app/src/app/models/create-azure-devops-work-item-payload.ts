@@ -1,7 +1,8 @@
 import {IssueFinding} from './issue-finding';
 
-export interface CreateJiraIssuePayload {
+export interface CreateAzureDevOpsWorkItemPayload {
   title: string;
+  workItemType: string;
   findings: IssueFinding[];
   sigridUrl: string;
 }

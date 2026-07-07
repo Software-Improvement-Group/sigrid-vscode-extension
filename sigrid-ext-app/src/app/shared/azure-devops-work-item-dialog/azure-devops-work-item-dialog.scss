@@ -1,0 +1,10 @@
+@use '../dialog/dialog-content';
+
+.work-item-type-status {
+  font-size: 0.85em;
+  opacity: 0.8;
+
+  &.error {
+    color: var(--vscode-errorForeground);
+  }
+}
