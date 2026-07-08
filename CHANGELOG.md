@@ -4,11 +4,14 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [1.0.0] - 2026-07-07
+## [1.0.0] - 2026-07-08
 
 ### Added
 - Creation of Azure DevOps work items from selected Sigrid findings, with a dialog to choose the work item type and a generated description linking back to the findings in Sigrid.
 - `sigrid-vscode.azureDevOpsOrganizationUrl`, `sigrid-vscode.azureDevOpsPersonalAccessToken`, and `sigrid-vscode.azureDevOpsProjectName` settings.
+
+### Changed
+- The title input is now autofocused when opening the Jira issue or Azure DevOps work item creation dialog.
 
 ## [0.0.10] - 2026-07-01
 
