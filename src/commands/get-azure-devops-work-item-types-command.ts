@@ -2,7 +2,8 @@ import { workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { EXTENSION_ID } from "../extension.config";
-import { normalizeBaseUrl } from "../utilities/normalize-base-url";
+import { readAzureDevOpsSettings } from "../utilities/get-azure-devops-config";
+import { buildBasicAuthHeader } from "../utilities/basic-auth";
 
 const HIDDEN_CATEGORY = 'microsoft.hiddencategory';
 const EXCLUDED_DEFAULT_TYPE_CATEGORIES = new Set(['microsoft.testcasecategory', 'microsoft.epiccategory']);
@@ -50,63 +51,68 @@ export class GetAzureDevOpsWorkItemTypesCommand implements VsCodeCommand<undefin
     private cachedTypes: string[] | null = null;
 
     async execute(data: VsCodeCommandData<undefined>) {
-        const config = workspace.getConfiguration(EXTENSION_ID);
+        const result = await this.resolveTypes();
+        data.webview.postMessage({ command: 'azureDevOpsWorkItemTypesLoaded', data: result });
+    }
 
-        const organizationUrl = normalizeBaseUrl(config.get<string>('azureDevOpsOrganizationUrl', ''));
-        const personalAccessToken = config.get<string>('azureDevOpsPersonalAccessToken', '').trim();
-        const projectName = config.get<string>('azureDevOpsProjectName', '').trim();
+    private async resolveTypes(): Promise<{ types: string[] } | { error: string }> {
+        const config = workspace.getConfiguration(EXTENSION_ID);
+        const { organizationUrl, personalAccessToken, projectName } = readAzureDevOpsSettings(config);
 
         if (!organizationUrl || !personalAccessToken || !projectName) {
-            data.webview.postMessage({
-                command: 'azureDevOpsWorkItemTypesLoaded',
-                data: { error: 'Azure DevOps settings are incomplete.' },
-            });
-            return;
+            return { error: 'Azure DevOps settings are incomplete.' };
         }
 
         const cacheKey = `${organizationUrl}|${projectName}|${personalAccessToken}`;
         if (this.cachedKey === cacheKey && this.cachedTypes) {
-            data.webview.postMessage({ command: 'azureDevOpsWorkItemTypesLoaded', data: { types: this.cachedTypes } });
-            return;
+            return { types: this.cachedTypes };
         }
 
-        const authHeader = 'Basic ' + Buffer.from(`:${personalAccessToken}`).toString('base64');
+        const authHeader = buildBasicAuthHeader('', personalAccessToken);
+        const result = await this.fetchTypes(organizationUrl, projectName, authHeader);
+
+        if ('types' in result) {
+            this.cachedKey = cacheKey;
+            this.cachedTypes = result.types;
+        }
+
+        return result;
+    }
+
+    private async fetchTypes(organizationUrl: string, projectName: string, authHeader: string): Promise<{ types: string[] } | { error: string }> {
         const url = `${organizationUrl}/${encodeURIComponent(projectName)}/_apis/wit/workitemtypes?api-version=7.1`;
 
         let response: Response;
+        let excludedTypeNames: Set<string>;
         try {
-            response = await fetch(url, {
-                headers: { 'Authorization': authHeader },
-            });
+            [response, excludedTypeNames] = await Promise.all([
+                fetch(url, { headers: { 'Authorization': authHeader } }),
+                fetchExcludedTypeNames(organizationUrl, projectName, authHeader),
+            ]);
         } catch (error) {
             console.error('Failed to fetch Azure DevOps work item types:', error);
-            data.webview.postMessage({
-                command: 'azureDevOpsWorkItemTypesLoaded',
-                data: { error: error instanceof Error ? error.message : String(error) },
-            });
-            return;
+            return { error: error instanceof Error ? error.message : String(error) };
         }
 
         if (!response.ok) {
             const errorBody = await response.text();
             console.error('Azure DevOps API error:', response.status, errorBody);
-            data.webview.postMessage({
-                command: 'azureDevOpsWorkItemTypesLoaded',
-                data: { error: `Failed to fetch work item types (${response.status})` },
-            });
-            return;
+            return { error: `Failed to fetch work item types (${response.status})` };
         }
 
-        const excludedTypeNames = await fetchExcludedTypeNames(organizationUrl, projectName, authHeader);
+        return this.parseTypes(response, excludedTypeNames);
+    }
 
-        const result = await response.json() as { value: AzureDevOpsWorkItemType[] };
-        const types = result.value
-            .filter(type => !type.isDisabled && !excludedTypeNames.has(type.name.toLowerCase()))
-            .map(type => type.name);
-
-        this.cachedKey = cacheKey;
-        this.cachedTypes = types;
-
-        data.webview.postMessage({ command: 'azureDevOpsWorkItemTypesLoaded', data: { types } });
+    private async parseTypes(response: Response, excludedTypeNames: Set<string>): Promise<{ types: string[] } | { error: string }> {
+        try {
+            const result = await response.json() as { value: AzureDevOpsWorkItemType[] };
+            const types = result.value
+                .filter(type => !type.isDisabled && !excludedTypeNames.has(type.name.toLowerCase()))
+                .map(type => type.name);
+            return { types };
+        } catch (error) {
+            console.error('Failed to parse Azure DevOps work item types response:', error);
+            return { error: error instanceof Error ? error.message : String(error) };
+        }
     }
 }

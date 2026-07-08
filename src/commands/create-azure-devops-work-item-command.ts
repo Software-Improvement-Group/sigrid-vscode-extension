@@ -3,9 +3,11 @@ import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { EXTENSION_ID } from "../extension.config";
 import { IssueFinding } from "./issue-finding";
-import { normalizeBaseUrl } from "../utilities/normalize-base-url";
+import { readAzureDevOpsSettings } from "../utilities/get-azure-devops-config";
 import { escapeHtml } from "../utilities/escape-html";
 import { trackUsage } from "../utilities/usage-statistics";
+import { buildBasicAuthHeader } from "../utilities/basic-auth";
+import { formatLocation } from "../utilities/format-location";
 
 interface CreateAzureDevOpsWorkItemPayload {
     title: string;
@@ -18,17 +20,14 @@ export class CreateAzureDevOpsWorkItemCommand implements VsCodeCommand<CreateAzu
     async execute(data: VsCodeCommandData<CreateAzureDevOpsWorkItemPayload>) {
         const { title, workItemType, findings, sigridUrl } = data.payload;
         const config = workspace.getConfiguration(EXTENSION_ID);
-
-        const organizationUrl = normalizeBaseUrl(config.get<string>('azureDevOpsOrganizationUrl', ''));
-        const personalAccessToken = config.get<string>('azureDevOpsPersonalAccessToken', '').trim();
-        const projectName = config.get<string>('azureDevOpsProjectName', '').trim();
+        const { organizationUrl, personalAccessToken, projectName } = readAzureDevOpsSettings(config);
 
         if (!organizationUrl || !personalAccessToken || !projectName) {
             window.showErrorMessage('Azure DevOps settings are incomplete. Please configure the organization URL, personal access token, and project name in the extension settings.');
             return;
         }
 
-        const authHeader = 'Basic ' + Buffer.from(`:${personalAccessToken}`).toString('base64');
+        const authHeader = buildBasicAuthHeader('', personalAccessToken);
         const description = this.buildHtmlDescription(findings, sigridUrl);
         const url = `${organizationUrl}/${encodeURIComponent(projectName)}/_apis/wit/workitems/$${encodeURIComponent(workItemType)}?api-version=7.1`;
 
@@ -60,25 +59,32 @@ export class CreateAzureDevOpsWorkItemCommand implements VsCodeCommand<CreateAzu
             return;
         }
 
-        const result = await response.json() as { id: number; _links: { html: { href: string } } };
+        let result: { id: number; _links?: { html?: { href?: string } } };
+        try {
+            result = await response.json() as { id: number; _links?: { html?: { href?: string } } };
+        } catch (error) {
+            console.error('Failed to parse Azure DevOps work item response:', error);
+            window.showErrorMessage(`Failed to parse the response from Azure DevOps: ${error instanceof Error ? error.message : String(error)}`);
+            return;
+        }
 
         trackUsage(config.get<string>('customer', ''), 'createAzureDevOpsWorkItem');
 
+        const href = result._links?.html?.href;
         const action = await window.showInformationMessage(
             `Work item created: #${result.id}`,
-            'Open in Browser'
+            ...(href ? ['Open in Browser'] : [])
         );
 
-        if (action === 'Open in Browser') {
-            env.openExternal(Uri.parse(result._links.html.href));
+        if (action === 'Open in Browser' && href) {
+            env.openExternal(Uri.parse(href));
         }
     }
 
     private buildHtmlDescription(findings: IssueFinding[], sigridUrl: string): string {
         const items = findings.map(finding => {
             const locations = finding.fileLocations.map(loc => {
-                const lineInfo = loc.startLine ? `:${loc.startLine}` : '';
-                return `<li>${escapeHtml(`${loc.filePath}${lineInfo}`)}</li>`;
+                return `<li>${escapeHtml(formatLocation(loc))}</li>`;
             }).join('');
 
             const locationsList = locations ? `<ul>${locations}</ul>` : '';

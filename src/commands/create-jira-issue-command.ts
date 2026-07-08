@@ -5,6 +5,8 @@ import { EXTENSION_ID } from "../extension.config";
 import { IssueFinding } from "./issue-finding";
 import { normalizeBaseUrl } from "../utilities/normalize-base-url";
 import { trackUsage } from "../utilities/usage-statistics";
+import { buildBasicAuthHeader } from "../utilities/basic-auth";
+import { formatLocation } from "../utilities/format-location";
 
 interface CreateJiraIssuePayload {
     title: string;
@@ -30,7 +32,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         console.log(`Creating JIRA issue in project "${jiraProjectKey}" at ${jiraBaseUrl}`);
 
         const descriptionText = this.buildPlainTextDescription(findings, sigridUrl);
-        const authHeader = 'Basic ' + Buffer.from(`${jiraUser}:${jiraToken}`).toString('base64');
+        const authHeader = buildBasicAuthHeader(jiraUser, jiraToken);
 
         // Try API v3 with ADF first, fall back to API v2 with plain text
         const adfDescription = this.buildAdfDescription(findings, sigridUrl);
@@ -124,12 +126,11 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
 
             const subListItems: object[] = [];
             for (const loc of finding.fileLocations) {
-                const lineInfo = loc.startLine ? `:${loc.startLine}` : '';
                 subListItems.push({
                     type: 'listItem',
                     content: [{
                         type: 'paragraph',
-                        content: [{ type: 'text', text: `${loc.filePath}${lineInfo}` }]
+                        content: [{ type: 'text', text: formatLocation(loc) }]
                     }]
                 });
             }
@@ -187,8 +188,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         for (const finding of findings) {
             lines.push(`* ${finding.emoji} *${finding.title}*`);
             for (const loc of finding.fileLocations) {
-                const lineInfo = loc.startLine ? `:${loc.startLine}` : '';
-                lines.push(`** ${loc.filePath}${lineInfo}`);
+                lines.push(`** ${formatLocation(loc)}`);
             }
         }
 

@@ -6,15 +6,15 @@ import {FindingSelection} from '../../services/finding-selection';
 import {VsCode} from '../../services/vs-code';
 import {SigridConfiguration} from '../../services/sigrid-configuration';
 import {AzureDevOpsWorkItemTypes} from '../../services/azure-devops-work-item-types';
-import {IssueFinding} from '../../models/issue-finding';
-import {getSeverityEmoji} from '../../utilities/severity-emoji';
-import {SIGRID_DEFAULT_URL} from '../../utilities/constants';
+import {buildIssuePayloadBase} from '../../utilities/issue-payload';
+import {SigridAutofocus} from '../sigrid-autofocus';
 
 @Component({
   selector: 'sigrid-azure-devops-work-item-dialog',
   imports: [
     ReactiveFormsModule,
     IconButton,
+    SigridAutofocus,
   ],
   templateUrl: './azure-devops-work-item-dialog.html',
   styleUrl: './azure-devops-work-item-dialog.scss',
@@ -38,7 +38,9 @@ export class AzureDevOpsWorkItemDialog {
 
   constructor() {
     const config = this.sigridConfig.getConfigurationOrEmpty();
-    this.workItemTypesService.requestIfNeeded(config.azureDevOpsOrganizationUrl, config.azureDevOpsProjectName);
+    this.workItemTypesService.requestIfNeeded(
+      config.azureDevOpsOrganizationUrl, config.azureDevOpsProjectName, config.azureDevOpsPersonalAccessToken
+    );
 
     effect(() => {
       const types = this.types();
@@ -61,20 +63,9 @@ export class AzureDevOpsWorkItemDialog {
 
     const title = this.workItemForm.controls.title.value ?? '';
     const workItemType = this.workItemForm.controls.workItemType.value ?? '';
-    const config = this.sigridConfig.getConfigurationOrEmpty();
-    const sigridUrl = config.sigridUrl || SIGRID_DEFAULT_URL;
-    const systemUrl = `${sigridUrl}/${config.customer}/${config.system}`;
+    const {findings, sigridUrl} = buildIssuePayloadBase(this.selectionService, this.sigridConfig);
 
-    const findings: IssueFinding[] = this.selectionService.getAll().map(f => ({
-      emoji: getSeverityEmoji(f.severity),
-      title: f.title,
-      fileLocations: f.fileLocations.map(loc => ({
-        filePath: loc.filePath,
-        startLine: loc.startLine,
-      })),
-    }));
-
-    this.vscode.createAzureDevOpsWorkItem({title, workItemType, findings, sigridUrl: systemUrl});
+    this.vscode.createAzureDevOpsWorkItem({title, workItemType, findings, sigridUrl});
     this.workItemTypesService.setLastSelectedType(workItemType);
     this.selectionService.clear();
     this.dialogRef.close();

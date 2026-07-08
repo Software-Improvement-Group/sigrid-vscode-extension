@@ -86,7 +86,7 @@ describe('AzureDevOpsWorkItemDialog', () => {
 
   it('should create the dialog and request work item types', () => {
     expect(component).toBeTruthy();
-    expect(workItemTypesService.requestIfNeeded).toHaveBeenCalledWith('https://dev.azure.com/myorg', 'MyProject');
+    expect(workItemTypesService.requestIfNeeded).toHaveBeenCalledWith('https://dev.azure.com/myorg', 'MyProject', 'token');
   });
 
   it('does not create a work item when the form is invalid', () => {
@@ -99,7 +99,7 @@ describe('AzureDevOpsWorkItemDialog', () => {
 
   it('defaults the work item type to Task once types are loaded', () => {
     workItemTypesService.types.set(['Bug', 'Task', 'Issue']);
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(component['workItemForm'].controls.workItemType.value).toBe('Task');
   });
@@ -107,7 +107,7 @@ describe('AzureDevOpsWorkItemDialog', () => {
   it('defaults to the last selected type when it is still in the fetched list', () => {
     workItemTypesService.getLastSelectedType.mockReturnValue('Issue');
     workItemTypesService.types.set(['Bug', 'Task', 'Issue']);
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(component['workItemForm'].controls.workItemType.value).toBe('Issue');
   });
@@ -115,14 +115,14 @@ describe('AzureDevOpsWorkItemDialog', () => {
   it('falls back to the first type when neither the last selected type nor Task is available', () => {
     workItemTypesService.getLastSelectedType.mockReturnValue('Feature');
     workItemTypesService.types.set(['Bug', 'Issue']);
-    TestBed.flushEffects();
+    TestBed.tick();
 
     expect(component['workItemForm'].controls.workItemType.value).toBe('Bug');
   });
 
   it('creates a work item from selected findings, remembers the type, and closes the dialog', () => {
     workItemTypesService.types.set(['Bug', 'Task']);
-    TestBed.flushEffects();
+    TestBed.tick();
     component['workItemForm'].controls.title.setValue('Investigate SQL injection');
 
     component['onSubmit']();
@@ -158,7 +158,7 @@ describe('AzureDevOpsWorkItemDialog', () => {
       azureDevOpsProjectName: 'MyProject',
     });
     workItemTypesService.types.set(['Task']);
-    TestBed.flushEffects();
+    TestBed.tick();
     component['workItemForm'].controls.title.setValue('Create work item');
 
     component['onSubmit']();
