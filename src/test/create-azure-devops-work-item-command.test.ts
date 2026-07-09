@@ -195,4 +195,98 @@ suite('CreateAzureDevOpsWorkItemCommand', () => {
 
         assert.ok(errorMessage.includes('Failed to create Azure DevOps work item (401)'));
     });
+
+    test('also writes Repro Steps for work item types that support it (e.g. Bug)', async () => {
+        setupConfig();
+        setupDefaultMocks();
+
+        let requestedBody = '';
+        globalThis.fetch = async (input: any, init: any) => {
+            const url = input.toString();
+            if (url.includes('/_apis/wit/workitemtypes/')) {
+                return { ok: true, status: 200, json: async () => ({ fields: [{ referenceName: 'Microsoft.VSTS.TCM.ReproSteps' }] }), text: async () => '' } as any;
+            }
+            requestedBody = init.body;
+            return { ok: true, status: 200, json: async () => ({ id: 1, _links: { html: { href: '' } } }), text: async () => '' } as any;
+        };
+
+        await executeCommand({
+            title: 'Test',
+            workItemType: 'Bug',
+            findings: [],
+            sigridUrl: 'https://sigrid.example.com',
+        });
+
+        const body = JSON.parse(requestedBody);
+        assert.strictEqual(body.length, 3);
+        assert.strictEqual(body[2].path, '/fields/Microsoft.VSTS.TCM.ReproSteps');
+        assert.strictEqual(body[2].value, body[1].value);
+    });
+
+    test('does not write Repro Steps for work item types that do not support it (e.g. Task)', async () => {
+        setupConfig();
+        setupDefaultMocks();
+
+        let requestedBody = '';
+        globalThis.fetch = async (input: any, init: any) => {
+            const url = input.toString();
+            if (url.includes('/_apis/wit/workitemtypes/')) {
+                return { ok: true, status: 200, json: async () => ({ fields: [{ referenceName: 'System.Description' }] }), text: async () => '' } as any;
+            }
+            requestedBody = init.body;
+            return { ok: true, status: 200, json: async () => ({ id: 1, _links: { html: { href: '' } } }), text: async () => '' } as any;
+        };
+
+        await executeCommand();
+
+        const body = JSON.parse(requestedBody);
+        assert.strictEqual(body.length, 2);
+    });
+
+    test('falls back to System.Description only when fetching work item type fields fails', async () => {
+        setupConfig();
+        setupDefaultMocks();
+
+        let requestedBody = '';
+        globalThis.fetch = async (input: any, init: any) => {
+            const url = input.toString();
+            if (url.includes('/_apis/wit/workitemtypes/')) {
+                throw new Error('network error');
+            }
+            requestedBody = init.body;
+            return { ok: true, status: 200, json: async () => ({ id: 1, _links: { html: { href: '' } } }), text: async () => '' } as any;
+        };
+
+        await executeCommand({
+            title: 'Test',
+            workItemType: 'Bug',
+            findings: [],
+            sigridUrl: 'https://sigrid.example.com',
+        });
+
+        const body = JSON.parse(requestedBody);
+        assert.strictEqual(body.length, 2);
+    });
+
+    test('caches work item type fields and does not refetch for the same type', async () => {
+        setupConfig();
+        setupDefaultMocks();
+
+        let metadataFetchCount = 0;
+        globalThis.fetch = async (input: any) => {
+            const url = input.toString();
+            if (url.includes('/_apis/wit/workitemtypes/')) {
+                metadataFetchCount += 1;
+                return { ok: true, status: 200, json: async () => ({ fields: [{ referenceName: 'Microsoft.VSTS.TCM.ReproSteps' }] }), text: async () => '' } as any;
+            }
+            return { ok: true, status: 200, json: async () => ({ id: 1, _links: { html: { href: '' } } }), text: async () => '' } as any;
+        };
+
+        const command = new CreateAzureDevOpsWorkItemCommand();
+        const payload = { title: 'Test', workItemType: 'Bug', findings: [], sigridUrl: 'https://sigrid.example.com' };
+        await command.execute(new VsCodeCommandData({} as any, {} as any, payload));
+        await command.execute(new VsCodeCommandData({} as any, {} as any, payload));
+
+        assert.strictEqual(metadataFetchCount, 1);
+    });
 });
