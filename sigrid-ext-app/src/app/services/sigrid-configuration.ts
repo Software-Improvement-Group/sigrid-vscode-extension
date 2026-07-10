@@ -19,6 +19,11 @@ export class SigridConfiguration {
     return config !== null && !!config.jiraBaseUrl && !!config.jiraUser && !!config.jiraToken && !!config.jiraProjectKey;
   });
 
+  readonly isAzureDevOpsConfigured = computed(() => {
+    const config = this.config();
+    return config !== null && !!config.azureDevOpsOrganizationUrl && !!config.azureDevOpsPersonalAccessToken && !!config.azureDevOpsProjectName;
+  });
+
   private readonly sigridApiBaseUrl = computed(() => {
     const configuration = this.getConfigurationOrEmpty();
     return joinUrl(!!configuration.sigridUrl ? configuration.sigridUrl : SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL);
@@ -52,6 +57,9 @@ export class SigridConfiguration {
       jiraUser: '',
       jiraToken: '',
       jiraProjectKey: '',
+      azureDevOpsOrganizationUrl: '',
+      azureDevOpsPersonalAccessToken: '',
+      azureDevOpsProjectName: '',
     };
   }
 

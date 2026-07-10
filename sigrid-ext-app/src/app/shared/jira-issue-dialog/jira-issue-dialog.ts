@@ -5,15 +5,15 @@ import {IconButton} from '../icon-button/icon-button';
 import {FindingSelection} from '../../services/finding-selection';
 import {VsCode} from '../../services/vs-code';
 import {SigridConfiguration} from '../../services/sigrid-configuration';
-import {JiraFinding} from '../../models/create-jira-issue-payload';
-import {getSeverityEmoji} from '../../utilities/severity-emoji';
-import {SIGRID_DEFAULT_URL} from '../../utilities/constants';
+import {buildIssuePayloadBase} from '../../utilities/issue-payload';
+import {SigridAutofocus} from '../sigrid-autofocus';
 
 @Component({
   selector: 'sigrid-jira-issue-dialog',
   imports: [
     ReactiveFormsModule,
     IconButton,
+    SigridAutofocus,
   ],
   templateUrl: './jira-issue-dialog.html',
   styleUrl: './jira-issue-dialog.scss',
@@ -36,20 +36,9 @@ export class JiraIssueDialog {
     }
 
     const title = this.jiraForm.controls.title.value ?? '';
-    const config = this.sigridConfig.getConfigurationOrEmpty();
-    const sigridUrl = config.sigridUrl || SIGRID_DEFAULT_URL;
-    const systemUrl = `${sigridUrl}/${config.customer}/${config.system}`;
+    const {findings, sigridUrl} = buildIssuePayloadBase(this.selectionService, this.sigridConfig);
 
-    const findings: JiraFinding[] = this.selectionService.getAll().map(f => ({
-      emoji: getSeverityEmoji(f.severity),
-      title: f.title,
-      fileLocations: f.fileLocations.map(loc => ({
-        filePath: loc.filePath,
-        startLine: loc.startLine,
-      })),
-    }));
-
-    this.vscode.createJiraIssue({title, findings, sigridUrl: systemUrl});
+    this.vscode.createJiraIssue({title, findings, sigridUrl});
     this.selectionService.clear();
     this.dialogRef.close();
   }

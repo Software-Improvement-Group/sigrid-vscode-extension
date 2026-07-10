@@ -13,6 +13,7 @@ import {VsCode} from './services/vs-code';
 import {FindingSelection} from './services/finding-selection';
 import {SigridDialog} from './shared/dialog/sigrid-dialog';
 import {JiraIssueDialog} from './shared/jira-issue-dialog/jira-issue-dialog';
+import {AzureDevOpsWorkItemDialog} from './shared/azure-devops-work-item-dialog/azure-devops-work-item-dialog';
 import {JIRA_BANNER_DISMISSED} from './utilities/storage-keys';
 import {FindingFilterService} from './services/finding-filter';
 
@@ -33,6 +34,7 @@ export class App implements OnInit, OnDestroy {
   protected filterService = inject(FindingFilterService);
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
   protected readonly isJiraConfigured = this.sigridConfig.isJiraConfigured;
+  protected readonly isAzureDevOpsConfigured = this.sigridConfig.isAzureDevOpsConfigured;
   protected readonly selectedFindingsCount = this.selectionService.selectedCount;
   protected fileFilterOptions = [
     {label: 'All', value: FileFilterMode.All},
@@ -90,6 +92,13 @@ export class App implements OnInit, OnDestroy {
       return;
     }
     this.dialog.open(JiraIssueDialog);
+  }
+
+  protected onCreateAzureDevOpsWorkItem() {
+    if (!this.isAzureDevOpsConfigured() || this.selectedFindingsCount() === 0) {
+      return;
+    }
+    this.dialog.open(AzureDevOpsWorkItemDialog);
   }
 
   ngOnDestroy() {

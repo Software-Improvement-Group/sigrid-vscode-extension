@@ -14,6 +14,7 @@
       </div>
       <div class="header-action-buttons">
         <sigrid-icon-button svgIcon="jira" ngxTooltip="Select the findings you want to create Jira issue from" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!isJiraConfigured() || selectedFindingsCount() === 0" (onClick)="onCreateJiraIssue()"/>
+        <sigrid-icon-button svgIcon="azure-devops" ngxTooltip="Select the findings you want to create an Azure DevOps work item from" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!isAzureDevOpsConfigured() || selectedFindingsCount() === 0" (onClick)="onCreateAzureDevOpsWorkItem()"/>
         <sigrid-icon-button iconClass="codicon codicon-refresh" ngxTooltip="Refresh" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="refreshButtonDisabled()" (onClick)="refresh()"/>
       </div>
     </div>
@@ -30,9 +31,9 @@
     </div>
   </div>
 
-  @if (!isJiraConfigured() && !jiraBannerDismissed) {
+  @if (!isJiraConfigured() && !isAzureDevOpsConfigured() && !jiraBannerDismissed) {
     <div class="jira-banner">
-      <span>You can create JIRA issues from selected findings now! Complete your JIRA credentials setting to try it out.</span>
+      <span>You can create Jira issues or Azure DevOps work items from selected findings now! Complete your Jira or Azure DevOps credentials setting to try it out.</span>
       <span class="jira-banner-close" (click)="dismissJiraBanner()">
         <i class="codicon codicon-close"></i>
       </span>

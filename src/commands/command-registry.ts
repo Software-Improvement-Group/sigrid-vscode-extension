@@ -4,6 +4,8 @@ import { MessageCommand } from "./message-command";
 import { UrlOpenCommand } from "./url-open-command";
 import { UsageStatisticsCommand } from "./usage-statistics-command";
 import { CreateJiraIssueCommand } from "./create-jira-issue-command";
+import { CreateAzureDevOpsWorkItemCommand } from "./create-azure-devops-work-item-command";
+import { GetAzureDevOpsWorkItemTypesCommand } from "./get-azure-devops-work-item-types-command";
 import { VsCodeCommand } from "./vscode-command";
 
 export const COMMANDS: Record<string, VsCodeCommand<unknown>> = {
@@ -13,4 +15,6 @@ export const COMMANDS: Record<string, VsCodeCommand<unknown>> = {
     openUrl: new UrlOpenCommand(),
     sendUsageStatistics: new UsageStatisticsCommand(),
     createJiraIssue: new CreateJiraIssueCommand(),
+    createAzureDevOpsWorkItem: new CreateAzureDevOpsWorkItemCommand(),
+    getAzureDevOpsWorkItemTypes: new GetAzureDevOpsWorkItemTypesCommand(),
 };

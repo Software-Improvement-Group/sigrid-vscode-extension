@@ -8,4 +8,7 @@ export interface Configuration {
   jiraUser: string;
   jiraToken: string;
   jiraProjectKey: string;
+  azureDevOpsOrganizationUrl: string;
+  azureDevOpsPersonalAccessToken: string;
+  azureDevOpsProjectName: string;
 }

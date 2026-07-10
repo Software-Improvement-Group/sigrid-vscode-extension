@@ -16,6 +16,9 @@ describe('SigridConfiguration', () => {
     jiraUser: '',
     jiraToken: '',
     jiraProjectKey: '',
+    azureDevOpsOrganizationUrl: '',
+    azureDevOpsPersonalAccessToken: '',
+    azureDevOpsProjectName: '',
   };
 
   beforeEach(() => {
@@ -40,6 +43,11 @@ describe('SigridConfiguration', () => {
     expect(service.isJiraConfigured()).toBe(false);
   });
 
+  it('isAzureDevOpsConfigured is false by default (no configuration set)', () => {
+    expect(service.getConfiguration()()).toBeNull();
+    expect(service.isAzureDevOpsConfigured()).toBe(false);
+  });
+
   it('getEmptyConfiguration returns an object with empty values and default Sigrid URL', () => {
     const empty = service.getEmptyConfiguration();
 
@@ -53,6 +61,9 @@ describe('SigridConfiguration', () => {
       jiraUser: '',
       jiraToken: '',
       jiraProjectKey: '',
+      azureDevOpsOrganizationUrl: '',
+      azureDevOpsPersonalAccessToken: '',
+      azureDevOpsProjectName: '',
     });
   });
 
@@ -67,6 +78,9 @@ describe('SigridConfiguration', () => {
       jiraUser: 'user@example.com',
       jiraToken: 'token',
       jiraProjectKey: 'SIG',
+      azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
+      azureDevOpsPersonalAccessToken: 'azure-token',
+      azureDevOpsProjectName: 'my-project',
     };
 
     service.setConfiguration(config);
@@ -147,5 +161,39 @@ describe('SigridConfiguration', () => {
       jiraProjectKey: 'SIG',
     });
     expect(service.isJiraConfigured()).toBe(true);
+  });
+
+  it('isAzureDevOpsConfigured becomes true only when all Azure DevOps settings are non-empty', () => {
+    service.setConfiguration({
+      ...validBaseConfiguration,
+      azureDevOpsOrganizationUrl: '',
+      azureDevOpsPersonalAccessToken: 'azure-token',
+      azureDevOpsProjectName: 'my-project',
+    });
+    expect(service.isAzureDevOpsConfigured()).toBe(false);
+
+    service.setConfiguration({
+      ...validBaseConfiguration,
+      azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
+      azureDevOpsPersonalAccessToken: '',
+      azureDevOpsProjectName: 'my-project',
+    });
+    expect(service.isAzureDevOpsConfigured()).toBe(false);
+
+    service.setConfiguration({
+      ...validBaseConfiguration,
+      azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
+      azureDevOpsPersonalAccessToken: 'azure-token',
+      azureDevOpsProjectName: '',
+    });
+    expect(service.isAzureDevOpsConfigured()).toBe(false);
+
+    service.setConfiguration({
+      ...validBaseConfiguration,
+      azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
+      azureDevOpsPersonalAccessToken: 'azure-token',
+      azureDevOpsProjectName: 'my-project',
+    });
+    expect(service.isAzureDevOpsConfigured()).toBe(true);
   });
 });

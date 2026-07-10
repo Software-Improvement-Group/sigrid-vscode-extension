@@ -29,6 +29,9 @@ describe('InitializeCommand', () => {
       jiraUser: 'jira-user',
       jiraToken: 'jira-token',
       jiraProjectKey: 'SIG',
+      azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
+      azureDevOpsPersonalAccessToken: 'azure-token',
+      azureDevOpsProjectName: 'my-project',
     };
 
     cmd.execute(cfg);
@@ -61,6 +64,9 @@ describe('InitializeCommand', () => {
       jiraUser: 'jira-user',
       jiraToken: 'jira-token',
       jiraProjectKey: 'SIG',
+      azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
+      azureDevOpsPersonalAccessToken: 'azure-token',
+      azureDevOpsProjectName: 'my-project',
     };
 
     cmd.execute(cfg);

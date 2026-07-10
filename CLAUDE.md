@@ -62,3 +62,16 @@ Tests use Mocha via `@vscode/test-cli`. Currently the main test file is `src/tes
 ### Linting
 
 ESLint 9 flat config in `eslint.config.mjs` using `typescript-eslint`. Enforces `naming-convention`, `curly`, `eqeqeq`, `no-throw-literal`, `semi`.
+
+## Coding Standards
+
+### 1. Method Length and Complexity
+* **Rule**: Keep functions and methods short and focused.
+* **Metric**: Maximum 25 lines of code per method (excluding comments and whitespace).
+* **Action**: If a method exceeds this limit, refactor it by extracting smaller helper functions.
+* **Principle**: Single Responsibility Principle (SRP) — each function must do only one thing.
+
+### 2. Code Duplication
+* **Rule**: Strictly adhere to the DRY (Don't Repeat Yourself) principle.
+* **Action**: If the same logic is used two or more times, abstract it into a reusable function, utility class, or hook.
+* **Review**: Scan the existing codebase or context before generating new helper functions to check for existing solutions.

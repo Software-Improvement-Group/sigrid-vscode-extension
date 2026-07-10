@@ -5,4 +5,6 @@ export enum VsCommandType {
   OpenUrl = 'openUrl',
   SendUsageStatistics = 'sendUsageStatistics',
   CreateJiraIssue = 'createJiraIssue',
+  CreateAzureDevOpsWorkItem = 'createAzureDevOpsWorkItem',
+  GetAzureDevOpsWorkItemTypes = 'getAzureDevOpsWorkItemTypes',
 }

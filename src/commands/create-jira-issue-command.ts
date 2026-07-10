@@ -2,18 +2,15 @@ import { env, Uri, window, workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { EXTENSION_ID } from "../extension.config";
-
-const STATISTICS_URL = 'https://sigrid-says.com/usage/matomo.php?idsite=5&rec=1&ca=1&e_c=vscode&e_a=';
-
-interface JiraFinding {
-    emoji: string;
-    title: string;
-    fileLocations: { filePath: string; startLine?: number }[];
-}
+import { IssueFinding } from "./issue-finding";
+import { normalizeBaseUrl } from "../utilities/normalize-base-url";
+import { trackUsage } from "../utilities/usage-statistics";
+import { buildBasicAuthHeader } from "../utilities/basic-auth";
+import { formatLocation } from "../utilities/format-location";
 
 interface CreateJiraIssuePayload {
     title: string;
-    findings: JiraFinding[];
+    findings: IssueFinding[];
     sigridUrl: string;
 }
 
@@ -22,10 +19,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         const { title, findings, sigridUrl } = data.payload;
         const config = workspace.getConfiguration(EXTENSION_ID);
 
-        let jiraBaseUrl = config.get<string>('jiraBaseUrl', '').trim().replace(/\/+$/, '');
-        if (jiraBaseUrl && !jiraBaseUrl.startsWith('http://') && !jiraBaseUrl.startsWith('https://')) {
-            jiraBaseUrl = 'https://' + jiraBaseUrl;
-        }
+        const jiraBaseUrl = normalizeBaseUrl(config.get<string>('jiraBaseUrl', ''));
         const jiraUser = config.get<string>('jiraUser', '').trim();
         const jiraToken = config.get<string>('jiraToken', '').trim();
         const jiraProjectKey = config.get<string>('jiraSpaceKey', '').trim();
@@ -38,7 +32,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         console.log(`Creating JIRA issue in project "${jiraProjectKey}" at ${jiraBaseUrl}`);
 
         const descriptionText = this.buildPlainTextDescription(findings, sigridUrl);
-        const authHeader = 'Basic ' + Buffer.from(`${jiraUser}:${jiraToken}`).toString('base64');
+        const authHeader = buildBasicAuthHeader(jiraUser, jiraToken);
 
         // Try API v3 with ADF first, fall back to API v2 with plain text
         const adfDescription = this.buildAdfDescription(findings, sigridUrl);
@@ -67,7 +61,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         const result = await response.json() as { key: string };
         const issueKey = result.key;
 
-        this.trackUsage(config.get<string>('customer', ''));
+        trackUsage(config.get<string>('customer', ''), 'createJiraIssue');
 
         const action = await window.showInformationMessage(
             `JIRA issue created: ${issueKey}`,
@@ -109,7 +103,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         }
     }
 
-    private buildAdfDescription(findings: JiraFinding[], sigridUrl: string): object {
+    private buildAdfDescription(findings: IssueFinding[], sigridUrl: string): object {
         const content: object[] = [];
 
         content.push({
@@ -132,12 +126,11 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
 
             const subListItems: object[] = [];
             for (const loc of finding.fileLocations) {
-                const lineInfo = loc.startLine ? `:${loc.startLine}` : '';
                 subListItems.push({
                     type: 'listItem',
                     content: [{
                         type: 'paragraph',
-                        content: [{ type: 'text', text: `${loc.filePath}${lineInfo}` }]
+                        content: [{ type: 'text', text: formatLocation(loc) }]
                     }]
                 });
             }
@@ -184,7 +177,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         };
     }
 
-    private buildPlainTextDescription(findings: JiraFinding[], sigridUrl: string): string {
+    private buildPlainTextDescription(findings: IssueFinding[], sigridUrl: string): string {
         const lines: string[] = [
             'h2. Code selected for refactoring',
             '',
@@ -195,8 +188,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         for (const finding of findings) {
             lines.push(`* ${finding.emoji} *${finding.title}*`);
             for (const loc of finding.fileLocations) {
-                const lineInfo = loc.startLine ? `:${loc.startLine}` : '';
-                lines.push(`** ${loc.filePath}${lineInfo}`);
+                lines.push(`** ${formatLocation(loc)}`);
             }
         }
 
@@ -204,13 +196,5 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         lines.push(`You can find more information in [Sigrid|${sigridUrl}].`);
 
         return lines.join('\n');
-    }
-
-    private trackUsage(customer: string) {
-        if (!customer) {
-            return;
-        }
-        fetch(STATISTICS_URL + encodeURIComponent(customer) + '&e_n=createJiraIssue', { method: 'GET' })
-            .catch(err => console.error('Failed to send usage statistics:', err));
     }
 }
