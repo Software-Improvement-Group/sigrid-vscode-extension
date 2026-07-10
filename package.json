@@ -25,7 +25,8 @@
     "code-inspection",
     "technical-debt",
     "software-improvement",
-    "jira"
+    "jira",
+    "azure-devops"
   ],
   "activationEvents": [
     "onStartupFinished"
