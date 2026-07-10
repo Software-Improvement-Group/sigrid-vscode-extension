@@ -4,6 +4,7 @@ import { VsCodeCommandData } from "./vscode-command-data";
 import { EXTENSION_ID } from "../extension.config";
 import { readAzureDevOpsSettings } from "../utilities/get-azure-devops-config";
 import { buildBasicAuthHeader } from "../utilities/basic-auth";
+import { buildAzureDevOpsWitUrl } from "../utilities/azure-devops-api";
 
 const HIDDEN_CATEGORY = 'microsoft.hiddencategory';
 const EXCLUDED_DEFAULT_TYPE_CATEGORIES = new Set(['microsoft.testcasecategory', 'microsoft.epiccategory']);
@@ -20,7 +21,7 @@ interface AzureDevOpsWorkItemTypeCategory {
 }
 
 async function fetchExcludedTypeNames(organizationUrl: string, projectName: string, authHeader: string): Promise<Set<string>> {
-    const url = `${organizationUrl}/${encodeURIComponent(projectName)}/_apis/wit/workitemtypecategories?api-version=7.1`;
+    const url = buildAzureDevOpsWitUrl(organizationUrl, projectName, 'workitemtypecategories');
 
     try {
         const response = await fetch(url, { headers: { 'Authorization': authHeader } });
@@ -80,7 +81,7 @@ export class GetAzureDevOpsWorkItemTypesCommand implements VsCodeCommand<undefin
     }
 
     private async fetchTypes(organizationUrl: string, projectName: string, authHeader: string): Promise<{ types: string[] } | { error: string }> {
-        const url = `${organizationUrl}/${encodeURIComponent(projectName)}/_apis/wit/workitemtypes?api-version=7.1`;
+        const url = buildAzureDevOpsWitUrl(organizationUrl, projectName, 'workitemtypes');
 
         let response: Response;
         let excludedTypeNames: Set<string>;

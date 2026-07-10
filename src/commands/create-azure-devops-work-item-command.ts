@@ -8,6 +8,7 @@ import { escapeHtml } from "../utilities/escape-html";
 import { trackUsage } from "../utilities/usage-statistics";
 import { buildBasicAuthHeader } from "../utilities/basic-auth";
 import { formatLocation } from "../utilities/format-location";
+import { buildAzureDevOpsWitUrl } from "../utilities/azure-devops-api";
 
 const REPRO_STEPS_FIELD = 'Microsoft.VSTS.TCM.ReproSteps';
 
@@ -89,7 +90,7 @@ export class CreateAzureDevOpsWorkItemCommand implements VsCodeCommand<CreateAzu
     private async createWorkItem(
         settings: AzureDevOpsSettings, workItemType: string, authHeader: string, body: string
     ): Promise<Response | undefined> {
-        const url = `${settings.organizationUrl}/${encodeURIComponent(settings.projectName)}/_apis/wit/workitems/$${encodeURIComponent(workItemType)}?api-version=7.1`;
+        const url = buildAzureDevOpsWitUrl(settings.organizationUrl, settings.projectName, `workitems/$${encodeURIComponent(workItemType)}`);
 
         let response: Response;
         try {
@@ -157,7 +158,7 @@ export class CreateAzureDevOpsWorkItemCommand implements VsCodeCommand<CreateAzu
     private async fetchWorkItemTypeFields(
         organizationUrl: string, projectName: string, workItemType: string, authHeader: string
     ): Promise<Set<string>> {
-        const url = `${organizationUrl}/${encodeURIComponent(projectName)}/_apis/wit/workitemtypes/${encodeURIComponent(workItemType)}?api-version=7.1`;
+        const url = buildAzureDevOpsWitUrl(organizationUrl, projectName, `workitemtypes/${encodeURIComponent(workItemType)}`);
 
         try {
             const response = await fetch(url, { headers: { 'Authorization': authHeader } });
