@@ -1,4 +1,4 @@
-import { Disposable, Uri, Webview, WebviewView, WebviewViewProvider, window, workspace } from "vscode";
+import { Disposable, extensions, Uri, Webview, WebviewView, WebviewViewProvider, window, workspace } from "vscode";
 import { getWebviewUri } from "../utilities/get-webview-uri";
 import { AngularApp, EXTENSION_ID } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
@@ -7,6 +7,7 @@ import { COMMANDS } from "../commands/command-registry";
 import { VsCodeCommandData } from "../commands/vscode-command-data";
 import { postActiveEditorChangedMessage } from "../utilities/editor";
 import { getSigridConfiguration } from "../utilities/configuration";
+import { postAiAgentsDetectedMessage } from "../utilities/ai-agents-message";
 
 export class SigridPanel implements WebviewViewProvider {
   private disposables: Disposable[] = [];
@@ -26,6 +27,7 @@ export class SigridPanel implements WebviewViewProvider {
     this.setWebviewMessageListener(webviewView.webview);
     this.setActiveEditorListener(webviewView.webview);
     this.setConfigurationChangeListener(webviewView.webview);
+    this.setAgentDetectionListeners(webviewView);
 
     webviewView.onDidDispose(() => {
       this.dispose();
@@ -78,6 +80,27 @@ export class SigridPanel implements WebviewViewProvider {
       if (event.affectsConfiguration(EXTENSION_ID)) {
         const newConfig = getSigridConfiguration();
         webview.postMessage({ command: "configurationChanged", data: newConfig });
+      }
+    }, undefined, this.disposables);
+  }
+
+  /**
+   * Re-detects the available AI agents. Installing an extension raises an event, but installing a
+   * CLI does not, so the panel becoming visible or the window regaining focus also triggers a check.
+   */
+  private setAgentDetectionListeners(webviewView: WebviewView) {
+    const webview = webviewView.webview;
+    const redetect = () => postAiAgentsDetectedMessage(webview);
+
+    extensions.onDidChange(redetect, undefined, this.disposables);
+    webviewView.onDidChangeVisibility(() => {
+      if (webviewView.visible) {
+        redetect();
+      }
+    }, undefined, this.disposables);
+    window.onDidChangeWindowState(state => {
+      if (state.focused && webviewView.visible) {
+        redetect();
       }
     }, undefined, this.disposables);
   }

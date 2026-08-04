@@ -16,6 +16,7 @@ import {JiraIssueDialog} from './shared/jira-issue-dialog/jira-issue-dialog';
 import {AzureDevOpsWorkItemDialog} from './shared/azure-devops-work-item-dialog/azure-devops-work-item-dialog';
 import {JIRA_BANNER_DISMISSED} from './utilities/storage-keys';
 import {FindingFilterService} from './services/finding-filter';
+import {FixWithAi} from './services/fix-with-ai';
 
 @Component({
   selector: 'app-root',
@@ -31,7 +32,9 @@ export class App implements OnInit, OnDestroy {
   private vscode = inject(VsCode);
   private selectionService = inject(FindingSelection);
   private dialog = inject(SigridDialog);
+  private fixWithAi = inject(FixWithAi);
   protected filterService = inject(FindingFilterService);
+  protected readonly canFixWithAi = this.fixWithAi.isAvailable;
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
   protected readonly isJiraConfigured = this.sigridConfig.isJiraConfigured;
   protected readonly isAzureDevOpsConfigured = this.sigridConfig.isAzureDevOpsConfigured;
@@ -92,6 +95,13 @@ export class App implements OnInit, OnDestroy {
       return;
     }
     this.dialog.open(JiraIssueDialog);
+  }
+
+  protected onFixWithAi() {
+    if (!this.canFixWithAi() || this.selectedFindingsCount() === 0) {
+      return;
+    }
+    this.fixWithAi.fix(this.selectionService.getAll(), () => this.selectionService.clear());
   }
 
   protected onCreateAzureDevOpsWorkItem() {

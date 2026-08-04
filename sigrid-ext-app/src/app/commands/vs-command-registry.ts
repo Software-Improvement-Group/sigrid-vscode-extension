@@ -10,6 +10,8 @@ import {WebviewBaseUriCommand} from './webview-base-uri-command';
 import {AppResource} from '../services/app-resource';
 import {AzureDevOpsWorkItemTypes} from '../services/azure-devops-work-item-types';
 import {AzureDevOpsWorkItemTypesLoadedCommand} from './azure-devops-work-item-types-loaded-command';
+import {AiAgents} from '../services/ai-agents';
+import {AiAgentsDetectedCommand} from './ai-agents-detected-command';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +22,7 @@ export class VsCommandRegistry {
   private usageStatistics = inject(UsageStatistics);
   private appResource = inject(AppResource);
   private azureDevOpsWorkItemTypes = inject(AzureDevOpsWorkItemTypes);
+  private aiAgents = inject(AiAgents);
 
   private commands: Record<string, VsCommandHandler<unknown>> = {
     initialize: new InitializeCommand(this.sigridConfig, this.usageStatistics),
@@ -27,6 +30,7 @@ export class VsCommandRegistry {
     activeEditorChanged: new ActiveEditorChangedCommand(this.sigridData),
     configurationChanged: new ConfigurationChangedCommand(this.sigridConfig, this.sigridData, this.usageStatistics),
     azureDevOpsWorkItemTypesLoaded: new AzureDevOpsWorkItemTypesLoadedCommand(this.azureDevOpsWorkItemTypes),
+    aiAgentsDetected: new AiAgentsDetectedCommand(this.aiAgents),
   };
 
   execute(command: string, payload: unknown) {

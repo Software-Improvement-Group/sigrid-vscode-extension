@@ -1,10 +1,8 @@
-import {Directive, ElementRef, HostBinding, HostListener, inject, Injector, input} from '@angular/core';
+import {Directive, ElementRef, HostBinding, HostListener, inject, input} from '@angular/core';
 import {VsCode} from '../services/vs-code';
 import {FileLocation} from '../models/file-location';
-import {Overlay, OverlayRef} from '@angular/cdk/overlay';
-import {ComponentPortal} from '@angular/cdk/portal';
-import {PopupMenu} from './popup-menu/popup-menu';
 import {MenuItem} from './popup-menu/menu-item';
+import {PopupMenuService} from '../services/popup-menu-service';
 import {getParentDirectory, toDisplayFilePath} from '../utilities/path';
 
 @Directive({
@@ -17,10 +15,8 @@ export class FindingNavigator {
   tabIndex = -1;
 
   private readonly vscode = inject(VsCode);
-  private readonly overlay = inject(Overlay);
-  private readonly injector = inject(Injector);
+  private readonly popupMenu = inject(PopupMenuService);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
-  private overlayRef?: OverlayRef;
 
   @HostListener('mousedown')
   onMouseDown() {
@@ -102,42 +98,10 @@ export class FindingNavigator {
   }
 
   private showPopup(locations: FileLocation[]) {
-    if (this.overlayRef) {
-      this.closePopup();
-      return;
-    }
-
-    const positionStrategy = this.overlay.position()
-      .global()
-      .centerHorizontally()
-      .centerVertically();
-
-    this.overlayRef = this.overlay.create({
-      positionStrategy,
-      hasBackdrop: true,
-      backdropClass: 'cdk-overlay-transparent-backdrop'
-    });
-
-    this.overlayRef.backdropClick().subscribe(() => this.closePopup());
-
-    const portal = new ComponentPortal(PopupMenu, null, this.injector);
-    const componentRef = this.overlayRef.attach(portal);
-    const menuItems = locations.map(location => ({
+    this.popupMenu.open(locations.map(location => ({
       label: `${toDisplayFilePath(location.filePath, '')}${location.startLine == null || location.startLine === 0 ? '' : ':' + location.startLine}`,
       description: getParentDirectory(location.filePath),
-      action: () => this.onItemSelect(location)
-    } as MenuItem ));
-    componentRef.setInput('items', menuItems);
-    componentRef.instance.close.subscribe(() => this.closePopup());
-  }
-
-  private closePopup() {
-    this.overlayRef?.dispose();
-    this.overlayRef = undefined;
-  }
-
-  onItemSelect(location: FileLocation) {
-    this.vscode.openFile(location);
-    this.closePopup();
+      action: () => this.vscode.openFile(location)
+    } as MenuItem)));
   }
 }

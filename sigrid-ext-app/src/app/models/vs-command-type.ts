@@ -7,4 +7,5 @@ export enum VsCommandType {
   CreateJiraIssue = 'createJiraIssue',
   CreateAzureDevOpsWorkItem = 'createAzureDevOpsWorkItem',
   GetAzureDevOpsWorkItemTypes = 'getAzureDevOpsWorkItemTypes',
+  FixFindingsWithAi = 'fixFindingsWithAi',
 }

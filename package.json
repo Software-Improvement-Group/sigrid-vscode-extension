@@ -102,6 +102,26 @@
         }
       },
       {
+        "id": "sigrid-ai-agents",
+        "title": "AI Agents",
+        "properties": {
+          "sigrid-vscode.claudeCodeHandoff": {
+            "type": "string",
+            "enum": [
+              "extension",
+              "terminal"
+            ],
+            "enumDescriptions": [
+              "Open the Claude Code panel with the prompt prefilled. Falls back to a terminal when the Claude Code extension is not installed.",
+              "Type the claude command into a terminal, even when the Claude Code extension is installed."
+            ],
+            "default": "extension",
+            "description": "How Sigrid hands findings to Claude Code when you use \"Fix it\". Either way the prompt is prefilled for you to review, never sent automatically.",
+            "order": 0
+          }
+        }
+      },
+      {
         "id": "sigrid-jira",
         "title": "Jira",
         "properties": {

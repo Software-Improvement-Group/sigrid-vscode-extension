@@ -43,6 +43,15 @@
           <td class="text-center"><sigrid-severity-icon [severity]="dependency.activityRisk" /></td>
           <td>
             <div class="action-buttons">
+              @if (canFixWithAi()) {
+                <sigrid-icon-button iconClass="codicon codicon-sparkle"
+                                    ngxTooltip="Fix with AI"
+                                    tooltipClass="sigrid-tooltip"
+                                    [tooltipArrow]="false"
+                                    tooltipPosition="bottom"
+                                    (onClick)="onFixWithAi(dependency)"
+                />
+              }
               <sigrid-external-link [href]="dependency.href" [disabled]="!dependency.href" />
             </div>
           </td>
