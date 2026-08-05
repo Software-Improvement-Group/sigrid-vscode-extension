@@ -35,6 +35,7 @@ export class FixFindingsWithAiCommand implements VsCodeCommand<FixFindingsPayloa
         const prompt = buildFixPrompt(payload.findings, config, {
             supportsSlashCommands: agent.supportsSlashCommands,
             mcpDetected,
+            resolveToolReference: toolName => agent.toolReference?.(toolName),
         });
 
         const usesTerminal = agent.usesTerminal?.() ?? false;

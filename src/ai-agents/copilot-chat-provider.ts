@@ -1,7 +1,7 @@
 import { commands, extensions } from "vscode";
 import { AiAgentProvider } from "./ai-agent-provider";
 import { FixPrompt } from "./fix-prompt-builder";
-import { hasSigridLanguageModelTool } from "./sigrid-mcp-detection";
+import { findSigridToolName, hasSigridMcpServer } from "./sigrid-mcp-detection";
 
 const COPILOT_CHAT_EXTENSION_ID = 'github.copilot-chat';
 const OPEN_CHAT_COMMAND = 'workbench.action.chat.open';
@@ -22,7 +22,16 @@ export class CopilotChatProvider implements AiAgentProvider {
     }
 
     hasSigridMcp(): boolean {
-        return hasSigridLanguageModelTool();
+        return hasSigridMcpServer();
+    }
+
+    /**
+     * VS Code chat turns `#name` in the input box into a real tool attachment, but only for a tool
+     * it has loaded. An unknown name would stay in the box as dead text, so it stays unreferenced.
+     */
+    toolReference(toolName: string): string | undefined {
+        const loaded = findSigridToolName(toolName);
+        return loaded ? `#${loaded}` : undefined;
     }
 
     async handoff(prompt: FixPrompt): Promise<void> {

@@ -29,9 +29,23 @@ const MIXED_INSTRUCTION = 'Fix the following Sigrid findings.';
 const MCP_HINT = 'Note: the Sigrid MCP server was not detected in this environment. ' +
     'The findings above are self-contained, so work from them directly.';
 
+/**
+ * The Sigrid MCP tools worth naming per category. Read only on purpose: the agent must never record
+ * anything back to Sigrid, least of all on top of an edit the user has not reviewed yet.
+ */
+const MCP_TOOLS: Record<string, string[]> = {
+    [FindingCategory.maintainability]: ['maintainability_get_findings', 'guardrails_quality_check'],
+    [FindingCategory.security]: ['security_get_findings', 'guardrails_quality_check'],
+    [FindingCategory.openSourceHealth]: ['opensourcehealth_get_risks', 'opensourcehealth_get_vulnerabilities'],
+};
+
+const GUARDRAILS_TOOL = 'guardrails_quality_check';
+
 export interface FixPromptOptions {
     supportsSlashCommands: boolean;
     mcpDetected: boolean;
+    /** Renders a tool name the way the agent links tools (`#name`), or undefined if it cannot. */
+    resolveToolReference?: (toolName: string) => string | undefined;
 }
 
 export interface FixPromptContext {
@@ -52,9 +66,47 @@ export function buildFixPrompt(findings: FixFinding[], context: FixPromptContext
 
     if (!options.mcpDetected) {
         sections.push(MCP_HINT);
+    } else if (!isSlashCommand(lead)) {
+        // A Sigrid skill already orchestrates MCP, so instructions of our own would only fight it.
+        sections.push(buildMcpInstruction(mcpToolsFor(findings), options.resolveToolReference));
     }
 
     return { lead, text: sections.filter(section => section.length > 0).join('\n\n') };
+}
+
+function isSlashCommand(lead: string): boolean {
+    return lead.startsWith('/');
+}
+
+/** The tools relevant to the selection, in category order and without repeats. */
+function mcpToolsFor(findings: FixFinding[]): string[] {
+    const categories = new Set(findings.map(finding => finding.category));
+    const tools = [...categories].flatMap(category => MCP_TOOLS[category] ?? []);
+    return [...new Set(tools)];
+}
+
+/**
+ * Tells the agent that Sigrid itself is reachable. Without this the agent has no reason to call a
+ * Sigrid tool: the finding list alone reads as everything it needs to know.
+ */
+function buildMcpInstruction(tools: string[], resolveToolReference?: (toolName: string) => string | undefined): string {
+    if (tools.length === 0) {
+        return '';
+    }
+
+    const reference = (tool: string) => resolveToolReference?.(tool) ?? tool;
+    const queryTools = tools.filter(tool => tool !== GUARDRAILS_TOOL);
+    const lines = ['The Sigrid MCP server is available - use it instead of guessing what Sigrid measured:'];
+
+    if (queryTools.length > 0) {
+        lines.push(`- confirm each finding above against Sigrid with ${queryTools.map(reference).join(' and ')}`);
+    }
+    if (tools.includes(GUARDRAILS_TOOL)) {
+        lines.push(`- after editing, run ${reference(GUARDRAILS_TOOL)} on the changed files and iterate until it passes`);
+    }
+    lines.push('Do not change the status of any finding in Sigrid.');
+
+    return lines.join('\n');
 }
 
 /**
@@ -94,7 +146,7 @@ function buildContextLine(context: FixPromptContext): string {
 
 function buildFindingList(findings: FixFinding[]): string {
     const lines = findings.map((finding, index) => formatFinding(finding, index + 1));
-    return ['Findings (already diagnosed - do not re-run diagnosis):', ...lines].join('\n');
+    return ['Findings (from Sigrid - fix these, do not go looking for others):', ...lines].join('\n');
 }
 
 function formatFinding(finding: FixFinding, position: number): string {

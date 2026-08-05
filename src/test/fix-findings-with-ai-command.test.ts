@@ -6,10 +6,12 @@ import { FixFinding, FixFindingsPayload } from '../commands/fix-findings-payload
 import { buildFixPrompt } from '../ai-agents/fix-prompt-builder';
 import { claudeCliLocator } from '../ai-agents/claude-code-provider';
 import { getAvailableAgents, invalidateAvailability } from '../ai-agents/ai-agent-registry';
+import { languageModelTools } from '../ai-agents/sigrid-mcp-detection';
+import { mcpConfigLocator } from '../ai-agents/mcp-config-paths';
 import { terminalDeps } from '../ai-agents/terminal-handoff';
 import { setStorageUri } from '../utilities/extension-storage';
 import { ExecutableLocation } from '../utilities/find-executable';
-import { readFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -60,6 +62,15 @@ function captureExecuteCommand(options: { throwOnCall?: boolean } = {}) {
     return calls;
 }
 
+/** Writes an mcp.json declaring the Sigrid server and points the locator at it. */
+function setupMcpConfigFile(contents: unknown) {
+    const directory = join(tmpdir(), `sigrid-mcp-config-${Date.now()}`);
+    mkdirSync(directory, { recursive: true });
+    const path = join(directory, 'mcp.json');
+    writeFileSync(path, JSON.stringify(contents), 'utf8');
+    mcpConfigLocator.paths = () => [path];
+}
+
 async function executeCommand(payload: FixFindingsPayload) {
     const command = new FixFindingsWithAiCommand();
     await command.execute(new VsCodeCommandData({} as any, {} as any, payload));
@@ -78,10 +89,16 @@ suite('FixFindingsWithAiCommand', () => {
             openExternal: (vscode.env as any).openExternal,
             fetch: globalThis.fetch,
             findCli: claudeCliLocator.find,
+            listTools: languageModelTools.list,
+            mcpConfigPaths: mcpConfigLocator.paths,
         };
 
         // No CLI unless a test says otherwise, so the extension route is what gets exercised.
         setupCli(undefined);
+        // No Sigrid MCP unless a test says otherwise, so the machine running the tests cannot
+        // decide the outcome with its own running server or its own mcp.json.
+        languageModelTools.list = () => [];
+        mcpConfigLocator.paths = () => [];
         (vscode.workspace as any).getConfiguration = () => ({
             get: (key: string, defaultValue: any) => key === 'system' ? 'my-system' : defaultValue,
         });
@@ -101,6 +118,8 @@ suite('FixFindingsWithAiCommand', () => {
         (vscode.env as any).openExternal = originals.openExternal;
         globalThis.fetch = originals.fetch;
         claudeCliLocator.find = originals.findCli;
+        languageModelTools.list = originals.listTools;
+        mcpConfigLocator.paths = originals.mcpConfigPaths;
         invalidateAvailability();
     });
 
@@ -167,6 +186,73 @@ suite('FixFindingsWithAiCommand', () => {
 
         assert.strictEqual(calls.length, 0);
         assert.ok(errorMessage.includes('claude-code'));
+    });
+
+    test('reports Sigrid MCP for Copilot when a Sigrid tool is loaded', async () => {
+        setupInstalledExtensions(COPILOT_CHAT_EXTENSION_ID);
+        // The Sigrid MCP tool names carry no "sigrid" - only the server name does.
+        languageModelTools.list = () => [{ name: 'maintainability_get_findings', tags: [] }];
+
+        const copilot = getAvailableAgents().find(agent => agent.id === 'copilot');
+
+        assert.strictEqual(copilot?.mcpDetected, true);
+    });
+
+    test('reports Sigrid MCP for Copilot from mcp.json when no tool is loaded yet', async () => {
+        setupInstalledExtensions(COPILOT_CHAT_EXTENSION_ID);
+        setupMcpConfigFile({ servers: { Sigrid: { command: 'npx', args: ['mcp-remote', 'https://sigrid-says.com/mcp'] } } });
+
+        const copilot = getAvailableAgents().find(agent => agent.id === 'copilot');
+
+        assert.strictEqual(copilot?.mcpDetected, true);
+    });
+
+    test('reports no Sigrid MCP for Copilot without a tool or a configured server', async () => {
+        setupInstalledExtensions(COPILOT_CHAT_EXTENSION_ID);
+
+        const copilot = getAvailableAgents().find(agent => agent.id === 'copilot');
+
+        assert.strictEqual(copilot?.mcpDetected, false);
+    });
+
+    test('references the loaded Sigrid tools in the Copilot prompt, under their real names', async () => {
+        setupInstalledExtensions(COPILOT_CHAT_EXTENSION_ID);
+        languageModelTools.list = () => [
+            { name: 'mcp_sigrid_maintainability_get_findings', tags: [] },
+            { name: 'mcp_sigrid_guardrails_quality_check', tags: [] },
+        ];
+        const calls = captureExecuteCommand();
+
+        await executeCommand({ agentId: 'copilot', findings: [MAINTAINABILITY_FINDING] });
+
+        const query = calls[0][1].query;
+        assert.ok(query.includes('#mcp_sigrid_maintainability_get_findings'), query);
+        assert.ok(query.includes('#mcp_sigrid_guardrails_quality_check'), query);
+    });
+
+    test('names a configured but unloaded tool without a dead # reference', async () => {
+        setupInstalledExtensions(COPILOT_CHAT_EXTENSION_ID);
+        setupMcpConfigFile({ servers: { Sigrid: { command: 'npx', args: ['mcp-remote', 'https://sigrid-says.com/mcp'] } } });
+        const calls = captureExecuteCommand();
+
+        await executeCommand({ agentId: 'copilot', findings: [MAINTAINABILITY_FINDING] });
+
+        const query = calls[0][1].query;
+        assert.ok(query.includes('maintainability_get_findings'), query);
+        assert.ok(!query.includes('#'), 'an unresolved reference would sit in the chat box as plain text');
+    });
+
+    test('never judges Claude Code by the MCP servers configured in VS Code', async () => {
+        setupInstalledExtensions(CLAUDE_CODE_EXTENSION_ID);
+        let configRead = false;
+        mcpConfigLocator.paths = () => {
+            configRead = true;
+            return [];
+        };
+
+        getAvailableAgents();
+
+        assert.strictEqual(configRead, false, 'VS Code mcp.json configures VS Code, not Claude Code');
     });
 
     test('reports an error when there are no findings to fix', async () => {
@@ -381,6 +467,7 @@ suite('FixFindingsWithAiCommand - Claude CLI fallback', () => {
 suite('buildFixPrompt', () => {
     const context = { customer: 'my-customer', system: 'my-system' };
     const slashAgent = { supportsSlashCommands: true, mcpDetected: true };
+    const plainAgent = { supportsSlashCommands: false, mcpDetected: true };
 
     test('uses the maintainability skill for a maintainability-only selection', () => {
         const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, slashAgent).text;
@@ -431,6 +518,78 @@ suite('buildFixPrompt', () => {
 
         assert.ok(!withMcp.includes('was not detected'));
         assert.ok(withoutMcp.includes('Sigrid MCP server was not detected'));
+    });
+
+    test('tells an agent without a Sigrid skill which MCP tools to use', () => {
+        const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, plainAgent).text;
+
+        assert.ok(prompt.includes('The Sigrid MCP server is available'));
+        assert.ok(prompt.includes('maintainability_get_findings'));
+        assert.ok(prompt.includes('guardrails_quality_check'));
+    });
+
+    test('leaves MCP orchestration to the Sigrid skill when one drives the session', () => {
+        const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, slashAgent).text;
+
+        assert.ok(prompt.startsWith('/sigrid:'));
+        assert.ok(!prompt.includes('The Sigrid MCP server is available'));
+    });
+
+    test('names no tools when Sigrid MCP was not detected', () => {
+        const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, { ...plainAgent, mcpDetected: false }).text;
+
+        assert.ok(!prompt.includes('maintainability_get_findings'));
+        assert.ok(prompt.includes('Sigrid MCP server was not detected'));
+    });
+
+    test('names the tools of the selected category, not of every category', () => {
+        const prompt = buildFixPrompt([SECURITY_FINDING], context, plainAgent).text;
+
+        assert.ok(prompt.includes('security_get_findings'));
+        assert.ok(!prompt.includes('maintainability_get_findings'));
+    });
+
+    test('skips the quality gate for dependency work, which changes no code of ours', () => {
+        const prompt = buildFixPrompt([OSH_FINDING], context, plainAgent).text;
+
+        assert.ok(prompt.includes('opensourcehealth_get_risks'));
+        assert.ok(prompt.includes('opensourcehealth_get_vulnerabilities'));
+        assert.ok(!prompt.includes('guardrails_quality_check'));
+    });
+
+    test('names each tool once for a mixed selection', () => {
+        const prompt = buildFixPrompt([MAINTAINABILITY_FINDING, SECURITY_FINDING], context, plainAgent).text;
+
+        assert.ok(prompt.includes('maintainability_get_findings'));
+        assert.ok(prompt.includes('security_get_findings'));
+        assert.strictEqual(prompt.split('guardrails_quality_check').length - 1, 1);
+    });
+
+    test('never asks an agent to write a finding status back to Sigrid', () => {
+        [MAINTAINABILITY_FINDING, SECURITY_FINDING, OSH_FINDING].forEach(finding => {
+            [plainAgent, slashAgent].forEach(options => {
+                const prompt = buildFixPrompt([finding], context, options).text;
+                assert.ok(!prompt.includes('update_finding_status'), `${finding.category} / ${options.supportsSlashCommands}`);
+            });
+        });
+    });
+
+    test('renders tool references for agents that link tools', () => {
+        const options = { ...plainAgent, resolveToolReference: (tool: string) => `#${tool}` };
+
+        const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, options).text;
+
+        assert.ok(prompt.includes('#maintainability_get_findings'));
+        assert.ok(prompt.includes('#guardrails_quality_check'));
+    });
+
+    test('falls back to plain tool names when the agent cannot link them', () => {
+        const options = { ...plainAgent, resolveToolReference: () => undefined };
+
+        const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, options).text;
+
+        assert.ok(prompt.includes('maintainability_get_findings'));
+        assert.ok(!prompt.includes('#'));
     });
 });
 

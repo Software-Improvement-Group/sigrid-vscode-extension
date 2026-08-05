@@ -9,6 +9,11 @@ export function setStorageUri(uri: Uri) {
     storageUri = uri;
 }
 
+/** The extension's global storage directory, or undefined before `activate` ran (tests). */
+export function getStorageUri(): Uri | undefined {
+    return storageUri;
+}
+
 /**
  * Directory holding the prompt files handed to CLI agents. Inside the extension's global storage
  * rather than the system temp directory, because the prompts contain customer and system names.

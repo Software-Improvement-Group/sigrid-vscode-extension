@@ -23,6 +23,8 @@ export interface AiAgentProvider {
     invalidate?(): void;
     /** Optional: true when a handoff types a command into a terminal instead of opening a panel. */
     usesTerminal?(): boolean;
+    /** Optional: renders a tool name the way this agent links tools, e.g. `#name` in VS Code chat. */
+    toolReference?(toolName: string): string | undefined;
 }
 
 /** The subset of provider state the webview needs to render the "Fix it" action. */
