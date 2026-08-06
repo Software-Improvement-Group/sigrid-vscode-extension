@@ -12,14 +12,23 @@ export class PopupMenuService {
   private readonly overlay = inject(Overlay);
   private readonly injector = inject(Injector);
   private overlayRef?: OverlayRef;
+  private openRequestId?: unknown;
 
-  /** Opens the menu or closes it again when it is already open. */
-  open(items: MenuItem[]) {
+  /**
+   * Opens the menu identified by `requestId`, or closes it again when that same menu is
+   * already open (toggle). Requesting a different menu while one is open swaps to it instead
+   * of just closing the existing one.
+   */
+  open(items: MenuItem[], requestId: unknown) {
     if (this.overlayRef) {
+      const wasShowingSameRequest = this.openRequestId === requestId;
       this.close();
-      return;
+      if (wasShowingSameRequest) {
+        return;
+      }
     }
 
+    this.openRequestId = requestId;
     this.overlayRef = this.overlay.create({
       positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
       hasBackdrop: true,
@@ -35,6 +44,7 @@ export class PopupMenuService {
   close() {
     this.overlayRef?.dispose();
     this.overlayRef = undefined;
+    this.openRequestId = undefined;
   }
 
   private closeAfterAction(item: MenuItem): MenuItem {

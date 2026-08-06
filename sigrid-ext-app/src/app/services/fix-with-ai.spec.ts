@@ -72,17 +72,45 @@ describe('FixWithAi', () => {
     expect(fixFindingsWithAi).toHaveBeenCalledWith({agentId: 'copilot', findings: [finding]});
   });
 
-  it('notifies the caller only once the findings have been handed off', () => {
+  it('notifies the caller only once the host confirms the handoff succeeded', () => {
     aiAgents.setAgents([claudeCode, copilot]);
     const onHandoff = vi.fn();
 
     service.fix([finding], onHandoff);
-    expect(onHandoff).not.toHaveBeenCalled();
-
     const items: MenuItem[] = openMenu.mock.calls[0][0];
     items[0].action();
 
+    expect(onHandoff).not.toHaveBeenCalled();
+
+    service.onHandoffResult(true);
+
     expect(onHandoff).toHaveBeenCalledOnce();
+  });
+
+  it('does not notify the caller when the host reports the handoff failed', () => {
+    aiAgents.setAgents([claudeCode]);
+    const onHandoff = vi.fn();
+
+    service.fix([finding], onHandoff);
+    service.onHandoffResult(false);
+
+    expect(onHandoff).not.toHaveBeenCalled();
+  });
+
+  it('resolves handoffs in the order they were sent', () => {
+    aiAgents.setAgents([claudeCode]);
+    const firstHandoff = vi.fn();
+    const secondHandoff = vi.fn();
+
+    service.fix([finding], firstHandoff);
+    service.fix([finding], secondHandoff);
+
+    service.onHandoffResult(true);
+    expect(firstHandoff).toHaveBeenCalledOnce();
+    expect(secondHandoff).not.toHaveBeenCalled();
+
+    service.onHandoffResult(true);
+    expect(secondHandoff).toHaveBeenCalledOnce();
   });
 
   it('does nothing without findings or without an agent', () => {

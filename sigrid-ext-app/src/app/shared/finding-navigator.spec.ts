@@ -280,6 +280,27 @@ describe('FindingNavigator', () => {
     expect(overlay.create).toHaveBeenCalledTimes(1);
   });
 
+  it('double-clicking a different row while a popup is open swaps to the new popup', () => {
+    fixture.componentInstance.firstLocations = [
+      {filePath: '/repo/src/a.ts', startLine: 1, endLine: 1} as any,
+      {filePath: '/repo/src/b.ts', startLine: 2, endLine: 2} as any,
+    ];
+    fixture.componentInstance.secondLocations = [
+      {filePath: '/repo/src/c.ts', startLine: 3, endLine: 3} as any,
+      {filePath: '/repo/src/d.ts', startLine: 4, endLine: 4} as any,
+    ];
+    fixture.detectChanges();
+    rows = fixture.debugElement.queryAll(By.css('tr[sigridFindingNavigator]'));
+
+    rows[0]!.triggerEventHandler('dblclick', dblClickEvent());
+    expect(overlay.create).toHaveBeenCalledTimes(1);
+    expect(overlayRef.dispose).toHaveBeenCalledTimes(0);
+
+    rows[1]!.triggerEventHandler('dblclick', dblClickEvent());
+    expect(overlayRef.dispose).toHaveBeenCalledTimes(1);
+    expect(overlay.create).toHaveBeenCalledTimes(2);
+  });
+
   it('menu item action opens file and closes popup', () => {
     const locA: FileLocation = {filePath: '/repo/src/a.ts', startLine: 0, endLine: 0} as any;
     const locB: FileLocation = {filePath: '/repo/src/b.ts', startLine: 5, endLine: 6} as any;

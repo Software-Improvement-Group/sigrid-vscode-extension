@@ -189,8 +189,9 @@
     "package": "vsce package",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint && npm run check-sync",
     "check-types": "tsc --noEmit",
+    "check-sync": "node scripts/check-mirrored-types.js",
     "lint": "eslint src",
     "test": "vscode-test"
   },

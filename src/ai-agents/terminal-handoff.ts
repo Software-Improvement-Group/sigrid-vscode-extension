@@ -101,7 +101,12 @@ function createTerminal(name: string): Terminal {
     return terminal;
 }
 
-/** Avoids piling up terminals holding commands the user never ran. */
+/**
+ * Avoids piling up terminals holding commands the user never ran. Without shell integration
+ * there is no reliable signal that the shell started a real process, so in that case a possibly
+ * abandoned terminal is left alone rather than risk disposing one that is actually running the
+ * agent.
+ */
 function disposeUnusedTerminal() {
     const unused = previous;
     previous = undefined;
@@ -110,7 +115,8 @@ function disposeUnusedTerminal() {
     }
 
     unused.subscription?.dispose();
-    if (!unused.used && unused.terminal.exitStatus === undefined && window.terminals.includes(unused.terminal)) {
+    const canDetectUsage = unused.terminal.shellIntegration !== undefined;
+    if (canDetectUsage && !unused.used && unused.terminal.exitStatus === undefined && window.terminals.includes(unused.terminal)) {
         unused.terminal.dispose();
     }
 }
@@ -152,10 +158,10 @@ function baseName(executablePath: string): string {
 }
 
 export function quote(value: string): string {
-    return `"${value}"`;
+    return `"${value.replace(/"/g, '\\"')}"`;
 }
 
 /** Strips anything a shell would act on, in case a lead instruction ever becomes dynamic. */
 function sanitizeForCommandLine(value: string): string {
-    return value.replace(/["`$\\!\r\n]/g, ' ').trim();
+    return value.replace(/["`$\\!;|&()<>\r\n]/g, ' ').trim();
 }

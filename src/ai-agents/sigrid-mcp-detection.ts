@@ -1,4 +1,4 @@
-import { lm } from "vscode";
+import { extensions, lm } from "vscode";
 import { readFileSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
@@ -19,18 +19,32 @@ import { mcpConfigLocator } from "./mcp-config-paths";
 const SIGRID = 'sigrid';
 const SIGRID_CLAUDE_PLUGIN = 'sigrid@sigrid-ai-toolkit';
 
+/** Matches "sigrid" as a whole word, so names like `sigridtest` or `mysigridwrapper` don't match. */
+const SIGRID_WORD = /\bsigrid\b/i;
+
 /**
- * The tools the Sigrid MCP server exposes. Needed as a signature because none of the names carry
- * the word "sigrid" - that only appears in the server name, which the tool metadata does not have.
+ * The tools the Sigrid MCP server exposes, named individually so other modules (e.g. the prompt
+ * builder's per-category tool hints) reference the same strings instead of re-typing them.
  */
-const SIGRID_MCP_TOOL_NAMES = [
-    'maintainability_get_findings', 'maintainability_get_ratings',
-    'security_get_findings', 'reliability_get_findings',
-    'architecture_get_internal', 'architecture_get_external_dependencies',
-    'architecture_get_worst_directories',
-    'opensourcehealth_get_risks', 'opensourcehealth_get_vulnerabilities',
-    'guardrails_quality_check', 'update_finding_status',
-];
+export const SIGRID_TOOL_NAMES = {
+    maintainabilityGetFindings: 'maintainability_get_findings',
+    maintainabilityGetRatings: 'maintainability_get_ratings',
+    securityGetFindings: 'security_get_findings',
+    reliabilityGetFindings: 'reliability_get_findings',
+    architectureGetInternal: 'architecture_get_internal',
+    architectureGetExternalDependencies: 'architecture_get_external_dependencies',
+    architectureGetWorstDirectories: 'architecture_get_worst_directories',
+    opensourcehealthGetRisks: 'opensourcehealth_get_risks',
+    opensourcehealthGetVulnerabilities: 'opensourcehealth_get_vulnerabilities',
+    guardrailsQualityCheck: 'guardrails_quality_check',
+    updateFindingStatus: 'update_finding_status',
+} as const;
+
+/**
+ * Needed as a signature because none of the tool names carry the word "sigrid" - that only
+ * appears in the server name, which the tool metadata does not have.
+ */
+const SIGRID_MCP_TOOL_NAMES: string[] = Object.values(SIGRID_TOOL_NAMES);
 
 /** The fields of an MCP server definition that identify which server it is. */
 interface McpServerDefinition {
@@ -73,7 +87,7 @@ export function hasSigridLanguageModelTool(): boolean {
  */
 export function findSigridToolName(toolName: string): string | undefined {
     const wanted = toolName.toLowerCase();
-    return listTools().find(tool => tool.name.toLowerCase().endsWith(wanted))?.name;
+    return listTools().find(tool => isSigridToolName(tool.name) && tool.name.toLowerCase().endsWith(wanted))?.name;
 }
 
 function listTools(): readonly ToolDescription[] {
@@ -103,7 +117,7 @@ export function hasSigridMcpConfigFile(paths: string[] = mcpConfigLocator.paths(
 
 /** Whether a parsed `mcp.json` declares a server that looks like Sigrid. */
 export function containsSigridMcpServer(config: unknown): boolean {
-    return mcpServerIdentities(config).some(identity => JSON.stringify(identity).toLowerCase().includes(SIGRID));
+    return mcpServerIdentities(config).some(identity => SIGRID_WORD.test(JSON.stringify(identity)));
 }
 
 /**
@@ -133,7 +147,12 @@ export function hasSigridClaudePlugin(): boolean {
     }
 
     const installed = readJsonFile<Record<string, unknown>>(join(homedir(), '.claude', 'plugins', 'installed_plugins.json'));
-    return installed !== undefined && JSON.stringify(installed).toLowerCase().includes(SIGRID);
+    return installed !== undefined && SIGRID_WORD.test(JSON.stringify(installed));
+}
+
+/** Whether a VS Code extension with the given id is installed, regardless of activation state. */
+export function isExtensionInstalled(extensionId: string): boolean {
+    return extensions.getExtension(extensionId) !== undefined;
 }
 
 function readJsonFile<T>(path: string): T | undefined {

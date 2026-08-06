@@ -25,6 +25,8 @@ export interface AiAgentProvider {
     usesTerminal?(): boolean;
     /** Optional: renders a tool name the way this agent links tools, e.g. `#name` in VS Code chat. */
     toolReference?(toolName: string): string | undefined;
+    /** Optional: for agents that offer a one-click way to wire up the Sigrid MCP server. */
+    getMcpInstallHint?(): { message: string; action: string; uri: string };
 }
 
 /** The subset of provider state the webview needs to render the "Fix it" action. */

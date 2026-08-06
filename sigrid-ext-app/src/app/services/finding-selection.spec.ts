@@ -117,6 +117,27 @@ describe('FindingSelection', () => {
     expect(service.getAll()).toEqual([]);
   });
 
+  it('deselects only the matching finding, leaving other selections intact', () => {
+    service.toggle(findingOne);
+    service.toggle(findingTwo);
+
+    service.deselect(findingOne.id);
+
+    expect(service.selectedCount()).toBe(1);
+    expect(service.isSelected(findingOne.id)).toBe(false);
+    expect(service.isSelected(findingTwo.id)).toBe(true);
+    expect(service.getAll()).toEqual([findingTwo]);
+  });
+
+  it('does nothing when deselecting an id that was never selected', () => {
+    service.toggle(findingOne);
+
+    service.deselect(findingTwo.id);
+
+    expect(service.selectedCount()).toBe(1);
+    expect(service.getAll()).toEqual([findingOne]);
+  });
+
   it('can select a finding again after clearing', () => {
     service.toggle(findingOne);
     service.clear();

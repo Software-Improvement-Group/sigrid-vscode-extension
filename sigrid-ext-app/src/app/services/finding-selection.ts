@@ -24,6 +24,16 @@ export class FindingSelection {
     return this._selected().has(id);
   }
 
+  deselect(id: string) {
+    const current = this._selected();
+    if (!current.has(id)) {
+      return;
+    }
+    const updated = new Map(current);
+    updated.delete(id);
+    this._selected.set(updated);
+  }
+
   getAll(): SelectedFinding[] {
     return Array.from(this._selected().values());
   }

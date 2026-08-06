@@ -19,9 +19,13 @@ export class FixWithAi {
 
   readonly isAvailable = this.aiAgents.hasAgents;
 
+  /** Resolved in the order handoffs were sent, once the host acks each `fixFindingsWithAi` message. */
+  private readonly pendingHandoffs: Array<(success: boolean) => void> = [];
+
   /**
    * Hands off immediately when a single agent is installed, otherwise asks which one to use.
-   * `onHandoff` runs once the findings have actually been sent, so callers can clear their state.
+   * `onHandoff` runs once the host confirms the findings were actually handed off, so callers can
+   * clear their state without losing it on a failed handoff.
    */
   fix(findings: SelectedFinding[], onHandoff?: () => void) {
     const agents = this.aiAgents.agents();
@@ -38,11 +42,20 @@ export class FixWithAi {
       label: `Fix with ${agent.label}`,
       description: agent.mcpDetected ? 'Sigrid MCP detected' : undefined,
       action: () => this.handoff(agent, findings, onHandoff)
-    })));
+    })), this);
+  }
+
+  /** Called by the host's `fixFindingsWithAiResult` ack, oldest pending handoff first. */
+  onHandoffResult(success: boolean) {
+    this.pendingHandoffs.shift()?.(success);
   }
 
   private handoff(agent: AvailableAgent, findings: SelectedFinding[], onHandoff?: () => void) {
     this.vscode.fixFindingsWithAi({agentId: agent.id, findings});
-    onHandoff?.();
+    this.pendingHandoffs.push(success => {
+      if (success) {
+        onHandoff?.();
+      }
+    });
   }
 }

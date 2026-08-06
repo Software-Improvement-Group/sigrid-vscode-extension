@@ -95,7 +95,8 @@ export abstract class FindingComponent<T> implements OnInit {
   }
 
   protected onFixWithAi(finding: FindingItem<T>) {
-    this.fixWithAi.fix([this.toSelectedFinding(finding)]);
+    const selected = this.toSelectedFinding(finding);
+    this.fixWithAi.fix([selected], () => this.selectionService.deselect(selected.id));
   }
 
   protected buildFilterOptions(values: string[], options?: {

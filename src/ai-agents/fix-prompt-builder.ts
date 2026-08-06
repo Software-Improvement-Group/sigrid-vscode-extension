@@ -1,4 +1,6 @@
 import { FixFinding } from "../commands/fix-findings-payload";
+import { formatLocation } from "../utilities/format-location";
+import { SIGRID_TOOL_NAMES } from "./sigrid-mcp-detection";
 
 /**
  * Builds the prompt handed to an AI agent. This is the generic half of the integration: the same
@@ -34,12 +36,12 @@ const MCP_HINT = 'Note: the Sigrid MCP server was not detected in this environme
  * anything back to Sigrid, least of all on top of an edit the user has not reviewed yet.
  */
 const MCP_TOOLS: Record<string, string[]> = {
-    [FindingCategory.maintainability]: ['maintainability_get_findings', 'guardrails_quality_check'],
-    [FindingCategory.security]: ['security_get_findings', 'guardrails_quality_check'],
-    [FindingCategory.openSourceHealth]: ['opensourcehealth_get_risks', 'opensourcehealth_get_vulnerabilities'],
+    [FindingCategory.maintainability]: [SIGRID_TOOL_NAMES.maintainabilityGetFindings, SIGRID_TOOL_NAMES.guardrailsQualityCheck],
+    [FindingCategory.security]: [SIGRID_TOOL_NAMES.securityGetFindings, SIGRID_TOOL_NAMES.guardrailsQualityCheck],
+    [FindingCategory.openSourceHealth]: [SIGRID_TOOL_NAMES.opensourcehealthGetRisks, SIGRID_TOOL_NAMES.opensourcehealthGetVulnerabilities],
 };
 
-const GUARDRAILS_TOOL = 'guardrails_quality_check';
+const GUARDRAILS_TOOL = SIGRID_TOOL_NAMES.guardrailsQualityCheck;
 
 export interface FixPromptOptions {
     supportsSlashCommands: boolean;
@@ -153,17 +155,4 @@ function formatFinding(finding: FixFinding, position: number): string {
     const header = `${position}. ${finding.category} / ${finding.severity} - ${finding.title}`;
     const locations = (finding.fileLocations ?? []).map(formatLocation).filter(location => location.length > 0);
     return locations.length > 0 ? `${header}\n   Locations: ${locations.join(', ')}` : header;
-}
-
-function formatLocation(location: { filePath: string; startLine?: number; endLine?: number }): string {
-    if (!location.filePath) {
-        return '';
-    }
-    if (location.startLine === undefined) {
-        return location.filePath;
-    }
-    const lines = location.endLine !== undefined && location.endLine !== location.startLine
-        ? `${location.startLine}-${location.endLine}`
-        : `${location.startLine}`;
-    return `${location.filePath}:${lines}`;
 }

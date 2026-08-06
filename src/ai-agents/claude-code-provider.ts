@@ -1,7 +1,7 @@
-import { commands, env, extensions, Uri, workspace } from "vscode";
+import { commands, env, Uri, workspace } from "vscode";
 import { AiAgentProvider } from "./ai-agent-provider";
 import { FixPrompt } from "./fix-prompt-builder";
-import { hasSigridClaudePlugin, hasSigridLanguageModelTool } from "./sigrid-mcp-detection";
+import { hasSigridClaudePlugin, isExtensionInstalled } from "./sigrid-mcp-detection";
 import { CommandLineContext, handoffViaTerminal, quote } from "./terminal-handoff";
 import { ExecutableLocation, findExecutable } from "../utilities/find-executable";
 import { EXTENSION_ID } from "../extension.config";
@@ -43,11 +43,19 @@ export class ClaudeCodeProvider implements AiAgentProvider {
     }
 
     isAvailable(): boolean {
-        return this.isExtensionInstalled() || this.findCli() !== undefined;
+        return isExtensionInstalled(CLAUDE_CODE_EXTENSION_ID) || this.findCli() !== undefined;
     }
 
     hasSigridMcp(): boolean {
-        return hasSigridClaudePlugin() || hasSigridLanguageModelTool();
+        return hasSigridClaudePlugin();
+    }
+
+    getMcpInstallHint() {
+        return {
+            message: 'The Sigrid MCP server was not detected. Installing the Sigrid plugin lets your agent query Sigrid directly.',
+            action: 'Install Sigrid Plugin',
+            uri: CLAUDE_CODE_INSTALL_SIGRID_PLUGIN_URI,
+        };
     }
 
     /** Forgets the cached CLI lookup, so a CLI installed mid-session is picked up. */
@@ -74,7 +82,7 @@ export class ClaudeCodeProvider implements AiAgentProvider {
         if (preferred === 'terminal' && this.findCli()) {
             return 'terminal';
         }
-        return this.isExtensionInstalled() ? 'extension' : 'terminal';
+        return isExtensionInstalled(CLAUDE_CODE_EXTENSION_ID) ? 'extension' : 'terminal';
     }
 
     private async handoffToExtension(prompt: FixPrompt): Promise<void> {
@@ -100,10 +108,6 @@ export class ClaudeCodeProvider implements AiAgentProvider {
             executable: cli,
             buildCommandLine: buildClaudeCommandLine,
         });
-    }
-
-    private isExtensionInstalled(): boolean {
-        return extensions.getExtension(CLAUDE_CODE_EXTENSION_ID) !== undefined;
     }
 
     private findCli(): ExecutableLocation | undefined {

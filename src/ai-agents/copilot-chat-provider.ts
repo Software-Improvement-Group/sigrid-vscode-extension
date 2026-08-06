@@ -1,7 +1,7 @@
-import { commands, extensions } from "vscode";
+import { commands } from "vscode";
 import { AiAgentProvider } from "./ai-agent-provider";
 import { FixPrompt } from "./fix-prompt-builder";
-import { findSigridToolName, hasSigridMcpServer } from "./sigrid-mcp-detection";
+import { findSigridToolName, hasSigridMcpServer, isExtensionInstalled } from "./sigrid-mcp-detection";
 
 const COPILOT_CHAT_EXTENSION_ID = 'github.copilot-chat';
 const OPEN_CHAT_COMMAND = 'workbench.action.chat.open';
@@ -18,7 +18,7 @@ export class CopilotChatProvider implements AiAgentProvider {
     readonly supportsSlashCommands = false;
 
     isAvailable(): boolean {
-        return extensions.getExtension(COPILOT_CHAT_EXTENSION_ID) !== undefined;
+        return isExtensionInstalled(COPILOT_CHAT_EXTENSION_ID);
     }
 
     hasSigridMcp(): boolean {

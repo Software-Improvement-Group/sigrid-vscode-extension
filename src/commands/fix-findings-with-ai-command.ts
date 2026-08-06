@@ -5,29 +5,31 @@ import { FixFindingsPayload } from "./fix-findings-payload";
 import { findAvailableAgent } from "../ai-agents/ai-agent-registry";
 import { AiAgentProvider } from "../ai-agents/ai-agent-provider";
 import { buildFixPrompt, FixPrompt } from "../ai-agents/fix-prompt-builder";
-import { CLAUDE_CODE_AGENT_ID, CLAUDE_CODE_INSTALL_SIGRID_PLUGIN_URI } from "../ai-agents/claude-code-provider";
 import { getSigridConfiguration } from "../utilities/configuration";
 import { trackUsage } from "../utilities/usage-statistics";
 
-const INSTALL_PLUGIN_ACTION = 'Install Sigrid Plugin';
 const TERMINAL_HINT = 'The Claude Code prompt was typed into the terminal - review it and press Enter to start.';
 
 /** Hands the selected findings to an AI coding agent as a prefilled prompt. */
 export class FixFindingsWithAiCommand implements VsCodeCommand<FixFindingsPayload> {
-    private pluginHintShown = false;
-    private terminalHintShown = false;
+    private readonly shownHints = new Set<string>();
 
     async execute(data: VsCodeCommandData<FixFindingsPayload>) {
-        const payload = data.payload;
+        const success = await this.tryHandoff(data.payload);
+        data.webview.postMessage({ command: 'fixFindingsWithAiResult', data: { success } });
+    }
+
+    /** Reports whether the findings were actually handed off, so the caller can react to a webview ack. */
+    private async tryHandoff(payload: FixFindingsPayload | undefined): Promise<boolean> {
         if (!payload?.findings?.length) {
             window.showErrorMessage('Select at least one finding to fix with an AI agent.');
-            return;
+            return false;
         }
 
         const agent = findAvailableAgent(payload.agentId);
         if (!agent) {
             window.showErrorMessage(`AI agent "${payload.agentId}" is not available. Make sure it is installed and can be found.`);
-            return;
+            return false;
         }
 
         const config = getSigridConfiguration();
@@ -39,21 +41,22 @@ export class FixFindingsWithAiCommand implements VsCodeCommand<FixFindingsPayloa
         });
 
         const usesTerminal = agent.usesTerminal?.() ?? false;
-        if (await this.handoff(agent, prompt)) {
+        const handedOff = await this.handoff(agent, prompt);
+        if (handedOff) {
             trackUsage(config.customer, 'fixWithAi');
-            this.explainTerminalHandoff(usesTerminal);
+            this.explainTerminalHandoff(agent.id, usesTerminal);
             if (!mcpDetected) {
-                this.suggestSigridPlugin(agent.id);
+                await this.suggestMcpInstall(agent);
             }
         }
+        return handedOff;
     }
 
-    /** A terminal that quietly opens with unexecuted text needs saying once. */
-    private explainTerminalHandoff(usesTerminal: boolean) {
-        if (!usesTerminal || this.terminalHintShown) {
+    /** A terminal that quietly opens with unexecuted text needs saying once per agent. */
+    private explainTerminalHandoff(agentId: string, usesTerminal: boolean) {
+        if (!usesTerminal || !this.showHintOnce(`${agentId}:terminal`)) {
             return;
         }
-        this.terminalHintShown = true;
         window.showInformationMessage(TERMINAL_HINT);
     }
 
@@ -68,19 +71,29 @@ export class FixFindingsWithAiCommand implements VsCodeCommand<FixFindingsPayloa
         }
     }
 
-    /** Nudges the user towards the Sigrid plugin once per session, never blocking the handoff. */
-    private async suggestSigridPlugin(agentId: string) {
-        if (this.pluginHintShown || agentId !== CLAUDE_CODE_AGENT_ID) {
+    /** Nudges the user towards an agent's MCP install flow once per agent, never blocking the handoff. */
+    private async suggestMcpInstall(agent: AiAgentProvider) {
+        const hint = agent.getMcpInstallHint?.();
+        if (!hint || !this.showHintOnce(`${agent.id}:mcpInstall`)) {
             return;
         }
-        this.pluginHintShown = true;
 
-        const action = await window.showInformationMessage(
-            'The Sigrid MCP server was not detected. Installing the Sigrid plugin lets your agent query Sigrid directly.',
-            INSTALL_PLUGIN_ACTION);
-
-        if (action === INSTALL_PLUGIN_ACTION) {
-            env.openExternal(Uri.parse(CLAUDE_CODE_INSTALL_SIGRID_PLUGIN_URI));
+        try {
+            const action = await window.showInformationMessage(hint.message, hint.action);
+            if (action === hint.action) {
+                await env.openExternal(Uri.parse(hint.uri));
+            }
+        } catch (error) {
+            console.error(`Failed to open the MCP install link for ${agent.label}:`, error);
         }
+    }
+
+    /** True the first time `key` is shown; false on every later call for the same key. */
+    private showHintOnce(key: string): boolean {
+        if (this.shownHints.has(key)) {
+            return false;
+        }
+        this.shownHints.add(key);
+        return true;
     }
 }

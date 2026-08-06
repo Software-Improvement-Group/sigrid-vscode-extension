@@ -102,6 +102,6 @@ export class FindingNavigator {
       label: `${toDisplayFilePath(location.filePath, '')}${location.startLine == null || location.startLine === 0 ? '' : ':' + location.startLine}`,
       description: getParentDirectory(location.filePath),
       action: () => this.vscode.openFile(location)
-    } as MenuItem)));
+    } as MenuItem)), this);
   }
 }
