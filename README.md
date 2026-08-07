@@ -15,6 +15,7 @@ A Visual Studio Code extension that brings Sigrid findings directly into your ed
 - **Configurable Sigrid instance URL** (supports self-hosted deployments)
 - **Create Jira issues** from selected findings (when JIRA settings are configured)
 - **Create Azure DevOps work items** from selected findings (when Azure DevOps settings are configured)
+- **Fix with AI** — hand selected findings off to a detected coding agent (Claude Code or GitHub Copilot Chat) with a generated prompt, referencing the Sigrid MCP server when available
 
 ![Visual Studio Code window showing the Sigrid extension dashboard with a findings panel](media/sigrid-vscode-window.png)
 ![Sigrid findings panel in VS Code with a table of findings](media/sigrid-vscode-panel.png)
@@ -77,6 +78,16 @@ These settings are required only if you want to create Jira issues from Sigrid f
 | `sigrid-vscode.jiraSpaceKey` | The JIRA space key to create issues in (e.g. `AAP`). |
 
 ![Jira settings](media/sigrid-jira-settings.png)
+
+### AI Agents Settings
+
+These settings control how "Fix with AI" hands findings off to Claude Code:
+
+| Setting | Description |
+|--------|-------------|
+| `sigrid-vscode.claudeCodeHandoff` | How Sigrid hands findings to Claude Code: `extension` (default) opens the Claude Code panel with the prompt prefilled for review; `terminal` types the prompt into a terminal and runs it immediately. Falls back to a terminal automatically when the Claude Code extension is not installed. |
+
+GitHub Copilot Chat is detected automatically and requires no additional configuration.
 
 ### Azure DevOps Settings
 

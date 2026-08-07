@@ -4,6 +4,17 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [1.0.1] - 2026-08-10
+
+### Added
+- "Fix with AI" action to hand selected findings off to a detected coding agent (Claude Code or GitHub Copilot Chat), generating a prompt with the finding details and location.
+- Detection of the Sigrid MCP server (via agent config files) so generated prompts can reference its tools for richer context and finding-status updates.
+- `sigrid-vscode.claudeCodeHandoff` setting to control whether Claude Code handoffs open the Claude Code extension panel (prefilled, for review) or run directly in a terminal.
+- Fallback to a terminal handoff when the Claude Code extension is not installed, or when no agent's own UI can be targeted.
+
+### Changed
+- Popup menu descriptions now distinguish whether Sigrid MCP was detected for a given agent.
+
 ## [1.0.0] - 2026-07-08
 
 ### Added
