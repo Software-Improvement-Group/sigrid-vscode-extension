@@ -65,7 +65,7 @@ describe('FixWithAi', () => {
     const items: MenuItem[] = openMenu.mock.calls[0][0];
     expect(items.map(item => item.label)).toEqual(['Fix with Claude Code', 'Fix with GitHub Copilot']);
     expect(items[0].description).toBe('Sigrid MCP detected');
-    expect(items[1].description).toBeUndefined();
+    expect(items[1].description).toBe('Sigrid MCP not detected');
 
     items[1].action();
 

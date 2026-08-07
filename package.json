@@ -3,7 +3,7 @@
   "displayName": "Sigrid",
   "description": "View and manage Sigrid findings in VS Code.",
   "icon": "media/sigrid-logo-128.png",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "softwareimprovementgroup",
   "engines": {
     "vscode": "^1.108.0"
@@ -116,7 +116,7 @@
               "Type the claude command into a terminal, even when the Claude Code extension is installed."
             ],
             "default": "extension",
-            "description": "How Sigrid hands findings to Claude Code when you use \"Fix it\". Either way the prompt is prefilled for you to review, never sent automatically.",
+            "description": "How Sigrid hands findings to Claude Code when you use \"Fix it\". The terminal option runs the prompt immediately; the extension option only prefills it for you to review and send.",
             "order": 0
           }
         }

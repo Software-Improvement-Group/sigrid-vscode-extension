@@ -40,7 +40,7 @@ export class FixWithAi {
 
     this.popupMenu.open(agents.map(agent => ({
       label: `Fix with ${agent.label}`,
-      description: agent.mcpDetected ? 'Sigrid MCP detected' : undefined,
+      description: agent.mcpDetected ? 'Sigrid MCP detected' : 'Sigrid MCP not detected',
       action: () => this.handoff(agent, findings, onHandoff)
     })), this);
   }
