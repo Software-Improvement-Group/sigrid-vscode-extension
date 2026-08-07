@@ -8,7 +8,7 @@ import { buildFixPrompt, FixPrompt } from "../ai-agents/fix-prompt-builder";
 import { getSigridConfiguration } from "../utilities/configuration";
 import { trackUsage } from "../utilities/usage-statistics";
 
-const TERMINAL_HINT = 'The Claude Code prompt was typed into the terminal - review it and press Enter to start.';
+const TERMINAL_HINT = 'Claude Code was started in a new terminal with the selected findings.';
 
 /** Hands the selected findings to an AI coding agent as a prefilled prompt. */
 export class FixFindingsWithAiCommand implements VsCodeCommand<FixFindingsPayload> {
@@ -52,7 +52,7 @@ export class FixFindingsWithAiCommand implements VsCodeCommand<FixFindingsPayloa
         return handedOff;
     }
 
-    /** A terminal that quietly opens with unexecuted text needs saying once per agent. */
+    /** A terminal that quietly starts running in the background needs saying once per agent. */
     private explainTerminalHandoff(agentId: string, usesTerminal: boolean) {
         if (!usesTerminal || !this.showHintOnce(`${agentId}:terminal`)) {
             return;

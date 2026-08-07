@@ -10,7 +10,8 @@ const OPEN_CHAT_COMMAND = 'workbench.action.chat.open';
  * Hands off to VS Code Chat (GitHub Copilot).
  *
  * `workbench.action.chat.open` is a VS Code core command that is recommended but not part of the
- * documented API surface, hence the guard. `isPartialQuery: true` prefills without submitting.
+ * documented API surface, hence the guard. `isPartialQuery: false` submits the query immediately
+ * instead of leaving it as a draft.
  */
 export class CopilotChatProvider implements AiAgentProvider {
     readonly id = 'copilot';
@@ -37,7 +38,7 @@ export class CopilotChatProvider implements AiAgentProvider {
     async handoff(prompt: FixPrompt): Promise<void> {
         await commands.executeCommand(OPEN_CHAT_COMMAND, {
             query: prompt.text,
-            isPartialQuery: true,
+            isPartialQuery: false,
             mode: 'agent',
         });
     }

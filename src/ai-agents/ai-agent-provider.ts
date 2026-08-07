@@ -17,7 +17,10 @@ export interface AiAgentProvider {
     isAvailable(): boolean;
     /** Best-effort check whether the Sigrid MCP server is wired up for this agent. */
     hasSigridMcp(): boolean;
-    /** Opens the agent with `prompt` prefilled. Never submits it - the user does that. */
+    /**
+     * Opens the agent with `prompt` prefilled, submitting it immediately where the agent's own
+     * API supports that (terminal, Copilot); otherwise it stays a draft for the user to submit.
+     */
     handoff(prompt: FixPrompt): Promise<void>;
     /** Optional: drops any cached detection, for agents whose presence can change unannounced. */
     invalidate?(): void;

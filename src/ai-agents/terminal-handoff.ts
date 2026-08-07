@@ -39,12 +39,12 @@ let promptCounter = 0;
 let previous: HandoffTerminal | undefined;
 
 /**
- * Hands a prompt to a CLI agent by typing a command into a terminal without executing it.
+ * Hands a prompt to a CLI agent by typing a command into a terminal and running it immediately.
  *
  * The prompt itself goes into a file rather than onto the command line: it is multi-line, and it
  * contains finding titles that come from the Sigrid API, which must never be interpreted by a shell.
  * The command line therefore only ever holds text we control plus quoted paths, which every
- * supported shell parses identically.
+ * supported shell parses identically - which is also what makes it safe to run without review.
  */
 export async function handoffViaTerminal(request: TerminalHandoffRequest, deps = terminalDeps): Promise<void> {
     const promptFile = await writePromptFile(request.prompt, deps);
@@ -59,9 +59,9 @@ export async function handoffViaTerminal(request: TerminalHandoffRequest, deps =
 
     const terminal = createTerminal(request.terminalName);
     await deps.waitForShell(terminal);
-    // Focus must land on the terminal: the user has to be able to press Enter.
+    // Focus must land on the terminal so the user sees the agent start running.
     terminal.show(false);
-    terminal.sendText(commandLine, false);
+    terminal.sendText(commandLine, true);
 }
 
 async function writePromptFile(prompt: FixPrompt, deps: typeof terminalDeps): Promise<Uri> {

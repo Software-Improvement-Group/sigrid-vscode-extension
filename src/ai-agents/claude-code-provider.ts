@@ -89,6 +89,8 @@ export class ClaudeCodeProvider implements AiAgentProvider {
         try {
             // The first argument is the session id and must stay undefined: pointing at a session
             // whose panel is already open makes Claude Code discard the prompt.
+            // Unlike the terminal route, there is no submit parameter or command here - the extension's
+            // webview owns the input box privately, so the prompt stays a draft until the user sends it.
             await commands.executeCommand(OPEN_EDITOR_COMMAND, undefined, prompt.text);
         } catch (error) {
             console.error(`Failed to open Claude Code via ${OPEN_EDITOR_COMMAND}, falling back to the URI handler:`, error);

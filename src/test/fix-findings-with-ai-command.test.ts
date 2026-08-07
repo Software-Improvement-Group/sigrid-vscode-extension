@@ -158,7 +158,7 @@ suite('FixFindingsWithAiCommand', () => {
         assert.ok(prompt.includes('src/panels/sigrid-panel.ts:120-198'));
     });
 
-    test('opens VS Code chat in agent mode without submitting the prompt', async () => {
+    test('opens VS Code chat in agent mode and submits the prompt automatically', async () => {
         setupInstalledExtensions(COPILOT_CHAT_EXTENSION_ID);
         const calls = captureExecuteCommand();
 
@@ -167,7 +167,7 @@ suite('FixFindingsWithAiCommand', () => {
         assert.strictEqual(calls.length, 1);
         const [commandId, options] = calls[0];
         assert.strictEqual(commandId, 'workbench.action.chat.open');
-        assert.strictEqual(options.isPartialQuery, true, 'the prompt must be prefilled, not submitted');
+        assert.strictEqual(options.isPartialQuery, false, 'the prompt must be submitted, not left as a draft');
         assert.strictEqual(options.mode, 'agent');
         assert.ok(!options.query.includes('/sigrid:'), 'Copilot does not understand Sigrid slash commands');
     });
@@ -362,7 +362,7 @@ suite('FixFindingsWithAiCommand - Claude CLI fallback', () => {
         assert.strictEqual(agents[0].label, 'Claude Code (CLI)', 'the label should say the terminal will be used');
     });
 
-    test('types the command into a terminal without executing it', async () => {
+    test('types the command into a terminal and runs it immediately', async () => {
         setupInstalledExtensions();
         setupCli(cliOnPath);
         const calls = captureExecuteCommand();
@@ -372,8 +372,8 @@ suite('FixFindingsWithAiCommand - Claude CLI fallback', () => {
         assert.strictEqual(calls.length, 0, 'the extension route must not be used without the extension');
         assert.strictEqual(terminals.length, 1);
         const [sent] = terminals[0].sent;
-        assert.strictEqual(sent.shouldExecute, false, 'the command must be prefilled, not executed');
-        assert.ok(terminals[0].shown, 'the terminal must be focused so Enter lands there');
+        assert.strictEqual(sent.shouldExecute, true, 'the command must run immediately, not wait for the user');
+        assert.ok(terminals[0].shown, 'the terminal must be focused so the user sees the agent start');
     });
 
     test('builds a single-line command with the prompt before the options', async () => {
