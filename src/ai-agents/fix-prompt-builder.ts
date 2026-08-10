@@ -28,8 +28,11 @@ const PLAIN_INSTRUCTIONS: Record<string, string> = {
 
 const MIXED_INSTRUCTION = 'Fix the following Sigrid findings.';
 
-const MCP_HINT = 'Note: the Sigrid MCP server was not detected in this environment. ' +
-    'The findings above are self-contained, so work from them directly.';
+const SIGRID_PLUGIN_INSTALL_URL = 'https://docs.sigrid-says.com/integrations/integration-sigrid-mcp.html#installation';
+
+const MCP_HINT = 'Note: the Sigrid MCP server and Sigrid skills were not detected in this environment. ' +
+    `For the best experience, install the Sigrid plugin: ${SIGRID_PLUGIN_INSTALL_URL}. ` +
+    'The findings below are self-contained, so you can work from them directly in the meantime.';
 
 /**
  * The Sigrid MCP tools worth naming per category. Read only on purpose: the agent must never record
@@ -63,11 +66,12 @@ export interface FixPrompt {
 }
 
 export function buildFixPrompt(findings: FixFinding[], context: FixPromptContext, options: FixPromptOptions): FixPrompt {
-    const lead = buildLeadInstruction(findings, options.supportsSlashCommands);
+    const canUseSkill = options.supportsSlashCommands && options.mcpDetected;
+    const lead = buildLeadInstruction(findings, canUseSkill);
     const sections = [lead, buildContextLine(context), buildFindingList(findings)];
 
     if (!options.mcpDetected) {
-        sections.push(MCP_HINT);
+        sections.unshift(MCP_HINT);
     } else if (!isSlashCommand(lead)) {
         // A Sigrid skill already orchestrates MCP, so instructions of our own would only fight it.
         sections.push(buildMcpInstruction(mcpToolsFor(findings), options.resolveToolReference));

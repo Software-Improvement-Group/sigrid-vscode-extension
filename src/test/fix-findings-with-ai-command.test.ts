@@ -517,7 +517,21 @@ suite('buildFixPrompt', () => {
         const withoutMcp = buildFixPrompt([MAINTAINABILITY_FINDING], context, { supportsSlashCommands: true, mcpDetected: false }).text;
 
         assert.ok(!withMcp.includes('was not detected'));
-        assert.ok(withoutMcp.includes('Sigrid MCP server was not detected'));
+        assert.ok(withoutMcp.includes('Sigrid MCP server and Sigrid skills were not detected'));
+        assert.ok(withoutMcp.includes('sigrid-ai-toolkit#install'));
+    });
+
+    test('prepends the install notice ahead of the lead instruction', () => {
+        const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, { supportsSlashCommands: true, mcpDetected: false }).text;
+
+        assert.ok(prompt.startsWith('Note: the Sigrid MCP server and Sigrid skills were not detected'));
+    });
+
+    test('falls back to a plain lead instead of a skill command when the plugin is not detected', () => {
+        const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, { supportsSlashCommands: true, mcpDetected: false });
+
+        assert.ok(!prompt.lead.startsWith('/sigrid:'));
+        assert.strictEqual(prompt.lead, 'Fix the following Sigrid maintainability findings.');
     });
 
     test('tells an agent without a Sigrid skill which MCP tools to use', () => {
@@ -539,7 +553,7 @@ suite('buildFixPrompt', () => {
         const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, { ...plainAgent, mcpDetected: false }).text;
 
         assert.ok(!prompt.includes('maintainability_get_findings'));
-        assert.ok(prompt.includes('Sigrid MCP server was not detected'));
+        assert.ok(prompt.includes('Sigrid MCP server and Sigrid skills were not detected'));
     });
 
     test('names the tools of the selected category, not of every category', () => {
