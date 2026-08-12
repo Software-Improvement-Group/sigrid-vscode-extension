@@ -7,6 +7,7 @@ import {FileLocation} from '../models/file-location';
 import {UsageData} from '../models/usage-data';
 import {CreateJiraIssuePayload} from '../models/create-jira-issue-payload';
 import {CreateAzureDevOpsWorkItemPayload} from '../models/create-azure-devops-work-item-payload';
+import {FixFindingsPayload} from '../models/fix-findings-payload';
 
 @Injectable({
   providedIn: 'root',
@@ -52,5 +53,9 @@ export class VsCode {
 
   getAzureDevOpsWorkItemTypes() {
     this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.GetAzureDevOpsWorkItemTypes));
+  }
+
+  fixFindingsWithAi(payload: FixFindingsPayload) {
+    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.FixFindingsWithAi, payload));
   }
 }

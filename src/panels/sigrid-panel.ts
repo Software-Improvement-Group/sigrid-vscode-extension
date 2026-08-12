@@ -1,4 +1,4 @@
-import { Disposable, Uri, Webview, WebviewView, WebviewViewProvider, window, workspace } from "vscode";
+import { Disposable, extensions, Uri, Webview, WebviewView, WebviewViewProvider, window, workspace } from "vscode";
 import { getWebviewUri } from "../utilities/get-webview-uri";
 import { AngularApp, EXTENSION_ID } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
@@ -7,6 +7,8 @@ import { COMMANDS } from "../commands/command-registry";
 import { VsCodeCommandData } from "../commands/vscode-command-data";
 import { postActiveEditorChangedMessage } from "../utilities/editor";
 import { getSigridConfiguration } from "../utilities/configuration";
+import { postAiAgentsDetectedMessage } from "../utilities/ai-agents-message";
+import { invalidateAvailability } from "../ai-agents/ai-agent-registry";
 
 export class SigridPanel implements WebviewViewProvider {
   private disposables: Disposable[] = [];
@@ -26,6 +28,7 @@ export class SigridPanel implements WebviewViewProvider {
     this.setWebviewMessageListener(webviewView.webview);
     this.setActiveEditorListener(webviewView.webview);
     this.setConfigurationChangeListener(webviewView.webview);
+    this.setAgentDetectionListeners(webviewView);
 
     webviewView.onDidDispose(() => {
       this.dispose();
@@ -60,7 +63,12 @@ export class SigridPanel implements WebviewViewProvider {
   private setWebviewMessageListener(webview: Webview) {
     webview.onDidReceiveMessage(
       (message: VsCodeCommandEvent) => {
-        COMMANDS[message.command]?.execute(new VsCodeCommandData(webview, this.extensionUri, message.data));
+        try {
+          const result = COMMANDS[message.command]?.execute(new VsCodeCommandData(webview, this.extensionUri, message.data));
+          Promise.resolve(result).catch(error => console.error(`Command "${message.command}" failed:`, error));
+        } catch (error) {
+          console.error(`Command "${message.command}" failed:`, error);
+        }
       },
       undefined,
       this.disposables
@@ -78,6 +86,26 @@ export class SigridPanel implements WebviewViewProvider {
       if (event.affectsConfiguration(EXTENSION_ID)) {
         const newConfig = getSigridConfiguration();
         webview.postMessage({ command: "configurationChanged", data: newConfig });
+      }
+    }, undefined, this.disposables);
+  }
+
+  /**
+   * Re-detects the available AI agents. Installing/uninstalling an extension is the only event
+   * that can actually change the result, so only that invalidates the providers' cached lookups;
+   * the panel becoming visible again just re-reports the still-cached availability to the webview.
+   */
+  private setAgentDetectionListeners(webviewView: WebviewView) {
+    const webview = webviewView.webview;
+    const redetect = () => postAiAgentsDetectedMessage(webview);
+
+    extensions.onDidChange(() => {
+      invalidateAvailability();
+      redetect();
+    }, undefined, this.disposables);
+    webviewView.onDidChangeVisibility(() => {
+      if (webviewView.visible) {
+        redetect();
       }
     }, undefined, this.disposables);
   }

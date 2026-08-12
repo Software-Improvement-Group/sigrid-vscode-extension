@@ -9,8 +9,8 @@ import {IconButton} from '../shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {FindingEdit} from '../shared/finding-edit/finding-edit';
 import {SigridDialog} from '../shared/dialog/sigrid-dialog';
-import {FindingSelection} from '../services/finding-selection';
 import {SelectedFinding} from '../models/selected-finding';
+import {FindingCategory} from '../models/finding-category';
 import {RiskSeverity, riskSeverityStringValues} from '../models/risk-severity';
 import {FilterableHeader} from '../shared/filterable-header/filterable-header';
 import {pascalCaseToTitleCase} from '../utilities/string';
@@ -32,7 +32,6 @@ export class Security extends FindingComponent<SecurityFinding[]> implements OnI
   protected readonly tabId = 'security';
   private sigridData!: SigridData;
   private dialog = inject(SigridDialog);
-  protected selectionService = inject(FindingSelection);
 
   protected riskFilter = this.filterService.getColumnFilter('security', 'risk');
   protected statusFilter = this.filterService.getColumnFilter('security', 'status');
@@ -89,14 +88,13 @@ export class Security extends FindingComponent<SecurityFinding[]> implements OnI
     return RiskSeverity[finding.severity];
   }
 
-  protected toggleSelection(finding: SecurityFinding) {
-    const selected: SelectedFinding = {
+  protected override toSelectedFinding(finding: SecurityFinding): SelectedFinding {
+    return {
       id: finding.id,
-      category: 'Security',
+      category: FindingCategory.security,
       title: `${finding.displayFilePath}: ${finding.type}`,
       severity: riskSeverityStringValues[finding.severity],
       fileLocations: finding.fileLocations,
     };
-    this.selectionService.toggle(selected);
   }
 }

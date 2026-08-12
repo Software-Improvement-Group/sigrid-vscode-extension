@@ -5,6 +5,7 @@ import { postActiveEditorChangedMessage } from "../utilities/editor";
 import { getSigridConfiguration } from "../utilities/configuration";
 import { getWebviewUri } from "../utilities/get-webview-uri";
 import { AngularApp } from "../extension.config";
+import { postAiAgentsDetectedMessage } from "../utilities/ai-agents-message";
 
 export class InitializeCommand implements VsCodeCommand<undefined> {
     execute(data: VsCodeCommandData<undefined>): void {
@@ -13,5 +14,6 @@ export class InitializeCommand implements VsCodeCommand<undefined> {
         const baseUri = getWebviewUri(webview, extensionUri, AngularApp.outputFolder);
         webview.postMessage({ command: "webviewBaseUri", data: baseUri.toString() });
         postActiveEditorChangedMessage(webview, window.activeTextEditor);
+        postAiAgentsDetectedMessage(webview);
     }
 }

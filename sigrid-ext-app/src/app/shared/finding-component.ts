@@ -8,13 +8,19 @@ import {FindingFilterService} from '../services/finding-filter';
 import {FilterOption} from './column-filter-dropdown/column-filter-dropdown';
 import {pascalCaseToTitleCase} from '../utilities/string';
 import {sortBySeverity} from '../utilities/severity-sort';
+import {FindingSelection} from '../services/finding-selection';
+import {FixWithAi} from '../services/fix-with-ai';
+import {SelectedFinding} from '../models/selected-finding';
 
 type FindingItem<T> = T extends readonly (infer U)[] ? U : T;
 
 @Directive()
 export abstract class FindingComponent<T> implements OnInit {
   private sigridConfiguration = inject(SigridConfiguration);
+  private fixWithAi = inject(FixWithAi);
   protected filterService = inject(FindingFilterService);
+  protected selectionService = inject(FindingSelection);
+  protected readonly canFixWithAi = this.fixWithAi.isAvailable;
   protected isConfigValid$ = toObservable<boolean>(this.sigridConfiguration.isConfigurationValid);
   protected readonly DataState = DataState;
   protected readonly FindingStatusEmoji = FindingStatusEmoji;
@@ -80,6 +86,18 @@ export abstract class FindingComponent<T> implements OnInit {
   protected abstract matchesSearch(finding: FindingItem<T>, term: string): boolean;
   protected abstract matchesColumnFilters(finding: FindingItem<T>): boolean;
   protected abstract getRiskFilterValue(finding: FindingItem<T>): string;
+
+  /** Normalizes a finding into the shape shared by the selection, issue and AI handoff actions. */
+  protected abstract toSelectedFinding(finding: FindingItem<T>): SelectedFinding;
+
+  protected toggleSelection(finding: FindingItem<T>) {
+    this.selectionService.toggle(this.toSelectedFinding(finding));
+  }
+
+  protected onFixWithAi(finding: FindingItem<T>) {
+    const selected = this.toSelectedFinding(finding);
+    this.fixWithAi.fix([selected], () => this.selectionService.deselect(selected.id));
+  }
 
   protected buildFilterOptions(values: string[], options?: {
     labelFn?: (value: any) => string,

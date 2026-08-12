@@ -37,6 +37,15 @@
           </td>
           <td>
             <div class="action-buttons">
+              @if (canFixWithAi()) {
+                <sigrid-icon-button iconClass="codicon codicon-sparkle"
+                                    ngxTooltip="Fix with AI"
+                                    tooltipClass="sigrid-tooltip"
+                                    [tooltipArrow]="false"
+                                    tooltipPosition="bottom"
+                                    (onClick)="onFixWithAi(finding)"
+                />
+              }
               <sigrid-icon-button iconClass="codicon codicon-edit"
                                   ngxTooltip="Edit Finding"
                                   tooltipClass="sigrid-tooltip"

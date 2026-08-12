@@ -13,8 +13,9 @@
         </div>
       </div>
       <div class="header-action-buttons">
-        <sigrid-icon-button svgIcon="jira" ngxTooltip="Select the findings you want to create Jira issue from" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!isJiraConfigured() || selectedFindingsCount() === 0" (onClick)="onCreateJiraIssue()"/>
-        <sigrid-icon-button svgIcon="azure-devops" ngxTooltip="Select the findings you want to create an Azure DevOps work item from" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!isAzureDevOpsConfigured() || selectedFindingsCount() === 0" (onClick)="onCreateAzureDevOpsWorkItem()"/>
+        <sigrid-icon-button iconClass="codicon codicon-sparkle" ngxTooltip="Fix the selected findings with your AI agent" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!canFixWithAi() || selectedFindingsCount() === 0" (onClick)="onFixWithAi()"/>
+        <sigrid-icon-button svgIcon="jira" ngxTooltip="Create a Jira issue from the selected findings" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!isJiraConfigured() || selectedFindingsCount() === 0" (onClick)="onCreateJiraIssue()"/>
+        <sigrid-icon-button svgIcon="azure-devops" ngxTooltip="Create an Azure DevOps work item from the selected findings" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!isAzureDevOpsConfigured() || selectedFindingsCount() === 0" (onClick)="onCreateAzureDevOpsWorkItem()"/>
         <sigrid-icon-button iconClass="codicon codicon-refresh" ngxTooltip="Refresh" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="refreshButtonDisabled()" (onClick)="refresh()"/>
       </div>
     </div>
