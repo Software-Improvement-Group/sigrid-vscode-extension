@@ -11,6 +11,9 @@
         <div class="sigrid-tab" routerLink="/open-source-health" routerLinkActive="active">
           <div class="tab-label-wrapper"><span class="tab-label">Open Source Health</span></div>
         </div>
+        <div class="sigrid-tab" routerLink="/metadata" routerLinkActive="active">
+          <div class="tab-label-wrapper"><span class="tab-label">Metadata</span></div>
+        </div>
       </div>
       <div class="header-action-buttons">
         <sigrid-icon-button iconClass="codicon codicon-sparkle" ngxTooltip="Fix the selected findings with your AI agent" [tooltipArrow]="false" tooltipClass="sigrid-tooltip" [disabled]="!canFixWithAi() || selectedFindingsCount() === 0" (onClick)="onFixWithAi()"/>

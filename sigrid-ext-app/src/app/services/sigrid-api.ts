@@ -9,6 +9,7 @@ import {RefactoringCategory} from '../models/refactoring-category';
 import {RefactoringCandidatesResponse} from '../models/refactoring-candidate';
 import {forkJoin, map} from 'rxjs';
 import {FindingRequest} from '../models/finding-request';
+import {SystemMetadata} from '../models/system-metadata';
 
 @Injectable({
   providedIn: 'root',
@@ -54,5 +55,10 @@ export class SigridApi {
     const configuration = this.configuration();
     return this.http.patch<void>(joinUrl(this.sigridConfiguration.getSigridApiBaseUrl(), 'findings',
       configuration.customer, configuration.system, findingId), request);
+  }
+
+  getSystemMetadata() {
+    const configuration = this.configuration();
+    return this.http.get<SystemMetadata>(joinUrl(this.sigridConfiguration.getSigridApiBaseUrl(), 'system-metadata', configuration.customer, configuration.system));
   }
 }

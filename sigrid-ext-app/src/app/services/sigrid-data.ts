@@ -13,6 +13,7 @@ import {getFileName} from '../utilities/path';
 import {HttpErrorResponse} from '@angular/common/http';
 import {SigridConfiguration} from './sigrid-configuration';
 import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
+import {SystemMetadata} from '../models/system-metadata';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +22,7 @@ export class SigridData {
   private readonly _refactoringCandidates = signal<SigridFinding<RefactoringCandidate[]> | null>(null);
   private readonly _openSourceHealthFindings = signal<SigridFinding<OpenSourceHealthDependency[]> | null>(null);
   private readonly _securityFindings = signal<SigridFinding<SecurityFinding[]> | null>(null);
+  private readonly _metadata = signal<SigridFinding<SystemMetadata> | null>(null);
   private readonly _fileFilter = signal<FileFilterMode>(FileFilterMode.All);
   private readonly _activeFilePath = signal<string | null | undefined>(undefined);
   private readonly _isRefreshing = signal(false);
@@ -58,6 +60,10 @@ export class SigridData {
     return this.filteredOpenSourceHealthFindings;
   }
 
+  get metadata() {
+    return this._metadata;
+  }
+
   get isRefreshing() {
     return this._isRefreshing;
   }
@@ -92,6 +98,21 @@ export class SigridData {
     );
   }
 
+  loadMetadata(forceRefresh?: boolean): Promise<void> {
+    if (!forceRefresh && this._metadata()) {
+      return Promise.resolve();
+    }
+
+    return firstValueFrom(this.sigridApi.getSystemMetadata())
+      .then(data => {
+        this._metadata.set({data} as SigridFinding<SystemMetadata>);
+      })
+      .catch(error => {
+        console.error('Error occurred while fetching metadata:', error);
+        this._metadata.set({error: this.toFetchErrorMessage(error, 'metadata')} as SigridFinding<SystemMetadata>);
+      });
+  }
+
   async loadAllFindings(): Promise<void> {
     this._isRefreshing.set(true);
     try {
@@ -100,6 +121,7 @@ export class SigridData {
           this.loadRefactoringCandidates(true),
           this.loadSecurityFindings(true),
           this.loadOpenSourceHealthFindings(true),
+          this.loadMetadata(true),
         ]);
     } finally {
       this._isRefreshing.set(false);

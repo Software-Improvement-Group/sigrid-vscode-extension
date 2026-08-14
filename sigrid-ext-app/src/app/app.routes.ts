@@ -14,4 +14,8 @@ export const routes: Routes = [
     path: 'open-source-health',
     loadComponent: () => import('./open-source-health/open-source-health').then(o => o.OpenSourceHealth)
   },
+  {
+    path: 'metadata',
+    loadComponent: () => import('./metadata/metadata').then(m => m.Metadata)
+  },
 ];

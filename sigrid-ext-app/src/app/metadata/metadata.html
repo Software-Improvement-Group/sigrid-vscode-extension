@@ -1,0 +1,32 @@
+@if (metadata()?.error) {
+  <div class="error">{{ getErrorMessage() }}</div>
+} @else if (isLoading()) {
+  <div class="loading">Loading metadata...</div>
+} @else if (groupedMetadata().length === 0) {
+  <div class="empty-state">
+    <p>No metadata found. Configure metadata in the Sigrid settings.</p>
+    <button class="edit-button" (click)="onEditMetadata()">Edit Metadata</button>
+  </div>
+} @else {
+  <div class="metadata-container">
+    <div class="metadata-header">
+      <h2>System Metadata</h2>
+      <button class="edit-button" (click)="onEditMetadata()">Edit Metadata</button>
+    </div>
+    <div class="metadata-sections">
+      @for (section of groupedMetadata(); track section.title) {
+        <div class="metadata-section">
+          <h3 class="section-title">{{ section.title }}</h3>
+          <div class="section-fields">
+            @for (field of section.fields; track field.key) {
+              <div class="metadata-field">
+                <label class="field-label">{{ field.key }}</label>
+                <div class="field-value">{{ field.displayValue }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
