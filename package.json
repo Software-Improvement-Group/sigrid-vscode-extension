@@ -49,12 +49,31 @@
           "name": "Sigrid",
           "type": "webview"
         }
+      ],
+      "explorer": [
+        {
+          "id": "sigridMetadataView",
+          "name": "Sigrid Metadata",
+          "type": "tree"
+        }
       ]
     },
     "commands": [
       {
         "command": "sigrid-vscode.showFindings",
         "title": "Sigrid: Show Findings"
+      },
+      {
+        "command": "sigrid-vscode.showMetadata",
+        "title": "Sigrid: Show Metadata"
+      },
+      {
+        "command": "sigrid-vscode.refreshMetadata",
+        "title": "Sigrid: Refresh Metadata"
+      },
+      {
+        "command": "sigrid-vscode.openMetadataEditor",
+        "title": "Sigrid: Edit Metadata"
       }
     ],
     "configuration": [
