@@ -4,6 +4,11 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [1.0.2] - 2026-09-08
+
+### Fixed
+- Duplication description now correctly displays the number of duplicated lines of code instead of the frequency of duplication.
+
 ## [1.0.1] - 2026-08-10
 
 ### Added
