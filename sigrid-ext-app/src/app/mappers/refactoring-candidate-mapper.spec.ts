@@ -235,7 +235,7 @@ describe('RefactoringCandidateMapper', () => {
       refactoringCandidates: [
         baseCandidate({
           id: 'dup-desc',
-          weight: 42,
+          loc: 42,
           locations: [
             { component: 'c', file: '/repo/src/app/a.ts', moduleId: 1, startLine: 1, endLine: 2 },
             { component: 'c', file: '/repo/src/app/b.ts', moduleId: 1, startLine: 3, endLine: 4 },
