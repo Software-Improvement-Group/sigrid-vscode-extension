@@ -1,4 +1,28 @@
-@if (this.isConfigValid()) {
+@if (this.isConfigValid() && this.onboardingStatus() !== 'onboarded') {
+  <div class="main">
+    @switch (this.onboardingStatus()) {
+      @case ('checking') {
+        <p>Checking whether {{ onboardingSystemLabel() }} is onboarded to Sigrid...</p>
+      }
+      @case ('not-onboarded') {
+        <p><strong>{{ onboardingSystemLabel() }}</strong> hasn't been onboarded to Sigrid yet.</p>
+        <button (click)="onOnboardSystem()">Onboard {{ onboardingSystemLabel() }}</button>
+      }
+      @case ('onboarding') {
+        <p><strong>{{ onboardingSystemLabel() }}</strong> hasn't been onboarded to Sigrid yet.</p>
+        <button disabled>Onboarding in progress...</button>
+      }
+      @case ('onboarding-started') {
+        <p>Onboarding started for {{ onboardingSystemLabel() }}. This can take several minutes &mdash; check back later.</p>
+        <button (click)="onRetryOnboardingCheck()">Refresh</button>
+      }
+      @case ('error') {
+        <p>Could not determine whether {{ onboardingSystemLabel() }} is onboarded: {{ onboardingErrorMessage() }}</p>
+        <button (click)="onRetryOnboardingCheck()">Retry</button>
+      }
+    }
+  </div>
+} @else if (this.isConfigValid()) {
   <div class="sigrid-header">
     <div class="sigrid-tabs-container">
       <div class="sigrid-tabs">

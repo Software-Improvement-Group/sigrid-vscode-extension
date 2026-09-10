@@ -13,6 +13,7 @@ import {getFileName} from '../utilities/path';
 import {HttpErrorResponse} from '@angular/common/http';
 import {SigridConfiguration} from './sigrid-configuration';
 import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
+import {SystemOnboarding} from './system-onboarding';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +27,7 @@ export class SigridData {
   private readonly _isRefreshing = signal(false);
   private readonly sigridApi = inject(SigridApi);
   private readonly configuration = inject(SigridConfiguration);
+  private readonly systemOnboarding = inject(SystemOnboarding);
   readonly displayActivePath = computed(() => this._fileFilter() === FileFilterMode.Active ? getFileName(this._activeFilePath()) : '');
 
   private filteredRefactoringCandidates = computed(() => {
@@ -114,6 +116,9 @@ export class SigridData {
     forceRefresh?: boolean,
   ): Promise<void> {
     if (!forceRefresh && findingSignal()) {
+      return;
+    }
+    if (this.systemOnboarding.status() !== 'onboarded') {
       return;
     }
 

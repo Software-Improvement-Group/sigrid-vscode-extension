@@ -8,4 +8,6 @@ export enum VsCommandType {
   CreateAzureDevOpsWorkItem = 'createAzureDevOpsWorkItem',
   GetAzureDevOpsWorkItemTypes = 'getAzureDevOpsWorkItemTypes',
   FixFindingsWithAi = 'fixFindingsWithAi',
+  CheckSystemOnboarded = 'checkSystemOnboarded',
+  OnboardSystem = 'onboardSystem',
 }
