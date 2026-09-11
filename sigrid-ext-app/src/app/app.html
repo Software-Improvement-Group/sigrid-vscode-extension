@@ -1,19 +1,22 @@
 @if (this.isConfigValid() && this.onboardingStatus() !== 'onboarded') {
-  <div class="main">
+  <div class="main onboarding-status">
     @switch (this.onboardingStatus()) {
       @case ('checking') {
         <p>Checking whether {{ onboardingSystemLabel() }} is onboarded to Sigrid...</p>
       }
       @case ('not-onboarded') {
-        <p><strong>{{ onboardingSystemLabel() }}</strong> hasn't been onboarded to Sigrid yet.</p>
-        <button (click)="onOnboardSystem()">Onboard {{ onboardingSystemLabel() }}</button>
+        <div class="flex-col-center">
+          <p><strong>{{ onboardingSystemLabel() }}</strong> hasn't been onboarded to Sigrid yet.</p>
+          <button (click)="onOnboardSystem()">Onboard {{ onboardingSystemLabel() }}</button>
+          <button (click)="onRetryOnboardingCheck()">Refresh</button>
+        </div>
       }
       @case ('onboarding') {
         <p><strong>{{ onboardingSystemLabel() }}</strong> hasn't been onboarded to Sigrid yet.</p>
         <button disabled>Onboarding in progress...</button>
       }
       @case ('onboarding-started') {
-        <p>Onboarding started for {{ onboardingSystemLabel() }}. This can take several minutes &mdash; check back later.</p>
+        <p>Onboarding started for <strong>{{ onboardingSystemLabel() }}</strong>. This can take several minutes &mdash; check back later.</p>
         <button (click)="onRetryOnboardingCheck()">Refresh</button>
       }
       @case ('error') {
