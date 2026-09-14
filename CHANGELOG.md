@@ -4,6 +4,12 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [1.0.3] - 2026-09-14
+
+### Added
+- In-webview system onboarding flow: if the configured system isn't yet onboarded to Sigrid, the panel now offers to onboard it directly, zipping the workspace and uploading it to Sigrid CI without leaving VS Code.
+- Automatic detection of whether the configured system exists in Sigrid, with a status view (checking, not onboarded, onboarding in progress, error) shown before findings are loaded.
+
 ## [1.0.2] - 2026-09-08
 
 ### Fixed

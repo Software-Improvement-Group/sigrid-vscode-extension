@@ -58,4 +58,12 @@ export class VsCode {
   fixFindingsWithAi(payload: FixFindingsPayload) {
     this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.FixFindingsWithAi, payload));
   }
+
+  checkSystemOnboarded() {
+    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.CheckSystemOnboarded));
+  }
+
+  onboardSystem() {
+    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.OnboardSystem));
+  }
 }

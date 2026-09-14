@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, computed, effect, inject, OnDestroy, OnInit} from '@angular/core';
 import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {SigridConfiguration} from './services/sigrid-configuration';
 import {WebviewMessage} from './models/webview-message';
@@ -17,6 +17,7 @@ import {AzureDevOpsWorkItemDialog} from './shared/azure-devops-work-item-dialog/
 import {JIRA_BANNER_DISMISSED} from './utilities/storage-keys';
 import {FindingFilterService} from './services/finding-filter';
 import {FixWithAi} from './services/fix-with-ai';
+import {SystemOnboarding} from './services/system-onboarding';
 
 @Component({
   selector: 'app-root',
@@ -33,9 +34,16 @@ export class App implements OnInit, OnDestroy {
   private selectionService = inject(FindingSelection);
   private dialog = inject(SigridDialog);
   private fixWithAi = inject(FixWithAi);
+  private systemOnboarding = inject(SystemOnboarding);
   protected filterService = inject(FindingFilterService);
   protected readonly canFixWithAi = this.fixWithAi.isAvailable;
   protected readonly isConfigValid = this.sigridConfig.isConfigurationValid;
+  protected readonly onboardingStatus = this.systemOnboarding.status;
+  protected readonly onboardingErrorMessage = this.systemOnboarding.errorMessage;
+  protected readonly onboardingSystemLabel = computed(() => {
+    const config = this.sigridConfig.getConfigurationOrEmpty();
+    return `${config.customer}/${config.system}`;
+  });
   protected readonly isJiraConfigured = this.sigridConfig.isJiraConfigured;
   protected readonly isAzureDevOpsConfigured = this.sigridConfig.isAzureDevOpsConfigured;
   protected readonly selectedFindingsCount = this.selectionService.selectedCount;
@@ -51,6 +59,13 @@ export class App implements OnInit, OnDestroy {
 
   constructor() {
     window.addEventListener('message', this.onMessageReceived.bind(this));
+    // Deliberately doesn't read isRefreshing() - that would make the effect
+    // re-fire on every refresh completion and loop forever.
+    effect(() => {
+      if (this.isOnboarded()) {
+        this.refresh().then();
+      }
+    });
   }
 
   ngOnInit() {
@@ -59,12 +74,16 @@ export class App implements OnInit, OnDestroy {
     }
 
     this.intervalId = setInterval(() => {
-      if (this.isConfigValid() && !this.sigridData.isRefreshing()) {
+      if (this.isOnboarded() && !this.sigridData.isRefreshing()) {
         this.refresh().then();
       }
     }, REFRESH_INTERVAL);
 
     this.vscode.initialize();
+  }
+
+  private isOnboarded(): boolean {
+    return this.isConfigValid() && this.onboardingStatus() === 'onboarded';
   }
 
   onMessageReceived(message: MessageEvent<WebviewMessage>) {
@@ -109,6 +128,14 @@ export class App implements OnInit, OnDestroy {
       return;
     }
     this.dialog.open(AzureDevOpsWorkItemDialog);
+  }
+
+  protected onOnboardSystem() {
+    this.systemOnboarding.onboard();
+  }
+
+  protected onRetryOnboardingCheck() {
+    this.systemOnboarding.check();
   }
 
   ngOnDestroy() {

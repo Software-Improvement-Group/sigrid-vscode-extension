@@ -2,8 +2,8 @@ import {describe, expect, it, vi} from 'vitest';
 import {ConfigurationChangedCommand} from './configuration-changed-command';
 import type {Configuration} from '../models/configuration';
 import type {SigridConfiguration} from '../services/sigrid-configuration';
-import type {SigridData} from '../services/sigrid-data';
 import {UsageStatistics} from '../services/usage-statistics';
+import type {SystemOnboarding} from '../services/system-onboarding';
 
 describe('ConfigurationChangedCommand', () => {
   const createPayload = (): Configuration => ({
@@ -26,21 +26,21 @@ describe('ConfigurationChangedCommand', () => {
       setConfiguration: vi.fn(),
     };
 
-    const sigridDataMock: Pick<SigridData, 'loadAllFindings'> = {
-      loadAllFindings: vi.fn(),
-    };
-
     const usageStatisticsMock: Pick<UsageStatistics, 'send'> = {
       send: vi.fn(),
     };
 
+    const systemOnboardingMock: Pick<SystemOnboarding, 'check'> = {
+      check: vi.fn(),
+    };
+
     const cmd = new ConfigurationChangedCommand(
       sigridConfigMock as SigridConfiguration,
-      sigridDataMock as SigridData,
       usageStatisticsMock as UsageStatistics,
+      systemOnboardingMock as SystemOnboarding,
     );
 
-    return {cmd, sigridConfigMock, sigridDataMock};
+    return {cmd, sigridConfigMock, usageStatisticsMock, systemOnboardingMock};
   };
 
   it('calls SigridConfiguration.setConfiguration with the provided payload', () => {
@@ -53,16 +53,17 @@ describe('ConfigurationChangedCommand', () => {
     expect(sigridConfigMock.setConfiguration).toHaveBeenCalledWith(payload);
   });
 
-  it('triggers a reload of findings after applying configuration', () => {
-    const {cmd, sigridConfigMock, sigridDataMock} = createCommand();
+  it('sends usage statistics and re-checks system onboarding after applying configuration', () => {
+    const {cmd, sigridConfigMock, usageStatisticsMock, systemOnboardingMock} = createCommand();
     const payload = createPayload();
 
     cmd.execute(payload);
 
-    expect(sigridDataMock.loadAllFindings).toHaveBeenCalledTimes(1);
+    expect(usageStatisticsMock.send).toHaveBeenCalledTimes(1);
+    expect(systemOnboardingMock.check).toHaveBeenCalledTimes(1);
 
     const setOrder = (sigridConfigMock.setConfiguration as any).mock.invocationCallOrder[0] as number;
-    const loadOrder = (sigridDataMock.loadAllFindings as any).mock.invocationCallOrder[0] as number;
-    expect(setOrder).toBeLessThan(loadOrder);
+    const checkOrder = (systemOnboardingMock.check as any).mock.invocationCallOrder[0] as number;
+    expect(setOrder).toBeLessThan(checkOrder);
   });
 });

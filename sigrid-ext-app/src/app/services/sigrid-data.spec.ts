@@ -7,6 +7,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {SigridData} from './sigrid-data';
 import {SigridApi} from './sigrid-api';
 import {SigridConfiguration} from './sigrid-configuration';
+import {SystemOnboarding} from './system-onboarding';
 
 import {SIGRID_API_BASE_RELATIVE_URL, SIGRID_DEFAULT_URL} from '../utilities/constants';
 import {joinUrl} from '../utilities/join-url';
@@ -65,6 +66,10 @@ describe('SigridData', () => {
     }
   }
 
+  class SystemOnboardingStub {
+    readonly status = signal<'onboarded'>('onboarded').asReadonly();
+  }
+
   const findingEndpoint = (...paths: string[]) =>
     joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, ...paths, 'cust', 'sys');
 
@@ -81,6 +86,7 @@ describe('SigridData', () => {
         SigridApi,
         SigridData,
         { provide: SigridConfiguration, useClass: SigridConfigurationStub },
+        { provide: SystemOnboarding, useClass: SystemOnboardingStub },
       ],
     });
 
