@@ -196,7 +196,6 @@
     "test": "vscode-test"
   },
   "dependencies": {
-    "@angular/cli": "^22.1.8",
     "archiver": "^7.0.1",
     "ignore": "^7.0.9"
   },
