@@ -88,7 +88,7 @@ export class RefactoringCandidateMapper {
     const name = response.name?.replaceAll(',', ', ');
     switch (category) {
       case RefactoringCategory.Duplication:
-        return `${response.weight} lines of code are duplicated between ${RefactoringCandidateMapper.getDisplayLocation(response, true)}.`;
+        return `${response.loc} lines of code are duplicated between ${RefactoringCandidateMapper.getDisplayLocation(response, true)}.`;
       case RefactoringCategory.UnitSize:
         return `${name} contains ${response.weight} lines of code.`;
       case RefactoringCategory.UnitComplexity:
