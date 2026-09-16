@@ -39,9 +39,19 @@ export class SigridPanel implements WebviewViewProvider {
     const styleUri = getWebviewUri(webview, this.extensionUri, AngularApp.outputFolder, 'styles.css');
     const scriptUri = getWebviewUri(webview, this.extensionUri, AngularApp.outputFolder, 'main.js');
 
-    // Use a nonce to whitelist which scripts can be run
+    // Use a nonce to whitelist which scripts/styles can be run
     const nonce = getNonce();
+    const csp = this.getContentSecurityPolicy(webview, nonce);
 
+    return this.renderHtml({ styleUri: styleUri.toString(), scriptUri: scriptUri.toString(), nonce, csp });
+  }
+
+  private getContentSecurityPolicy(webview: Webview, nonce: string) {
+    const sigridApiHost = new URL(getSigridConfiguration().sigridUrl).origin;
+    return `default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'nonce-${nonce}'; img-src ${webview.cspSource} data: https:; font-src ${webview.cspSource}; connect-src ${webview.cspSource} ${sigridApiHost}`;
+  }
+
+  private renderHtml({ styleUri, scriptUri, nonce, csp }: { styleUri: string; scriptUri: string; nonce: string; csp: string }) {
     return /*html*/`
         <!doctype html>
         <html lang="en" data-beasties-container>
@@ -50,7 +60,9 @@ export class SigridPanel implements WebviewViewProvider {
           <title>Sigrid</title>
           <base href="./">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <link rel="stylesheet" href="${styleUri}">
+          <meta http-equiv="Content-Security-Policy" content="${csp}">
+          <meta name="csp-nonce" content="${nonce}">
+          <link rel="stylesheet" href="${styleUri}" nonce="${nonce}">
         </head>
         <body>
           <app-root></app-root>
