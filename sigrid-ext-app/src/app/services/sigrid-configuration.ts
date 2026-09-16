@@ -16,12 +16,12 @@ export class SigridConfiguration {
 
   readonly isJiraConfigured = computed(() => {
     const config = this.config();
-    return config !== null && !!config.jiraBaseUrl && !!config.jiraUser && !!config.jiraToken && !!config.jiraProjectKey;
+    return config !== null && !!config.jiraBaseUrl && !!config.jiraUser && config.hasJiraToken && !!config.jiraProjectKey;
   });
 
   readonly isAzureDevOpsConfigured = computed(() => {
     const config = this.config();
-    return config !== null && !!config.azureDevOpsOrganizationUrl && !!config.azureDevOpsPersonalAccessToken && !!config.azureDevOpsProjectName;
+    return config !== null && !!config.azureDevOpsOrganizationUrl && config.hasAzureDevOpsToken && !!config.azureDevOpsProjectName;
   });
 
   private readonly sigridApiBaseUrl = computed(() => {
@@ -55,10 +55,10 @@ export class SigridConfiguration {
       sigridUrl: SIGRID_DEFAULT_URL,
       jiraBaseUrl: '',
       jiraUser: '',
-      jiraToken: '',
+      hasJiraToken: false,
       jiraProjectKey: '',
       azureDevOpsOrganizationUrl: '',
-      azureDevOpsPersonalAccessToken: '',
+      hasAzureDevOpsToken: false,
       azureDevOpsProjectName: '',
     };
   }

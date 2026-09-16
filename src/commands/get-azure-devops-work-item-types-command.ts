@@ -1,4 +1,4 @@
-import { workspace } from "vscode";
+import { SecretStorage, workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { EXTENSION_ID } from "../extension.config";
@@ -52,13 +52,13 @@ export class GetAzureDevOpsWorkItemTypesCommand implements VsCodeCommand<undefin
     private cachedTypes: string[] | null = null;
 
     async execute(data: VsCodeCommandData<undefined>) {
-        const result = await this.resolveTypes();
+        const result = await this.resolveTypes(data.secrets);
         data.webview.postMessage({ command: 'azureDevOpsWorkItemTypesLoaded', data: result });
     }
 
-    private async resolveTypes(): Promise<{ types: string[] } | { error: string }> {
+    private async resolveTypes(secrets: SecretStorage): Promise<{ types: string[] } | { error: string }> {
         const config = workspace.getConfiguration(EXTENSION_ID);
-        const { organizationUrl, personalAccessToken, projectName } = readAzureDevOpsSettings(config);
+        const { organizationUrl, personalAccessToken, projectName } = await readAzureDevOpsSettings(config, secrets);
 
         if (!organizationUrl || !personalAccessToken || !projectName) {
             return { error: 'Azure DevOps settings are incomplete.' };

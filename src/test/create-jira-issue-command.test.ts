@@ -6,7 +6,6 @@ import { VsCodeCommandData } from '../commands/vscode-command-data';
 interface JiraConfig {
     jiraBaseUrl: string;
     jiraUser: string;
-    jiraToken: string;
     jiraSpaceKey: string;
     customer: string;
 }
@@ -14,10 +13,11 @@ interface JiraConfig {
 const DEFAULT_JIRA_CONFIG: JiraConfig = {
     jiraBaseUrl: 'https://jira.example.com/',
     jiraUser: 'user@example.com',
-    jiraToken: 'token',
     jiraSpaceKey: 'APP',
     customer: '',
 };
+
+const DEFAULT_JIRA_TOKEN = 'token';
 
 function setupConfig(overrides: Partial<JiraConfig> = {}) {
     const config = { ...DEFAULT_JIRA_CONFIG, ...overrides };
@@ -32,9 +32,16 @@ function setupDefaultMocks() {
     (vscode.env as any).openExternal = async (_uri: vscode.Uri) => true;
 }
 
-async function executeCommand(payload: { title: string; findings: any[]; sigridUrl: string } = { title: 'Test', findings: [], sigridUrl: 'https://sigrid.example.com' }) {
+function createSecretsStub(jiraToken: string | undefined = DEFAULT_JIRA_TOKEN): vscode.SecretStorage {
+    return { get: async () => jiraToken } as unknown as vscode.SecretStorage;
+}
+
+async function executeCommand(
+    payload: { title: string; findings: any[]; sigridUrl: string } = { title: 'Test', findings: [], sigridUrl: 'https://sigrid.example.com' },
+    secrets: vscode.SecretStorage = createSecretsStub()
+) {
     const command = new CreateJiraIssueCommand();
-    await command.execute(new VsCodeCommandData({} as any, {} as any, payload));
+    await command.execute(new VsCodeCommandData({} as any, {} as any, payload, secrets));
 }
 
 suite('CreateJiraIssueCommand', () => {
@@ -77,7 +84,7 @@ suite('CreateJiraIssueCommand', () => {
             return {} as any;
         };
 
-        await executeCommand();
+        await executeCommand(undefined, createSecretsStub(undefined));
 
         assert.strictEqual(fetchCalled, false);
         assert.strictEqual(errorMessage, 'JIRA settings are incomplete. Please configure JIRA base URL, user, token, and space key in the extension settings.');

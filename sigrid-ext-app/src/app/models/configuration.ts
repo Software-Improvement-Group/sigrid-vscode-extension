@@ -6,9 +6,9 @@ export interface Configuration {
   sigridUrl: string;
   jiraBaseUrl: string;
   jiraUser: string;
-  jiraToken: string;
+  hasJiraToken: boolean;
   jiraProjectKey: string;
   azureDevOpsOrganizationUrl: string;
-  azureDevOpsPersonalAccessToken: string;
+  hasAzureDevOpsToken: boolean;
   azureDevOpsProjectName: string;
 }

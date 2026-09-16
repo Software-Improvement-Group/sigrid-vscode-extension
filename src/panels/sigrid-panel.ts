@@ -1,4 +1,4 @@
-import { Disposable, extensions, Uri, Webview, WebviewView, WebviewViewProvider, window, workspace } from "vscode";
+import { Disposable, extensions, SecretStorage, Uri, Webview, WebviewView, WebviewViewProvider, window, workspace } from "vscode";
 import { getWebviewUri } from "../utilities/get-webview-uri";
 import { AngularApp, EXTENSION_ID } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
@@ -6,14 +6,15 @@ import { VsCodeCommandEvent } from "../commands/vscode-command-event";
 import { COMMANDS } from "../commands/command-registry";
 import { VsCodeCommandData } from "../commands/vscode-command-data";
 import { postActiveEditorChangedMessage } from "../utilities/editor";
-import { getSigridConfiguration } from "../utilities/configuration";
+import { getSigridConfiguration, getSigridWebviewConfiguration } from "../utilities/configuration";
 import { postAiAgentsDetectedMessage } from "../utilities/ai-agents-message";
 import { invalidateAvailability } from "../ai-agents/ai-agent-registry";
+import { SECRET_KEYS } from "../utilities/secrets";
 
 export class SigridPanel implements WebviewViewProvider {
   private disposables: Disposable[] = [];
 
-  constructor(private readonly extensionUri: Uri) {}
+  constructor(private readonly extensionUri: Uri, private readonly secrets: SecretStorage) {}
 
   resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
     webviewView.webview.options = {
@@ -76,7 +77,7 @@ export class SigridPanel implements WebviewViewProvider {
     webview.onDidReceiveMessage(
       (message: VsCodeCommandEvent) => {
         try {
-          const result = COMMANDS[message.command]?.execute(new VsCodeCommandData(webview, this.extensionUri, message.data));
+          const result = COMMANDS[message.command]?.execute(new VsCodeCommandData(webview, this.extensionUri, message.data, this.secrets));
           Promise.resolve(result).catch(error => console.error(`Command "${message.command}" failed:`, error));
         } catch (error) {
           console.error(`Command "${message.command}" failed:`, error);
@@ -94,10 +95,21 @@ export class SigridPanel implements WebviewViewProvider {
   }
 
   private setConfigurationChangeListener(webview: Webview) {
+    const postConfiguration = async () => {
+      const newConfig = await getSigridWebviewConfiguration(this.secrets);
+      webview.postMessage({ command: "configurationChanged", data: newConfig });
+    };
+
     workspace.onDidChangeConfiguration(event => {
       if (event.affectsConfiguration(EXTENSION_ID)) {
-        const newConfig = getSigridConfiguration();
-        webview.postMessage({ command: "configurationChanged", data: newConfig });
+        postConfiguration();
+      }
+    }, undefined, this.disposables);
+
+    const trackedSecretKeys: string[] = Object.values(SECRET_KEYS);
+    this.secrets.onDidChange(event => {
+      if (trackedSecretKeys.includes(event.key)) {
+        postConfiguration();
       }
     }, undefined, this.disposables);
   }

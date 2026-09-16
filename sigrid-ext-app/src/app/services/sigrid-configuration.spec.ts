@@ -14,10 +14,10 @@ describe('SigridConfiguration', () => {
     sigridUrl: SIGRID_DEFAULT_URL,
     jiraBaseUrl: '',
     jiraUser: '',
-    jiraToken: '',
+    hasJiraToken: false,
     jiraProjectKey: '',
     azureDevOpsOrganizationUrl: '',
-    azureDevOpsPersonalAccessToken: '',
+    hasAzureDevOpsToken: false,
     azureDevOpsProjectName: '',
   };
 
@@ -59,10 +59,10 @@ describe('SigridConfiguration', () => {
       sigridUrl: SIGRID_DEFAULT_URL,
       jiraBaseUrl: '',
       jiraUser: '',
-      jiraToken: '',
+      hasJiraToken: false,
       jiraProjectKey: '',
       azureDevOpsOrganizationUrl: '',
-      azureDevOpsPersonalAccessToken: '',
+      hasAzureDevOpsToken: false,
       azureDevOpsProjectName: '',
     });
   });
@@ -76,10 +76,10 @@ describe('SigridConfiguration', () => {
       sigridUrl: SIGRID_DEFAULT_URL,
       jiraBaseUrl: 'https://jira.example.com',
       jiraUser: 'user@example.com',
-      jiraToken: 'token',
+      hasJiraToken: true,
       jiraProjectKey: 'SIG',
       azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
-      azureDevOpsPersonalAccessToken: 'azure-token',
+      hasAzureDevOpsToken: true,
       azureDevOpsProjectName: 'my-project',
     };
 
@@ -121,7 +121,7 @@ describe('SigridConfiguration', () => {
       ...validBaseConfiguration,
       jiraBaseUrl: '',
       jiraUser: 'user@example.com',
-      jiraToken: 'token',
+      hasJiraToken: true,
       jiraProjectKey: 'SIG',
     });
     expect(service.isJiraConfigured()).toBe(false);
@@ -130,7 +130,7 @@ describe('SigridConfiguration', () => {
       ...validBaseConfiguration,
       jiraBaseUrl: 'https://jira.example.com',
       jiraUser: '',
-      jiraToken: 'token',
+      hasJiraToken: true,
       jiraProjectKey: 'SIG',
     });
     expect(service.isJiraConfigured()).toBe(false);
@@ -139,7 +139,7 @@ describe('SigridConfiguration', () => {
       ...validBaseConfiguration,
       jiraBaseUrl: 'https://jira.example.com',
       jiraUser: 'user@example.com',
-      jiraToken: '',
+      hasJiraToken: false,
       jiraProjectKey: 'SIG',
     });
     expect(service.isJiraConfigured()).toBe(false);
@@ -148,7 +148,7 @@ describe('SigridConfiguration', () => {
       ...validBaseConfiguration,
       jiraBaseUrl: 'https://jira.example.com',
       jiraUser: 'user@example.com',
-      jiraToken: 'token',
+      hasJiraToken: true,
       jiraProjectKey: '',
     });
     expect(service.isJiraConfigured()).toBe(false);
@@ -157,7 +157,7 @@ describe('SigridConfiguration', () => {
       ...validBaseConfiguration,
       jiraBaseUrl: 'https://jira.example.com',
       jiraUser: 'user@example.com',
-      jiraToken: 'token',
+      hasJiraToken: true,
       jiraProjectKey: 'SIG',
     });
     expect(service.isJiraConfigured()).toBe(true);
@@ -167,7 +167,7 @@ describe('SigridConfiguration', () => {
     service.setConfiguration({
       ...validBaseConfiguration,
       azureDevOpsOrganizationUrl: '',
-      azureDevOpsPersonalAccessToken: 'azure-token',
+      hasAzureDevOpsToken: true,
       azureDevOpsProjectName: 'my-project',
     });
     expect(service.isAzureDevOpsConfigured()).toBe(false);
@@ -175,7 +175,7 @@ describe('SigridConfiguration', () => {
     service.setConfiguration({
       ...validBaseConfiguration,
       azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
-      azureDevOpsPersonalAccessToken: '',
+      hasAzureDevOpsToken: false,
       azureDevOpsProjectName: 'my-project',
     });
     expect(service.isAzureDevOpsConfigured()).toBe(false);
@@ -183,7 +183,7 @@ describe('SigridConfiguration', () => {
     service.setConfiguration({
       ...validBaseConfiguration,
       azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
-      azureDevOpsPersonalAccessToken: 'azure-token',
+      hasAzureDevOpsToken: true,
       azureDevOpsProjectName: '',
     });
     expect(service.isAzureDevOpsConfigured()).toBe(false);
@@ -191,7 +191,7 @@ describe('SigridConfiguration', () => {
     service.setConfiguration({
       ...validBaseConfiguration,
       azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
-      azureDevOpsPersonalAccessToken: 'azure-token',
+      hasAzureDevOpsToken: true,
       azureDevOpsProjectName: 'my-project',
     });
     expect(service.isAzureDevOpsConfigured()).toBe(true);

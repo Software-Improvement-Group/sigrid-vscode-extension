@@ -5,17 +5,17 @@ import { VsCodeCommandData } from '../commands/vscode-command-data';
 
 interface AzureDevOpsConfig {
     azureDevOpsOrganizationUrl: string;
-    azureDevOpsPersonalAccessToken: string;
     azureDevOpsProjectName: string;
     customer: string;
 }
 
 const DEFAULT_CONFIG: AzureDevOpsConfig = {
     azureDevOpsOrganizationUrl: 'https://dev.azure.com/myorg/',
-    azureDevOpsPersonalAccessToken: 'pat-token',
     azureDevOpsProjectName: 'MyProject',
     customer: '',
 };
+
+const DEFAULT_PAT = 'pat-token';
 
 function setupConfig(overrides: Partial<AzureDevOpsConfig> = {}) {
     const config = { ...DEFAULT_CONFIG, ...overrides };
@@ -30,10 +30,17 @@ function setupDefaultMocks() {
     (vscode.env as any).openExternal = async (_uri: vscode.Uri) => true;
 }
 
-async function executeCommand(payload: { title: string; workItemType: string; findings: any[]; sigridUrl: string } =
-    { title: 'Test', workItemType: 'Task', findings: [], sigridUrl: 'https://sigrid.example.com' }) {
+function createSecretsStub(personalAccessToken: string | undefined = DEFAULT_PAT): vscode.SecretStorage {
+    return { get: async () => personalAccessToken } as unknown as vscode.SecretStorage;
+}
+
+async function executeCommand(
+    payload: { title: string; workItemType: string; findings: any[]; sigridUrl: string } =
+        { title: 'Test', workItemType: 'Task', findings: [], sigridUrl: 'https://sigrid.example.com' },
+    secrets: vscode.SecretStorage = createSecretsStub()
+) {
     const command = new CreateAzureDevOpsWorkItemCommand();
-    await command.execute(new VsCodeCommandData({} as any, {} as any, payload));
+    await command.execute(new VsCodeCommandData({} as any, {} as any, payload, secrets));
 }
 
 suite('CreateAzureDevOpsWorkItemCommand', () => {
@@ -76,7 +83,7 @@ suite('CreateAzureDevOpsWorkItemCommand', () => {
             return {} as any;
         };
 
-        await executeCommand();
+        await executeCommand(undefined, createSecretsStub(undefined));
 
         assert.strictEqual(fetchCalled, false);
         assert.strictEqual(errorMessage, 'Azure DevOps settings are incomplete. Please configure the organization URL, personal access token, and project name in the extension settings.');
@@ -284,8 +291,8 @@ suite('CreateAzureDevOpsWorkItemCommand', () => {
 
         const command = new CreateAzureDevOpsWorkItemCommand();
         const payload = { title: 'Test', workItemType: 'Bug', findings: [], sigridUrl: 'https://sigrid.example.com' };
-        await command.execute(new VsCodeCommandData({} as any, {} as any, payload));
-        await command.execute(new VsCodeCommandData({} as any, {} as any, payload));
+        await command.execute(new VsCodeCommandData({} as any, {} as any, payload, createSecretsStub()));
+        await command.execute(new VsCodeCommandData({} as any, {} as any, payload, createSecretsStub()));
 
         assert.strictEqual(metadataFetchCount, 1);
     });

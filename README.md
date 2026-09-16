@@ -41,13 +41,13 @@ If you don’t have these values, contact your Sigrid administrator or refer to 
 ## 🚀 Getting Started
 
 1. Install the extension in VS Code.
-2. Open **Settings** and set the following configuration values:
-   - `sigrid-vscode.apiKey` – your Sigrid API key
+2. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run **Sigrid: Set API Key** to store your Sigrid API key securely (it is kept in VS Code's encrypted secret storage, never in plaintext settings).
+3. Open **Settings** and set the following configuration values:
    - `sigrid-vscode.portfolioName` – your Sigrid portfolio name (customer ID)
    - `sigrid-vscode.system` – your Sigrid system ID
    - `sigrid-vscode.subsystem` - (optional) your Sigrid subsystem ID
    - `sigrid-vscode.sigridUrl` – (optional) your Sigrid instance URL. Defaults to `https://sigrid-says.com`.
-3. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run:
+4. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run:
    - **Sigrid: Show Findings**
 
 ---
@@ -58,9 +58,10 @@ If you don’t have these values, contact your Sigrid administrator or refer to 
 
 This extension contributes the following Sigrid-related settings:
 
+Your Sigrid API key is not a regular setting — run **Sigrid: Set API Key** from the Command Palette to store it in VS Code's encrypted secret storage.
+
 | Setting | Description |
 |--------|-------------|
-| `sigrid-vscode.apiKey` | Your Sigrid API Key. |
 | `sigrid-vscode.portfolioName` | Your Sigrid Portfolio Name (formerly `customer`). |
 | `sigrid-vscode.system` | Your Sigrid System ID. |
 | `sigrid-vscode.subsystem` | Your Sigrid Subsystem ID (optional). |
@@ -68,13 +69,14 @@ This extension contributes the following Sigrid-related settings:
 
 ### Jira Settings
 
-These settings are required only if you want to create Jira issues from Sigrid findings:
+These settings are required only if you want to create Jira issues from Sigrid findings. Your JIRA
+personal access token is not a regular setting — run **Sigrid: Set JIRA Personal Access Token** from
+the Command Palette to store it in VS Code's encrypted secret storage.
 
 | Setting | Description |
 |--------|-------------|
 | `sigrid-vscode.jiraBaseUrl` | Your JIRA base URL (e.g. `https://jira.example.com`). |
 | `sigrid-vscode.jiraUser` | Your JIRA username or email address. |
-| `sigrid-vscode.jiraToken` | Your JIRA personal access token. |
 | `sigrid-vscode.jiraSpaceKey` | The JIRA space key to create issues in (e.g. `AAP`). |
 
 ![Jira settings](media/sigrid-jira-settings.png)
@@ -91,12 +93,14 @@ GitHub Copilot Chat is detected automatically and requires no additional configu
 
 ### Azure DevOps Settings
 
-These settings are required only if you want to create Azure DevOps work items from Sigrid findings:
+These settings are required only if you want to create Azure DevOps work items from Sigrid findings.
+Your Azure DevOps personal access token is not a regular setting — run
+**Sigrid: Set Azure DevOps Personal Access Token** from the Command Palette to store it in VS Code's
+encrypted secret storage.
 
 | Setting | Description |
 |--------|-------------|
 | `sigrid-vscode.azureDevOpsOrganizationUrl` | Your Azure DevOps organization URL (e.g. `https://dev.azure.com/myorg` or `https://myorg.visualstudio.com`). |
-| `sigrid-vscode.azureDevOpsPersonalAccessToken` | Your Azure DevOps personal access token. |
 | `sigrid-vscode.azureDevOpsProjectName` | The Azure DevOps project to create work items in (e.g. `MyProject`). |
 
 ---

@@ -13,8 +13,8 @@ export class AzureDevOpsWorkItemTypes {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
-  requestIfNeeded(organizationUrl: string, projectName: string, personalAccessToken: string) {
-    const key = `${organizationUrl}|${projectName}|${personalAccessToken}`;
+  requestIfNeeded(organizationUrl: string, projectName: string, hasPersonalAccessToken: boolean) {
+    const key = `${organizationUrl}|${projectName}|${hasPersonalAccessToken}`;
     if (this.fetchedKey === key && (this.loading() || this.types() !== null)) {
       return;
     }

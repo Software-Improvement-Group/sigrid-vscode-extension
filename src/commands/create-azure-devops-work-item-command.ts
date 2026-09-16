@@ -40,7 +40,7 @@ export class CreateAzureDevOpsWorkItemCommand implements VsCodeCommand<CreateAzu
     async execute(data: VsCodeCommandData<CreateAzureDevOpsWorkItemPayload>) {
         const { title, workItemType, findings, sigridUrl } = data.payload;
         const config = workspace.getConfiguration(EXTENSION_ID);
-        const settings = readAzureDevOpsSettings(config);
+        const settings = await readAzureDevOpsSettings(config, data.secrets);
 
         if (!this.hasCompleteSettings(settings)) {
             window.showErrorMessage('Azure DevOps settings are incomplete. Please configure the organization URL, personal access token, and project name in the extension settings.');

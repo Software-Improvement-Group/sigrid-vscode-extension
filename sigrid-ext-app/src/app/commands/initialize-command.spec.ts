@@ -27,10 +27,10 @@ describe('InitializeCommand', () => {
       sigridUrl: 'https://example.invalid',
       jiraBaseUrl: 'https://jira.example.invalid',
       jiraUser: 'jira-user',
-      jiraToken: 'jira-token',
+      hasJiraToken: true,
       jiraProjectKey: 'SIG',
       azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
-      azureDevOpsPersonalAccessToken: 'azure-token',
+      hasAzureDevOpsToken: true,
       azureDevOpsProjectName: 'my-project',
     };
 
@@ -62,10 +62,10 @@ describe('InitializeCommand', () => {
       sigridUrl: 'https://example.invalid',
       jiraBaseUrl: 'https://jira.example.invalid',
       jiraUser: 'jira-user',
-      jiraToken: 'jira-token',
+      hasJiraToken: true,
       jiraProjectKey: 'SIG',
       azureDevOpsOrganizationUrl: 'https://dev.azure.com/acme',
-      azureDevOpsPersonalAccessToken: 'azure-token',
+      hasAzureDevOpsToken: true,
       azureDevOpsProjectName: 'my-project',
     };
 

@@ -4,6 +4,12 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Changed
+- `sigrid-vscode.apiKey`, `sigrid-vscode.jiraToken`, and `sigrid-vscode.azureDevOpsPersonalAccessToken` are no longer stored as plaintext settings. Use the new **Sigrid: Set API Key**, **Sigrid: Set JIRA Personal Access Token**, and **Sigrid: Set Azure DevOps Personal Access Token** commands to store them in VS Code's encrypted secret storage instead; existing plaintext values are migrated automatically on first activation.
+- The JIRA and Azure DevOps personal access tokens are no longer sent to the webview.
+
 ## [1.0.2] - 2026-09-08
 
 ### Fixed

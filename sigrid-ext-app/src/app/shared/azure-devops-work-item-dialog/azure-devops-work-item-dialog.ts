@@ -39,7 +39,7 @@ export class AzureDevOpsWorkItemDialog {
   constructor() {
     const config = this.sigridConfig.getConfigurationOrEmpty();
     this.workItemTypesService.requestIfNeeded(
-      config.azureDevOpsOrganizationUrl, config.azureDevOpsProjectName, config.azureDevOpsPersonalAccessToken
+      config.azureDevOpsOrganizationUrl, config.azureDevOpsProjectName, config.hasAzureDevOpsToken
     );
 
     effect(() => {
