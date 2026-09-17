@@ -10,6 +10,7 @@ import { getSigridConfiguration, getSigridWebviewConfiguration } from "../utilit
 import { postAiAgentsDetectedMessage } from "../utilities/ai-agents-message";
 import { invalidateAvailability } from "../ai-agents/ai-agent-registry";
 import { SECRET_KEYS } from "../utilities/secrets";
+import { getRelevantKeys } from "../utilities/scoped-secrets";
 
 export class SigridPanel implements WebviewViewProvider {
   private disposables: Disposable[] = [];
@@ -95,10 +96,7 @@ export class SigridPanel implements WebviewViewProvider {
   }
 
   private setConfigurationChangeListener(webview: Webview) {
-    const postConfiguration = async () => {
-      const newConfig = await getSigridWebviewConfiguration(this.secrets);
-      webview.postMessage({ command: "configurationChanged", data: newConfig });
-    };
+    const postConfiguration = () => this.postConfiguration(webview);
 
     workspace.onDidChangeConfiguration(event => {
       if (event.affectsConfiguration(EXTENSION_ID)) {
@@ -106,12 +104,22 @@ export class SigridPanel implements WebviewViewProvider {
       }
     }, undefined, this.disposables);
 
-    const trackedSecretKeys: string[] = Object.values(SECRET_KEYS);
     this.secrets.onDidChange(event => {
-      if (trackedSecretKeys.includes(event.key)) {
+      if (this.isTrackedSecretKey(event.key)) {
         postConfiguration();
       }
     }, undefined, this.disposables);
+
+    workspace.onDidChangeWorkspaceFolders(postConfiguration, undefined, this.disposables);
+  }
+
+  private async postConfiguration(webview: Webview) {
+    const newConfig = await getSigridWebviewConfiguration(this.secrets);
+    webview.postMessage({ command: "configurationChanged", data: newConfig });
+  }
+
+  private isTrackedSecretKey(key: string): boolean {
+    return Object.values(SECRET_KEYS).flatMap(getRelevantKeys).includes(key);
   }
 
   /**

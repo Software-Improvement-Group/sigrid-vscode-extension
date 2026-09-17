@@ -2,6 +2,15 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { migrateCustomerToPortfolioName, migrateSecretsToSecretStorage } from '../utilities/migrations';
 import { SECRET_KEYS } from '../utilities/secrets';
+import { buildScopedKey } from '../utilities/scoped-secrets';
+
+const TEST_WORKSPACE_URI = 'file:///test-workspace';
+
+function mockOpenWorkspace() {
+    const original = (vscode.workspace as any).workspaceFolders;
+    (vscode.workspace as any).workspaceFolders = [{ uri: vscode.Uri.parse(TEST_WORKSPACE_URI) }];
+    return () => { (vscode.workspace as any).workspaceFolders = original; };
+}
 
 type InspectResult = {
     globalValue?: string;
@@ -166,28 +175,50 @@ suite('migrateSecretsToSecretStorage', () => {
         assert.strictEqual(config.store.apiKey.globalValue, undefined);
     });
 
-    test('prefers the most specific scope when multiple legacy values are set', async () => {
-        const config = makeSecretsConfig({ globalValue: 'global-key', workspaceValue: 'workspace-key' });
+    test('migrates the global and workspace legacy values into separate scoped secrets', async () => {
+        const restoreWorkspace = mockOpenWorkspace();
+        try {
+            const config = makeSecretsConfig({ globalValue: 'global-key', workspaceValue: 'workspace-key' });
+            (vscode.workspace as any).getConfiguration = () => config;
+            const secrets = makeFakeSecretStorage();
+
+            await migrateSecretsToSecretStorage({ secrets } as unknown as vscode.ExtensionContext);
+
+            assert.strictEqual(await secrets.get(SECRET_KEYS.apiKey), 'global-key');
+            assert.strictEqual(await secrets.get(buildScopedKey(SECRET_KEYS.apiKey, TEST_WORKSPACE_URI)), 'workspace-key');
+        } finally {
+            restoreWorkspace();
+        }
+    });
+
+    test('prefers workspaceFolderValue over workspaceValue for the workspace-scoped secret', async () => {
+        const restoreWorkspace = mockOpenWorkspace();
+        try {
+            const config = makeSecretsConfig({
+                globalValue: 'global-key',
+                workspaceValue: 'workspace-key',
+                workspaceFolderValue: 'workspace-folder-key',
+            });
+            (vscode.workspace as any).getConfiguration = () => config;
+            const secrets = makeFakeSecretStorage();
+
+            await migrateSecretsToSecretStorage({ secrets } as unknown as vscode.ExtensionContext);
+
+            assert.strictEqual(await secrets.get(SECRET_KEYS.apiKey), 'global-key');
+            assert.strictEqual(await secrets.get(buildScopedKey(SECRET_KEYS.apiKey, TEST_WORKSPACE_URI)), 'workspace-folder-key');
+        } finally {
+            restoreWorkspace();
+        }
+    });
+
+    test('falls back to global scope for a workspace-scoped legacy value when no workspace is open', async () => {
+        const config = makeSecretsConfig({ workspaceValue: 'workspace-key' });
         (vscode.workspace as any).getConfiguration = () => config;
         const secrets = makeFakeSecretStorage();
 
         await migrateSecretsToSecretStorage({ secrets } as unknown as vscode.ExtensionContext);
 
         assert.strictEqual(await secrets.get(SECRET_KEYS.apiKey), 'workspace-key');
-    });
-
-    test('prefers workspaceFolderValue over workspaceValue and globalValue', async () => {
-        const config = makeSecretsConfig({
-            globalValue: 'global-key',
-            workspaceValue: 'workspace-key',
-            workspaceFolderValue: 'workspace-folder-key',
-        });
-        (vscode.workspace as any).getConfiguration = () => config;
-        const secrets = makeFakeSecretStorage();
-
-        await migrateSecretsToSecretStorage({ secrets } as unknown as vscode.ExtensionContext);
-
-        assert.strictEqual(await secrets.get(SECRET_KEYS.apiKey), 'workspace-folder-key');
     });
 
     test('does nothing when no legacy secret setting is present', async () => {
@@ -209,5 +240,24 @@ suite('migrateSecretsToSecretStorage', () => {
         await migrateSecretsToSecretStorage({ secrets } as unknown as vscode.ExtensionContext);
 
         assert.strictEqual(await secrets.get(SECRET_KEYS.apiKey), 'already-migrated-key');
+    });
+
+    test('does not overwrite a workspace-scoped secret that has already been migrated', async () => {
+        const restoreWorkspace = mockOpenWorkspace();
+        try {
+            const config = makeSecretsConfig({ workspaceValue: 'old-workspace-key' });
+            (vscode.workspace as any).getConfiguration = () => config;
+            const secrets = makeFakeSecretStorage();
+            await secrets.store(buildScopedKey(SECRET_KEYS.apiKey, TEST_WORKSPACE_URI), 'already-migrated-workspace-key');
+
+            await migrateSecretsToSecretStorage({ secrets } as unknown as vscode.ExtensionContext);
+
+            assert.strictEqual(
+                await secrets.get(buildScopedKey(SECRET_KEYS.apiKey, TEST_WORKSPACE_URI)),
+                'already-migrated-workspace-key'
+            );
+        } finally {
+            restoreWorkspace();
+        }
     });
 });

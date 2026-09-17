@@ -1,6 +1,7 @@
 import { SecretStorage, workspace } from "vscode";
 import { EXTENSION_ID } from "../extension.config";
 import { SECRET_KEYS } from "./secrets";
+import { getSecret } from "./scoped-secrets";
 
 export function getSigridConfiguration() {
     const config = workspace.getConfiguration(EXTENSION_ID);
@@ -19,9 +20,9 @@ export function getSigridConfiguration() {
 
 export async function getSigridWebviewConfiguration(secrets: SecretStorage) {
     const [apiKey, jiraToken, azureDevOpsToken] = await Promise.all([
-        secrets.get(SECRET_KEYS.apiKey),
-        secrets.get(SECRET_KEYS.jiraToken),
-        secrets.get(SECRET_KEYS.azureDevOpsPersonalAccessToken),
+        getSecret(secrets, SECRET_KEYS.apiKey),
+        getSecret(secrets, SECRET_KEYS.jiraToken),
+        getSecret(secrets, SECRET_KEYS.azureDevOpsPersonalAccessToken),
     ]);
 
     return {

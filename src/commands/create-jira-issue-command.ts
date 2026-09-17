@@ -8,6 +8,7 @@ import { trackUsage } from "../utilities/usage-statistics";
 import { buildBasicAuthHeader } from "../utilities/basic-auth";
 import { formatLocation } from "../utilities/format-location";
 import { SECRET_KEYS } from "../utilities/secrets";
+import { getSecret } from "../utilities/scoped-secrets";
 
 interface CreateJiraIssuePayload {
     title: string;
@@ -22,7 +23,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
 
         const jiraBaseUrl = normalizeBaseUrl(config.get<string>('jiraBaseUrl', ''));
         const jiraUser = config.get<string>('jiraUser', '').trim();
-        const jiraToken = (await data.secrets.get(SECRET_KEYS.jiraToken) ?? '').trim();
+        const jiraToken = (await getSecret(data.secrets, SECRET_KEYS.jiraToken) ?? '').trim();
         const jiraProjectKey = config.get<string>('jiraSpaceKey', '').trim();
 
         if (!jiraBaseUrl || !jiraUser || !jiraToken || !jiraProjectKey) {

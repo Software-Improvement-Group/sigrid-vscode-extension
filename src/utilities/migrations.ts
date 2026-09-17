@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { EXTENSION_ID } from '../extension.config';
 import { SECRET_KEYS } from './secrets';
+import { buildScopedKey, getWorkspaceId, setSecret } from './scoped-secrets';
 
 const LEGACY_SECRET_SETTING_KEYS: Record<keyof typeof SECRET_KEYS, string> = {
     apiKey: 'apiKey',
@@ -14,17 +15,55 @@ export async function migrateSecretsToSecretStorage(context: vscode.ExtensionCon
     }
 }
 
+interface LegacyInspectResult {
+    globalValue?: string;
+    workspaceValue?: string;
+    workspaceFolderValue?: string;
+}
+
 async function migrateSecretSetting(context: vscode.ExtensionContext, key: keyof typeof SECRET_KEYS) {
     const settingKey = LEGACY_SECRET_SETTING_KEYS[key];
     const config = vscode.workspace.getConfiguration(EXTENSION_ID);
     const legacy = config.inspect<string>(settingKey);
-    const value = legacy?.workspaceFolderValue || legacy?.workspaceValue || legacy?.globalValue;
-    if (!value || await context.secrets.get(SECRET_KEYS[key])) {
+    if (!legacy) {
         return;
     }
 
-    await context.secrets.store(SECRET_KEYS[key], value);
-    await clearLegacySecretSetting(config, settingKey, legacy);
+    const baseKey = SECRET_KEYS[key];
+    const migratedGlobal = await migrateGlobalSecretValue(context.secrets, baseKey, legacy.globalValue);
+    const migratedWorkspace = await migrateWorkspaceSecretValue(context.secrets, baseKey, legacy);
+
+    if (migratedGlobal || migratedWorkspace) {
+        await clearLegacySecretSetting(config, settingKey, legacy);
+    }
+}
+
+async function migrateGlobalSecretValue(secrets: vscode.SecretStorage, baseKey: string, globalValue: string | undefined): Promise<boolean> {
+    if (!globalValue || await secrets.get(baseKey)) {
+        return false;
+    }
+
+    await setSecret({ secrets, baseKey, value: globalValue, scope: 'global' });
+    return true;
+}
+
+async function migrateWorkspaceSecretValue(secrets: vscode.SecretStorage, baseKey: string, legacy: LegacyInspectResult): Promise<boolean> {
+    const workspaceValue = legacy?.workspaceFolderValue || legacy?.workspaceValue;
+    if (!workspaceValue) {
+        return false;
+    }
+
+    const workspaceId = getWorkspaceId();
+    if (!workspaceId) {
+        return migrateGlobalSecretValue(secrets, baseKey, workspaceValue);
+    }
+
+    if (await secrets.get(buildScopedKey(baseKey, workspaceId))) {
+        return false;
+    }
+
+    await setSecret({ secrets, baseKey, value: workspaceValue, scope: 'workspace' });
+    return true;
 }
 
 async function clearLegacySecretSetting(

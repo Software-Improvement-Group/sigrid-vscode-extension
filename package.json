@@ -102,7 +102,7 @@
           "sigrid-vscode.sigridUrl": {
             "type": "string",
             "default": "https://sigrid-says.com",
-            "description": "The URL of your Sigrid instance. Only change this if you are using a self-hosted version of Sigrid.",
+            "markdownDescription": "The URL of your Sigrid instance. Only change this if you are using a self-hosted version of Sigrid.\n\n[**Set Sigrid API Key**](command:sigrid-vscode.setApiKey)",
             "order": 4
           }
         }
@@ -134,7 +134,7 @@
           "sigrid-vscode.jiraBaseUrl": {
             "type": "string",
             "default": "",
-            "description": "Your JIRA base URL (e.g. https://jira.example.com).",
+            "markdownDescription": "Your JIRA base URL (e.g. https://jira.example.com).\n\n[**Set JIRA Personal Access Token**](command:sigrid-vscode.setJiraToken)",
             "order": 0
           },
           "sigrid-vscode.jiraUser": {
@@ -158,7 +158,7 @@
           "sigrid-vscode.azureDevOpsOrganizationUrl": {
             "type": "string",
             "default": "",
-            "description": "Your Azure DevOps organization URL (e.g. https://dev.azure.com/myorg or https://myorg.visualstudio.com).",
+            "markdownDescription": "Your Azure DevOps organization URL (e.g. https://dev.azure.com/myorg or https://myorg.visualstudio.com).\n\n[**Set Azure DevOps Personal Access Token**](command:sigrid-vscode.setAzureDevOpsToken)",
             "order": 0
           },
           "sigrid-vscode.azureDevOpsProjectName": {
