@@ -1,4 +1,4 @@
-import { env, Uri, window, workspace } from "vscode";
+import { window, workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { EXTENSION_ID } from "../extension.config";
@@ -9,6 +9,7 @@ import { buildBasicAuthHeader } from "../utilities/basic-auth";
 import { formatLocation } from "../utilities/format-location";
 import { SECRET_KEYS } from "../utilities/secrets";
 import { getSecret } from "../utilities/scoped-secrets";
+import { openExternalUrl } from "../utilities/url-validation";
 
 interface CreateJiraIssuePayload {
     title: string;
@@ -71,7 +72,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         );
 
         if (action === 'Open in Browser') {
-            env.openExternal(Uri.parse(`${jiraBaseUrl}/browse/${issueKey}`));
+            await openExternalUrl(`${jiraBaseUrl}/browse/${issueKey}`);
         }
     }
 

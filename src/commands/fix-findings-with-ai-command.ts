@@ -1,4 +1,4 @@
-import { env, Uri, window } from "vscode";
+import { window } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { FixFindingsPayload } from "./fix-findings-payload";
@@ -7,6 +7,7 @@ import { AiAgentProvider } from "../ai-agents/ai-agent-provider";
 import { buildFixPrompt, FixPrompt } from "../ai-agents/fix-prompt-builder";
 import { getSigridConfiguration } from "../utilities/configuration";
 import { trackUsage } from "../utilities/usage-statistics";
+import { openExternalUrl } from "../utilities/url-validation";
 
 const TERMINAL_HINT = 'Claude Code was started in a new terminal with the selected findings.';
 
@@ -81,7 +82,7 @@ export class FixFindingsWithAiCommand implements VsCodeCommand<FixFindingsPayloa
         try {
             const action = await window.showInformationMessage(hint.message, hint.action);
             if (action === hint.action) {
-                await env.openExternal(Uri.parse(hint.uri));
+                await openExternalUrl(hint.uri);
             }
         } catch (error) {
             console.error(`Failed to open the MCP install link for ${agent.label}:`, error);

@@ -1,4 +1,4 @@
-import { env, Uri, window, workspace } from "vscode";
+import { window, workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { EXTENSION_ID } from "../extension.config";
@@ -9,6 +9,7 @@ import { trackUsage } from "../utilities/usage-statistics";
 import { buildBasicAuthHeader } from "../utilities/basic-auth";
 import { formatLocation } from "../utilities/format-location";
 import { buildAzureDevOpsWitUrl } from "../utilities/azure-devops-api";
+import { openExternalUrl } from "../utilities/url-validation";
 
 const REPRO_STEPS_FIELD = 'Microsoft.VSTS.TCM.ReproSteps';
 
@@ -136,7 +137,7 @@ export class CreateAzureDevOpsWorkItemCommand implements VsCodeCommand<CreateAzu
         );
 
         if (action === 'Open in Browser' && href) {
-            env.openExternal(Uri.parse(href));
+            await openExternalUrl(href);
         }
     }
 
