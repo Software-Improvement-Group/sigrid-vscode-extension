@@ -59,14 +59,15 @@ describe('SvgIcon', () => {
   });
 
   it('sanitizes the loaded SVG before storing it', async () => {
-    const svgContent = '<svg><circle cx="1" cy="2" r="3"></circle></svg>';
+    const svgContent = '<svg><script>alert(1)</script><circle cx="1" cy="2" r="3" onclick="alert(1)"></circle></svg>';
     appResource.loadSvgContent.mockResolvedValue(svgContent);
     const sanitizer = TestBed.inject(DomSanitizer);
     const bypassSecurityTrustHtml = vi.spyOn(sanitizer, 'bypassSecurityTrustHtml');
 
     await setIconName('sigrid-light');
 
-    expect(bypassSecurityTrustHtml).toHaveBeenCalledWith(svgContent);
+    expect(bypassSecurityTrustHtml).toHaveBeenCalledWith(expect.not.stringContaining('script'));
+    expect(bypassSecurityTrustHtml).toHaveBeenCalledWith(expect.not.stringContaining('onclick'));
     expect(component.svgHtml()).toBe(bypassSecurityTrustHtml.mock.results[0].value);
   });
 
@@ -83,9 +84,25 @@ describe('SvgIcon', () => {
   it('does not update the rendered icon when no SVG content is returned', async () => {
     appResource.loadSvgContent.mockResolvedValue('');
 
+    await setIconName('jira');
+
+    expect(appResource.loadSvgContent).toHaveBeenCalledWith('jira.svg');
+    expect(component.svgHtml()).toBe('');
+    expect(getIconEl().innerHTML).toBe('');
+  });
+
+  it('rejects unknown icon names without loading SVG content', async () => {
     await setIconName('missing-icon');
 
-    expect(appResource.loadSvgContent).toHaveBeenCalledWith('missing-icon.svg');
+    expect(appResource.loadSvgContent).not.toHaveBeenCalled();
+    expect(component.svgHtml()).toBe('');
+    expect(getIconEl().innerHTML).toBe('');
+  });
+
+  it('rejects traversal-style icon names without loading SVG content', async () => {
+    await setIconName('../../etc/passwd');
+
+    expect(appResource.loadSvgContent).not.toHaveBeenCalled();
     expect(component.svgHtml()).toBe('');
     expect(getIconEl().innerHTML).toBe('');
   });
