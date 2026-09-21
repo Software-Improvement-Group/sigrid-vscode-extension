@@ -6,6 +6,8 @@ import { SigridConfiguration } from './services/sigrid-configuration';
 import { FindingSelection } from './services/finding-selection';
 import { SigridDialog } from './shared/dialog/sigrid-dialog';
 import { JiraIssueDialog } from './shared/jira-issue-dialog/jira-issue-dialog';
+import { VsCommandRegistry } from './commands/vs-command-registry';
+import { WebviewMessage } from './models/webview-message';
 
 describe('App', () => {
   const sigridConfiguration = {
@@ -21,6 +23,10 @@ describe('App', () => {
     open: vi.fn(),
   };
 
+  const commandRegistry = {
+    execute: vi.fn(),
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
     sigridConfiguration.isConfigurationValid.set(true);
@@ -34,6 +40,7 @@ describe('App', () => {
         { provide: SigridConfiguration, useValue: sigridConfiguration },
         { provide: FindingSelection, useValue: findingSelectionService },
         { provide: SigridDialog, useValue: dialog },
+        { provide: VsCommandRegistry, useValue: commandRegistry },
       ],
     }).compileComponents();
   });
@@ -71,5 +78,43 @@ describe('App', () => {
     fixture.componentInstance['onCreateJiraIssue']();
 
     expect(dialog.open).toHaveBeenCalledWith(JiraIssueDialog);
+  });
+
+  it('dispatches to the command registry for a same-origin, well-formed message', () => {
+    const fixture = TestBed.createComponent(App);
+    const message = new MessageEvent('message', {
+      data: { command: 'activeEditorChanged', data: { filePath: 'foo.ts' } },
+      origin: window.origin,
+    });
+
+    fixture.componentInstance.onMessageReceived(message);
+
+    expect(commandRegistry.execute).toHaveBeenCalledWith('activeEditorChanged', { filePath: 'foo.ts' });
+  });
+
+  it('ignores messages from a different origin', () => {
+    const fixture = TestBed.createComponent(App);
+    const message = new MessageEvent('message', {
+      data: { command: 'activeEditorChanged', data: {} },
+      origin: 'https://evil.example',
+    });
+
+    fixture.componentInstance.onMessageReceived(message);
+
+    expect(commandRegistry.execute).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['null data', null],
+    ['non-object data', 'not-an-object'],
+    ['missing command', { data: {} }],
+    ['non-string command', { command: 123, data: {} }],
+  ])('ignores malformed messages: %s', (_description, data) => {
+    const fixture = TestBed.createComponent(App);
+    const message = new MessageEvent('message', { data, origin: window.origin }) as MessageEvent<WebviewMessage>;
+
+    fixture.componentInstance.onMessageReceived(message);
+
+    expect(commandRegistry.execute).not.toHaveBeenCalled();
   });
 });
