@@ -21,8 +21,8 @@ export class SigridPanel implements WebviewViewProvider {
     webviewView.webview.options = {
       // Enable JavaScript in the webview
       enableScripts: true,
-      // Restrict the webview to only load resources from the `out` and `webview-ui/build` directories
-      localResourceRoots: [Uri.joinPath(this.extensionUri, "out"), Uri.joinPath(this.extensionUri, AngularApp.outputFolder)],
+      // Restrict the webview to only load resources from the Angular build output directory
+      localResourceRoots: [Uri.joinPath(this.extensionUri, AngularApp.outputFolder)],
     };
 
     webviewView.webview.html = this.getWebviewContent(webviewView.webview);
