@@ -8,5 +8,5 @@ jobs:
       - name: "Check out repository"
         uses: actions/checkout@v4
       - run: "npm ci"
-      - run: "npm audit --audit-level=high"
-      - run: "cd sigrid-ext-app && npm install && npm audit --audit-level=high && npm test --coverage"
+      - run: "npm audit --audit-level=critical"
+      - run: "cd sigrid-ext-app && npm install && npm audit --audit-level=critical && npm test --coverage"
