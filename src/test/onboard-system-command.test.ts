@@ -7,7 +7,6 @@ import { OnboardSystemCommand } from '../commands/onboard-system-command';
 import { VsCodeCommandData } from '../commands/vscode-command-data';
 
 interface SigridConfig {
-    apiKey: string;
     customer: string;
     system: string;
     subsystem: string;
@@ -15,7 +14,6 @@ interface SigridConfig {
 }
 
 const DEFAULT_CONFIG: SigridConfig = {
-    apiKey: 'api-key',
     customer: 'acme',
     system: 'my-system',
     subsystem: '',
@@ -27,6 +25,10 @@ function setupConfig(overrides: Partial<SigridConfig> = {}) {
     (vscode.workspace as any).getConfiguration = () => ({
         get: (key: string, defaultValue: any) => (config as any)[key] ?? defaultValue,
     });
+}
+
+function createSecretsStub(apiKey: string | undefined = 'api-key'): vscode.SecretStorage {
+    return { get: async () => apiKey } as unknown as vscode.SecretStorage;
 }
 
 function setupWorkspaceFolder(workspaceRoot: string | undefined) {
@@ -89,7 +91,7 @@ function setupFetch(overrides: FetchStageOverrides = {}) {
 
 async function executeCommand(webview: any) {
     const command = new OnboardSystemCommand();
-    await command.execute(new VsCodeCommandData(webview, {} as any, undefined));
+    await command.execute(new VsCodeCommandData(webview, {} as any, undefined, createSecretsStub()));
 }
 
 suite('OnboardSystemCommand', () => {

@@ -4,14 +4,12 @@ import { CheckSystemOnboardedCommand } from '../commands/check-system-onboarded-
 import { VsCodeCommandData } from '../commands/vscode-command-data';
 
 interface SigridConfig {
-    apiKey: string;
     customer: string;
     system: string;
     sigridUrl: string;
 }
 
 const DEFAULT_CONFIG: SigridConfig = {
-    apiKey: 'api-key',
     customer: 'acme',
     system: 'my-system',
     sigridUrl: 'https://sigrid-says.com',
@@ -24,6 +22,10 @@ function setupConfig(overrides: Partial<SigridConfig> = {}) {
     });
 }
 
+function createSecretsStub(apiKey: string | undefined = 'api-key'): vscode.SecretStorage {
+    return { get: async () => apiKey } as unknown as vscode.SecretStorage;
+}
+
 function createFakeWebview() {
     const messages: any[] = [];
     return {
@@ -34,7 +36,7 @@ function createFakeWebview() {
 
 async function executeCommand(webview: any) {
     const command = new CheckSystemOnboardedCommand();
-    await command.execute(new VsCodeCommandData(webview, {} as any, undefined));
+    await command.execute(new VsCodeCommandData(webview, {} as any, undefined, createSecretsStub()));
 }
 
 suite('CheckSystemOnboardedCommand', () => {
