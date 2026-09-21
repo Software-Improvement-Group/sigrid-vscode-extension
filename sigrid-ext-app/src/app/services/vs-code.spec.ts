@@ -127,6 +127,46 @@ describe('VsCode service', () => {
     expect(arg.data).toEqual(location);
   });
 
+  it('checkSystemOnboarded() sends a VsCommand(CheckSystemOnboarded)', () => {
+    const postMessageSpy = vi.fn();
+    (globalThis as any).acquireVsCodeApi = vi.fn(() => ({postMessage: postMessageSpy}));
+
+    TestBed.configureTestingModule({
+      providers: [VsCode],
+    });
+
+    const svc = TestBed.inject(VsCode);
+
+    svc.checkSystemOnboarded();
+
+    expect(postMessageSpy).toHaveBeenCalledTimes(1);
+
+    const arg = postMessageSpy.mock.calls[0]![0] as VsCommand<unknown>;
+    expect(arg).toBeInstanceOf(VsCommand);
+    expect(arg.command).toBe(VsCommandType.CheckSystemOnboarded);
+    expect(arg.data).toBeUndefined();
+  });
+
+  it('onboardSystem() sends a VsCommand(OnboardSystem)', () => {
+    const postMessageSpy = vi.fn();
+    (globalThis as any).acquireVsCodeApi = vi.fn(() => ({postMessage: postMessageSpy}));
+
+    TestBed.configureTestingModule({
+      providers: [VsCode],
+    });
+
+    const svc = TestBed.inject(VsCode);
+
+    svc.onboardSystem();
+
+    expect(postMessageSpy).toHaveBeenCalledTimes(1);
+
+    const arg = postMessageSpy.mock.calls[0]![0] as VsCommand<unknown>;
+    expect(arg).toBeInstanceOf(VsCommand);
+    expect(arg.command).toBe(VsCommandType.OnboardSystem);
+    expect(arg.data).toBeUndefined();
+  });
+
   it('does not throw if acquireVsCodeApi exists but returns undefined', () => {
     (globalThis as any).acquireVsCodeApi = vi.fn(() => undefined);
 

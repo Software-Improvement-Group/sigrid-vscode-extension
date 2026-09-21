@@ -3,6 +3,7 @@ import {InitializeCommand} from './initialize-command';
 import type {Configuration} from '../models/configuration';
 import type {SigridConfiguration} from '../services/sigrid-configuration';
 import {UsageStatistics} from '../services/usage-statistics';
+import type {SystemOnboarding} from '../services/system-onboarding';
 
 describe('InitializeCommand', () => {
   it('calls SigridConfiguration.setConfiguration with the provided configuration', () => {
@@ -14,9 +15,14 @@ describe('InitializeCommand', () => {
       send: vi.fn(),
     };
 
+    const systemOnboardingMock: Pick<SystemOnboarding, 'check'> = {
+      check: vi.fn(),
+    };
+
     const cmd = new InitializeCommand(
       sigridConfigMock as SigridConfiguration,
-      usageStatisticsMock as UsageStatistics
+      usageStatisticsMock as UsageStatistics,
+      systemOnboardingMock as SystemOnboarding,
     );
 
     const cfg: Configuration = {
@@ -49,9 +55,14 @@ describe('InitializeCommand', () => {
       send: vi.fn(),
     };
 
+    const systemOnboardingMock: Pick<SystemOnboarding, 'check'> = {
+      check: vi.fn(),
+    };
+
     const cmd = new InitializeCommand(
       sigridConfigMock as SigridConfiguration,
       usageStatisticsMock as UsageStatistics,
+      systemOnboardingMock as SystemOnboarding,
     );
 
     const cfg: Configuration = {

@@ -10,6 +10,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - `sigrid-vscode.apiKey`, `sigrid-vscode.jiraToken`, and `sigrid-vscode.azureDevOpsPersonalAccessToken` are no longer stored as plaintext settings. Use the new **Sigrid: Set API Key**, **Sigrid: Set JIRA Personal Access Token**, and **Sigrid: Set Azure DevOps Personal Access Token** commands to store them in VS Code's encrypted secret storage instead; existing plaintext values are migrated automatically on first activation.
 - The JIRA and Azure DevOps personal access tokens are no longer sent to the webview.
 
+## [1.0.3] - 2026-09-14
+
+### Added
+- In-webview system onboarding flow: if the configured system isn't yet onboarded to Sigrid, the panel now offers to onboard it directly, zipping the workspace and uploading it to Sigrid CI without leaving VS Code.
+- Automatic detection of whether the configured system exists in Sigrid, with a status view (checking, not onboarded, onboarding in progress, error) shown before findings are loaded.
+
 ## [1.0.2] - 2026-09-08
 
 ### Fixed

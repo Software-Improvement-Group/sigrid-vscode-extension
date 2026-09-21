@@ -7,6 +7,9 @@ import {InitializeCommand} from './initialize-command';
 import {ActiveEditorChangedCommand} from './active-editor-changed-command';
 import {SigridData} from '../services/sigrid-data';
 import {UsageStatistics} from '../services/usage-statistics';
+import {SystemOnboarding} from '../services/system-onboarding';
+import {SystemOnboardStatusCommand} from './system-onboard-status-command';
+import {OnboardSystemResultCommand} from './onboard-system-result-command';
 
 describe('VsCommandRegistry', () => {
   afterEach(() => {
@@ -37,6 +40,14 @@ describe('VsCommandRegistry', () => {
           provide: UsageStatistics,
           useValue: {
             send: vi.fn(),
+          },
+        },
+        {
+          provide: SystemOnboarding,
+          useValue: {
+            check: vi.fn(),
+            onCheckResult: vi.fn(),
+            onOnboardResult: vi.fn(),
           },
         },
       ],
@@ -76,6 +87,14 @@ describe('VsCommandRegistry', () => {
             send: vi.fn(),
           },
         },
+        {
+          provide: SystemOnboarding,
+          useValue: {
+            check: vi.fn(),
+            onCheckResult: vi.fn(),
+            onOnboardResult: vi.fn(),
+          },
+        },
       ],
     });
 
@@ -86,6 +105,96 @@ describe('VsCommandRegistry', () => {
 
     expect(activeExecuteSpy).toHaveBeenCalledTimes(1);
     expect(activeExecuteSpy).toHaveBeenCalledWith(payload);
+  });
+
+  it('executes the "systemOnboardStatus" command handler with the given payload', () => {
+    const statusExecuteSpy = vi.spyOn(SystemOnboardStatusCommand.prototype, 'execute');
+
+    TestBed.configureTestingModule({
+      providers: [
+        VsCommandRegistry,
+        {
+          provide: SigridConfiguration,
+          useValue: {
+            setConfiguration: vi.fn(),
+          },
+        },
+        {
+          provide: SigridData,
+          useValue: {
+            loadAllFindings: vi.fn(),
+            setActiveFilePath: vi.fn(),
+          },
+        },
+        {
+          provide: UsageStatistics,
+          useValue: {
+            send: vi.fn(),
+          },
+        },
+        {
+          provide: SystemOnboarding,
+          useValue: {
+            check: vi.fn(),
+            onCheckResult: vi.fn(),
+            onOnboardResult: vi.fn(),
+          },
+        },
+      ],
+    });
+
+    const registry = TestBed.inject(VsCommandRegistry);
+
+    const payload = {status: 'onboarded' as const};
+    registry.execute('systemOnboardStatus', payload);
+
+    expect(statusExecuteSpy).toHaveBeenCalledTimes(1);
+    expect(statusExecuteSpy).toHaveBeenCalledWith(payload);
+  });
+
+  it('executes the "onboardSystemResult" command handler with the given payload', () => {
+    const resultExecuteSpy = vi.spyOn(OnboardSystemResultCommand.prototype, 'execute');
+
+    TestBed.configureTestingModule({
+      providers: [
+        VsCommandRegistry,
+        {
+          provide: SigridConfiguration,
+          useValue: {
+            setConfiguration: vi.fn(),
+          },
+        },
+        {
+          provide: SigridData,
+          useValue: {
+            loadAllFindings: vi.fn(),
+            setActiveFilePath: vi.fn(),
+          },
+        },
+        {
+          provide: UsageStatistics,
+          useValue: {
+            send: vi.fn(),
+          },
+        },
+        {
+          provide: SystemOnboarding,
+          useValue: {
+            check: vi.fn(),
+            onCheckResult: vi.fn(),
+            onOnboardResult: vi.fn(),
+          },
+        },
+      ],
+    });
+
+    const registry = TestBed.inject(VsCommandRegistry);
+
+    const payload = {success: true};
+    registry.execute('onboardSystemResult', payload);
+
+    expect(resultExecuteSpy).toHaveBeenCalledTimes(1);
+    expect(resultExecuteSpy).toHaveBeenCalledWith(payload);
   });
 
   it('does nothing for unknown commands (no throw)', () => {
@@ -112,6 +221,14 @@ describe('VsCommandRegistry', () => {
           provide: UsageStatistics,
           useValue: {
             send: vi.fn(),
+          },
+        },
+        {
+          provide: SystemOnboarding,
+          useValue: {
+            check: vi.fn(),
+            onCheckResult: vi.fn(),
+            onOnboardResult: vi.fn(),
           },
         },
       ],

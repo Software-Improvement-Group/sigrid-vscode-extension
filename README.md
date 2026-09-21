@@ -16,6 +16,7 @@ A Visual Studio Code extension that brings Sigrid findings directly into your ed
 - **Create Jira issues** from selected findings (when JIRA settings are configured)
 - **Create Azure DevOps work items** from selected findings (when Azure DevOps settings are configured)
 - **Fix with AI** — hand selected findings off to a detected coding agent (Claude Code or GitHub Copilot Chat) with a generated prompt, referencing the Sigrid MCP server when available
+- **In-webview system onboarding** — if the configured system isn't onboarded to Sigrid yet, onboard it directly from the panel without leaving VS Code
 
 ![Visual Studio Code window showing the Sigrid extension dashboard with a findings panel](media/sigrid-vscode-window.png)
 ![Sigrid findings panel in VS Code with a table of findings](media/sigrid-vscode-panel.png)
@@ -49,6 +50,8 @@ If you don’t have these values, contact your Sigrid administrator or refer to 
    - `sigrid-vscode.sigridUrl` – (optional) your Sigrid instance URL. Defaults to `https://sigrid-says.com`.
 4. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run:
    - **Sigrid: Show Findings**
+
+If the configured system hasn't been onboarded to Sigrid yet, the panel will offer to onboard it for you — this zips your workspace and uploads it to Sigrid CI.
 
 ---
 
