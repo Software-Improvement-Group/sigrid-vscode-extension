@@ -9,7 +9,7 @@ import { buildBasicAuthHeader } from "../utilities/basic-auth";
 import { formatLocation } from "../utilities/format-location";
 import { SECRET_KEYS } from "../utilities/secrets";
 import { getSecret } from "../utilities/scoped-secrets";
-import { openExternalUrl } from "../utilities/url-validation";
+import { openExternalUrl, parseExternalUrl } from "../utilities/url-validation";
 
 interface CreateJiraIssuePayload {
     title: string;
@@ -29,6 +29,10 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
 
         if (!jiraBaseUrl || !jiraUser || !jiraToken || !jiraProjectKey) {
             window.showErrorMessage('JIRA settings are incomplete. Please configure JIRA base URL, user, token, and space key in the extension settings.');
+            return;
+        }
+
+        if (!this.validateJiraBaseUrl(jiraBaseUrl)) {
             return;
         }
 
@@ -57,7 +61,7 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         if (!response.ok) {
             const errorBody = await response.text();
             console.error('JIRA API error:', response.status, errorBody);
-            window.showErrorMessage(`Failed to create JIRA issue (${response.status}): ${errorBody.substring(0, 200)}`);
+            window.showErrorMessage(this.buildErrorMessage(response.status, errorBody));
             return;
         }
 
@@ -74,6 +78,50 @@ export class CreateJiraIssueCommand implements VsCodeCommand<CreateJiraIssuePayl
         if (action === 'Open in Browser') {
             await openExternalUrl(`${jiraBaseUrl}/browse/${issueKey}`);
         }
+    }
+
+    private validateJiraBaseUrl(jiraBaseUrl: string): boolean {
+        let uri;
+        try {
+            uri = parseExternalUrl(jiraBaseUrl);
+        } catch (error) {
+            console.error('Invalid JIRA base URL:', error);
+            window.showErrorMessage('Invalid JIRA base URL configured. Please check the jiraBaseUrl setting.');
+            return false;
+        }
+
+        if (uri.scheme === 'http') {
+            void window.showWarningMessage(
+                'The configured JIRA base URL uses an insecure http:// connection. Your JIRA credentials will be sent unencrypted.'
+            );
+        }
+
+        return true;
+    }
+
+    private buildErrorMessage(status: number, errorBody: string): string {
+        const detail = this.extractJiraErrorDetail(errorBody);
+        if (detail) {
+            return `Failed to create JIRA issue (${status}): ${detail.substring(0, 200)}`;
+        }
+        return `Failed to create JIRA issue (${status}). See the console for details.`;
+    }
+
+    private extractJiraErrorDetail(errorBody: string): string | null {
+        let parsed: { errorMessages?: string[]; errors?: Record<string, string> };
+        try {
+            parsed = JSON.parse(errorBody);
+        } catch {
+            return null;
+        }
+
+        const messages = this.collectJiraErrorMessages(parsed);
+        return messages.length > 0 ? messages.join('; ') : null;
+    }
+
+    private collectJiraErrorMessages(parsed: { errorMessages?: string[]; errors?: Record<string, string> }): string[] {
+        const candidates = (parsed.errorMessages ?? []).concat(Object.values(parsed.errors ?? {}));
+        return candidates.filter(message => typeof message === 'string' && message.length > 0);
     }
 
     private async callJiraApi(

@@ -29,6 +29,7 @@ function setupConfig(overrides: Partial<JiraConfig> = {}) {
 function setupDefaultMocks() {
     (vscode.window as any).showInformationMessage = (_message: string, option: string) => Promise.resolve(option as any);
     (vscode.window as any).showErrorMessage = (_message: string) => Promise.resolve(undefined);
+    (vscode.window as any).showWarningMessage = (_message: string) => Promise.resolve(undefined);
     (vscode.env as any).openExternal = async (_uri: vscode.Uri) => true;
 }
 
@@ -46,25 +47,31 @@ async function executeCommand(
 
 suite('CreateJiraIssueCommand', () => {
     let originalShowErrorMessage: any;
+    let originalShowWarningMessage: any;
     let originalShowInformationMessage: any;
     let originalGetConfiguration: any;
     let originalOpenExternal: any;
     let originalFetch: any;
+    let originalConsoleError: any;
 
     setup(() => {
         originalShowErrorMessage = (vscode.window as any).showErrorMessage;
+        originalShowWarningMessage = (vscode.window as any).showWarningMessage;
         originalShowInformationMessage = (vscode.window as any).showInformationMessage;
         originalGetConfiguration = (vscode.workspace as any).getConfiguration;
         originalOpenExternal = (vscode.env as any).openExternal;
         originalFetch = globalThis.fetch;
+        originalConsoleError = console.error;
     });
 
     teardown(() => {
         (vscode.window as any).showErrorMessage = originalShowErrorMessage;
+        (vscode.window as any).showWarningMessage = originalShowWarningMessage;
         (vscode.window as any).showInformationMessage = originalShowInformationMessage;
         (vscode.workspace as any).getConfiguration = originalGetConfiguration;
         (vscode.env as any).openExternal = originalOpenExternal;
         globalThis.fetch = originalFetch;
+        console.error = originalConsoleError;
     });
 
     test('shows an error when JIRA settings are incomplete', async () => {
@@ -184,5 +191,99 @@ suite('CreateJiraIssueCommand', () => {
         const secondBody = JSON.parse(capturedRequests[1].body);
         assert.strictEqual(typeof secondBody.fields.description, 'string');
         assert.ok(secondBody.fields.description.includes('You can find more information in [Sigrid|https://sigrid.example.com].'));
+    });
+
+    test('shows an error and does not call fetch when jiraBaseUrl has an unsupported scheme', async () => {
+        setupConfig({ jiraBaseUrl: 'ftp://jira.example.com' });
+        setupDefaultMocks();
+
+        let errorMessage = '';
+        (vscode.window as any).showErrorMessage = (message: string) => {
+            errorMessage = message;
+            return Promise.resolve(undefined);
+        };
+
+        let fetchCalled = false;
+        globalThis.fetch = async () => {
+            fetchCalled = true;
+            return {} as any;
+        };
+
+        await executeCommand();
+
+        assert.strictEqual(fetchCalled, false);
+        assert.strictEqual(errorMessage, 'Invalid JIRA base URL configured. Please check the jiraBaseUrl setting.');
+    });
+
+    test('warns but still proceeds when jiraBaseUrl uses plain http://', async () => {
+        setupConfig({ jiraBaseUrl: 'http://jira.internal/' });
+        setupDefaultMocks();
+
+        let warningMessage = '';
+        (vscode.window as any).showWarningMessage = (message: string) => {
+            warningMessage = message;
+            return Promise.resolve(undefined);
+        };
+
+        let fetchCalled = false;
+        globalThis.fetch = async () => {
+            fetchCalled = true;
+            return { ok: true, status: 201, json: async () => ({ key: 'APP-3' }), text: async () => '' } as any;
+        };
+
+        await executeCommand();
+
+        assert.strictEqual(fetchCalled, true);
+        assert.ok(warningMessage.includes('insecure http://'));
+    });
+
+    test('shows a sanitized message extracted from a structured JIRA error body', async () => {
+        setupConfig();
+        setupDefaultMocks();
+
+        let errorMessage = '';
+        (vscode.window as any).showErrorMessage = (message: string) => {
+            errorMessage = message;
+            return Promise.resolve(undefined);
+        };
+
+        globalThis.fetch = async () => {
+            return {
+                ok: false,
+                status: 400,
+                text: async () => JSON.stringify({ errorMessages: ['Project key is required'] }),
+                json: async () => ({}),
+            } as any;
+        };
+
+        await executeCommand();
+
+        assert.strictEqual(errorMessage, 'Failed to create JIRA issue (400): Project key is required');
+    });
+
+    test('shows a generic message and logs the raw body when the JIRA error body is not structured JSON', async () => {
+        setupConfig();
+        setupDefaultMocks();
+
+        let errorMessage = '';
+        (vscode.window as any).showErrorMessage = (message: string) => {
+            errorMessage = message;
+            return Promise.resolve(undefined);
+        };
+
+        let loggedBody = '';
+        console.error = (..._args: any[]) => {
+            loggedBody = _args.join(' ');
+        };
+
+        const rawBody = '<html><body>Internal Server Error</body></html>';
+        globalThis.fetch = async () => {
+            return { ok: false, status: 500, text: async () => rawBody, json: async () => ({}) } as any;
+        };
+
+        await executeCommand();
+
+        assert.strictEqual(errorMessage, 'Failed to create JIRA issue (500). See the console for details.');
+        assert.ok(loggedBody.includes(rawBody));
     });
 });
