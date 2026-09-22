@@ -4,11 +4,21 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [1.0.4] - 2026-09-22
 
 ### Changed
 - `sigrid-vscode.apiKey`, `sigrid-vscode.jiraToken`, and `sigrid-vscode.azureDevOpsPersonalAccessToken` are no longer stored as plaintext settings. Use the new **Sigrid: Set API Key**, **Sigrid: Set JIRA Personal Access Token**, and **Sigrid: Set Azure DevOps Personal Access Token** commands to store them in VS Code's encrypted secret storage instead; existing plaintext values are migrated automatically on first activation.
+- Secrets can still be saved per-workspace, so different projects can use different Sigrid/JIRA/Azure DevOps credentials.
 - The JIRA and Azure DevOps personal access tokens are no longer sent to the webview.
+- Externally opened links (e.g. deep links to Sigrid, Jira, and Azure DevOps) are now restricted to `http`/`https` schemes.
+- JIRA error responses are no longer reflected to the user verbatim; only JIRA's own structured error messages are shown, with a generic fallback otherwise. The configured `jiraBaseUrl` scheme is now validated before sending credentials, and plain `http://` URLs trigger a warning.
+- Strengthened the webview's Content-Security-Policy and switched to a cryptographically secure nonce.
+
+### Fixed
+- Webview `postMessage` events are now validated for origin and shape before being handled, preventing malformed or spoofed messages from reaching command handlers.
+- SVG icons are now sanitized and loaded from an allowlist, preventing XSS and path traversal via crafted icon paths.
+- File-open paths from webview messages are now resolved safely against workspace folders instead of being interpolated into a glob pattern, preventing crafted paths from broadening matches or escaping the workspace.
+- The customer identifier is now URL-encoded in usage telemetry requests, preventing malformed URLs or query-string injection.
 
 ## [1.0.3] - 2026-09-14
 
