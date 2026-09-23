@@ -1,5 +1,5 @@
 import path from "path";
-import { window, workspace } from "vscode";
+import { Uri, WorkspaceFolder, window, workspace } from "vscode";
 
 function getActiveWorkspace() {
     if (window.activeTextEditor) {
@@ -34,4 +34,26 @@ export function getRelativePath(filePath: string) {
     }
 
     return filePath;
+}
+
+/**
+ * Resolves filePath as a literal relative path against each workspace folder, rejecting
+ * any path that would escape the folder (e.g. via ".." segments).
+ * @param filePath The relative file path to resolve within the workspace.
+ * @returns The resolved Uri if filePath stays within a workspace folder, otherwise undefined.
+ */
+export function resolveWorkspaceFile(filePath: string): Uri | undefined {
+    for (const folder of workspace.workspaceFolders ?? []) {
+        const candidate = Uri.joinPath(folder.uri, filePath);
+        if (isContainedIn(folder, candidate)) {
+            return candidate;
+        }
+    }
+
+    return undefined;
+}
+
+function isContainedIn(folder: WorkspaceFolder, candidate: Uri): boolean {
+    const relative = path.relative(folder.uri.fsPath, candidate.fsPath);
+    return Boolean(relative) && !relative.startsWith('..') && !path.isAbsolute(relative);
 }

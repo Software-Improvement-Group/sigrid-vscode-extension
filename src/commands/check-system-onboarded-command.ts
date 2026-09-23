@@ -2,6 +2,8 @@ import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { getSigridConfiguration } from "../utilities/configuration";
 import { buildBearerAuthHeader, buildSigridCiUrl } from "../utilities/sigrid-ci-api";
+import { SECRET_KEYS } from "../utilities/secrets";
+import { getSecret } from "../utilities/scoped-secrets";
 
 export type SystemOnboardStatus = 'onboarded' | 'not-onboarded' | 'error';
 
@@ -14,7 +16,8 @@ export class CheckSystemOnboardedCommand implements VsCodeCommand<void> {
     async execute(data: VsCodeCommandData<void>) {
         const config = getSigridConfiguration();
         const url = buildSigridCiUrl(config.sigridUrl, config.customer, config.system);
-        const result = await this.checkStatus(url, config.apiKey);
+        const apiKey = await getSecret(data.secrets, SECRET_KEYS.apiKey) ?? '';
+        const result = await this.checkStatus(url, apiKey);
         data.webview.postMessage({ command: 'systemOnboardStatus', data: result });
     }
 

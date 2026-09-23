@@ -1,4 +1,4 @@
-import { Disposable, extensions, Uri, Webview, WebviewView, WebviewViewProvider, window, workspace } from "vscode";
+import { Disposable, extensions, SecretStorage, Uri, Webview, WebviewView, WebviewViewProvider, window, workspace } from "vscode";
 import { getWebviewUri } from "../utilities/get-webview-uri";
 import { AngularApp, EXTENSION_ID } from "../extension.config";
 import { getNonce } from "../utilities/get-nonce";
@@ -6,21 +6,23 @@ import { VsCodeCommandEvent } from "../commands/vscode-command-event";
 import { COMMANDS } from "../commands/command-registry";
 import { VsCodeCommandData } from "../commands/vscode-command-data";
 import { postActiveEditorChangedMessage } from "../utilities/editor";
-import { getSigridConfiguration } from "../utilities/configuration";
+import { getSigridConfiguration, getSigridWebviewConfiguration } from "../utilities/configuration";
 import { postAiAgentsDetectedMessage } from "../utilities/ai-agents-message";
 import { invalidateAvailability } from "../ai-agents/ai-agent-registry";
+import { SECRET_KEYS } from "../utilities/secrets";
+import { getRelevantKeys } from "../utilities/scoped-secrets";
 
 export class SigridPanel implements WebviewViewProvider {
   private disposables: Disposable[] = [];
 
-  constructor(private readonly extensionUri: Uri) {}
+  constructor(private readonly extensionUri: Uri, private readonly secrets: SecretStorage) {}
 
   resolveWebviewView(webviewView: WebviewView): void | Thenable<void> {
     webviewView.webview.options = {
       // Enable JavaScript in the webview
       enableScripts: true,
-      // Restrict the webview to only load resources from the `out` and `webview-ui/build` directories
-      localResourceRoots: [Uri.joinPath(this.extensionUri, "out"), Uri.joinPath(this.extensionUri, AngularApp.outputFolder)],
+      // Restrict the webview to only load resources from the Angular build output directory
+      localResourceRoots: [Uri.joinPath(this.extensionUri, AngularApp.outputFolder)],
     };
 
     webviewView.webview.html = this.getWebviewContent(webviewView.webview);
@@ -39,9 +41,19 @@ export class SigridPanel implements WebviewViewProvider {
     const styleUri = getWebviewUri(webview, this.extensionUri, AngularApp.outputFolder, 'styles.css');
     const scriptUri = getWebviewUri(webview, this.extensionUri, AngularApp.outputFolder, 'main.js');
 
-    // Use a nonce to whitelist which scripts can be run
+    // Use a nonce to whitelist which scripts/styles can be run
     const nonce = getNonce();
+    const csp = this.getContentSecurityPolicy(webview, nonce);
 
+    return this.renderHtml({ styleUri: styleUri.toString(), scriptUri: scriptUri.toString(), nonce, csp });
+  }
+
+  private getContentSecurityPolicy(webview: Webview, nonce: string) {
+    const sigridApiHost = new URL(getSigridConfiguration().sigridUrl).origin;
+    return `default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'nonce-${nonce}'; img-src ${webview.cspSource} data: https:; font-src ${webview.cspSource}; connect-src ${webview.cspSource} ${sigridApiHost}`;
+  }
+
+  private renderHtml({ styleUri, scriptUri, nonce, csp }: { styleUri: string; scriptUri: string; nonce: string; csp: string }) {
     return /*html*/`
         <!doctype html>
         <html lang="en" data-beasties-container>
@@ -50,7 +62,9 @@ export class SigridPanel implements WebviewViewProvider {
           <title>Sigrid</title>
           <base href="./">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <link rel="stylesheet" href="${styleUri}">
+          <meta http-equiv="Content-Security-Policy" content="${csp}">
+          <meta name="csp-nonce" content="${nonce}">
+          <link rel="stylesheet" href="${styleUri}" nonce="${nonce}">
         </head>
         <body>
           <app-root></app-root>
@@ -64,7 +78,7 @@ export class SigridPanel implements WebviewViewProvider {
     webview.onDidReceiveMessage(
       (message: VsCodeCommandEvent) => {
         try {
-          const result = COMMANDS[message.command]?.execute(new VsCodeCommandData(webview, this.extensionUri, message.data));
+          const result = COMMANDS[message.command]?.execute(new VsCodeCommandData(webview, this.extensionUri, message.data, this.secrets));
           Promise.resolve(result).catch(error => console.error(`Command "${message.command}" failed:`, error));
         } catch (error) {
           console.error(`Command "${message.command}" failed:`, error);
@@ -82,12 +96,30 @@ export class SigridPanel implements WebviewViewProvider {
   }
 
   private setConfigurationChangeListener(webview: Webview) {
+    const postConfiguration = () => this.postConfiguration(webview);
+
     workspace.onDidChangeConfiguration(event => {
       if (event.affectsConfiguration(EXTENSION_ID)) {
-        const newConfig = getSigridConfiguration();
-        webview.postMessage({ command: "configurationChanged", data: newConfig });
+        postConfiguration();
       }
     }, undefined, this.disposables);
+
+    this.secrets.onDidChange(event => {
+      if (this.isTrackedSecretKey(event.key)) {
+        postConfiguration();
+      }
+    }, undefined, this.disposables);
+
+    workspace.onDidChangeWorkspaceFolders(postConfiguration, undefined, this.disposables);
+  }
+
+  private async postConfiguration(webview: Webview) {
+    const newConfig = await getSigridWebviewConfiguration(this.secrets);
+    webview.postMessage({ command: "configurationChanged", data: newConfig });
+  }
+
+  private isTrackedSecretKey(key: string): boolean {
+    return Object.values(SECRET_KEYS).flatMap(getRelevantKeys).includes(key);
   }
 
   /**

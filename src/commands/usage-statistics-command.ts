@@ -11,7 +11,7 @@ export class UsageStatisticsCommand implements VsCodeCommand<UsageStatisticsPayl
                 throw new Error("Customer identifier is required for usage statistics.");
             }
             
-            const response = await fetch(STATISTICS_URL + customer, {method: 'GET'});
+            const response = await fetch(STATISTICS_URL + encodeURIComponent(customer), {method: 'GET'});
             if (!response.ok) {
                 throw new Error(response.statusText);
             }

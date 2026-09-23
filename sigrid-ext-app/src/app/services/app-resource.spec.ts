@@ -67,6 +67,29 @@ describe('AppResource', () => {
     expect(consoleError).toHaveBeenCalledWith('Error loading SVG jira.svg:', error);
   });
 
+  it('returns an empty string and does not fetch when the file name is a path traversal attempt', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    service.setWebviewBaseUri('https://example.com/assets');
+
+    await expect(service.loadSvgContent('../../etc/passwd.svg')).resolves.toBe('');
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledWith('Rejected invalid SVG file name: ../../etc/passwd.svg');
+  });
+
+  it('returns an empty string and does not fetch when the file name is not a plain svg file', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    service.setWebviewBaseUri('https://example.com/assets');
+
+    await expect(service.loadSvgContent('jira.svg.exe')).resolves.toBe('');
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('returns an empty string and logs an error when the SVG response is not ok', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({

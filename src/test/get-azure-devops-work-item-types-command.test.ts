@@ -5,15 +5,15 @@ import { VsCodeCommandData } from '../commands/vscode-command-data';
 
 interface AzureDevOpsConfig {
     azureDevOpsOrganizationUrl: string;
-    azureDevOpsPersonalAccessToken: string;
     azureDevOpsProjectName: string;
 }
 
 const DEFAULT_CONFIG: AzureDevOpsConfig = {
     azureDevOpsOrganizationUrl: 'https://dev.azure.com/myorg',
-    azureDevOpsPersonalAccessToken: 'pat-token',
     azureDevOpsProjectName: 'MyProject',
 };
+
+const DEFAULT_PAT = 'pat-token';
 
 const DEFAULT_TYPES = [
     { name: 'Task', isDisabled: false },
@@ -48,6 +48,10 @@ function setupConfig(overrides: Partial<AzureDevOpsConfig> = {}) {
     (vscode.workspace as any).getConfiguration = () => ({
         get: (key: string, defaultValue: any) => (config as any)[key] ?? defaultValue,
     });
+}
+
+function createSecretsStub(personalAccessToken: string | undefined = DEFAULT_PAT): vscode.SecretStorage {
+    return { get: async () => personalAccessToken } as unknown as vscode.SecretStorage;
 }
 
 function createFakeWebview() {
@@ -92,7 +96,7 @@ suite('GetAzureDevOpsWorkItemTypesCommand', () => {
 
         const { webview, messages } = createFakeWebview();
         const command = new GetAzureDevOpsWorkItemTypesCommand();
-        await command.execute(new VsCodeCommandData(webview, {} as any, undefined));
+        await command.execute(new VsCodeCommandData(webview, {} as any, undefined, createSecretsStub(undefined)));
 
         assert.strictEqual(messages.length, 1);
         assert.strictEqual(messages[0].command, 'azureDevOpsWorkItemTypesLoaded');
@@ -105,7 +109,7 @@ suite('GetAzureDevOpsWorkItemTypesCommand', () => {
 
         const { webview, messages } = createFakeWebview();
         const command = new GetAzureDevOpsWorkItemTypesCommand();
-        await command.execute(new VsCodeCommandData(webview, {} as any, undefined));
+        await command.execute(new VsCodeCommandData(webview, {} as any, undefined, createSecretsStub()));
 
         assert.deepStrictEqual(messages[0].data.types, ['Task', 'Bug']);
     });
@@ -123,7 +127,7 @@ suite('GetAzureDevOpsWorkItemTypesCommand', () => {
 
         const { webview, messages } = createFakeWebview();
         const command = new GetAzureDevOpsWorkItemTypesCommand();
-        await command.execute(new VsCodeCommandData(webview, {} as any, undefined));
+        await command.execute(new VsCodeCommandData(webview, {} as any, undefined, createSecretsStub()));
 
         assert.deepStrictEqual(messages[0].data.types, ['Task', 'Bug', 'Epic', 'Test Case', 'Test Plan', 'Test Suite']);
     });
@@ -134,8 +138,8 @@ suite('GetAzureDevOpsWorkItemTypesCommand', () => {
 
         const { webview } = createFakeWebview();
         const command = new GetAzureDevOpsWorkItemTypesCommand();
-        await command.execute(new VsCodeCommandData(webview, {} as any, undefined));
-        await command.execute(new VsCodeCommandData(webview, {} as any, undefined));
+        await command.execute(new VsCodeCommandData(webview, {} as any, undefined, createSecretsStub()));
+        await command.execute(new VsCodeCommandData(webview, {} as any, undefined, createSecretsStub()));
 
         assert.strictEqual(getFetchCount(), 2);
     });

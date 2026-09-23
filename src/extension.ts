@@ -3,13 +3,15 @@
 import * as vscode from 'vscode';
 import { SigridPanel } from './panels/sigrid-panel';
 import { EXTENSION_ID } from './extension.config';
-import { migrateCustomerToPortfolioName } from './utilities/migrations';
+import { migrateCustomerToPortfolioName, migrateSecretsToSecretStorage } from './utilities/migrations';
 import { clearStalePromptFiles, setStorageUri } from './utilities/extension-storage';
+import { registerSecretCommands } from './utilities/secret-commands';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
-	migrateCustomerToPortfolioName();
+export async function activate(context: vscode.ExtensionContext) {
+	await migrateCustomerToPortfolioName();
+	await initializeSecrets(context);
 
 	setStorageUri(context.globalStorageUri);
 	clearStalePromptFiles();
@@ -19,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log(`Congratulations, your extension "${EXTENSION_ID}" is now active!`);
 
 	// Register the Sigrid view provider
-	const provider = new SigridPanel(context.extensionUri);
+	const provider = new SigridPanel(context.extensionUri, context.secrets);
 	context.subscriptions.push(vscode.window.registerWebviewViewProvider('sigridView', provider, {
 		webviewOptions: { retainContextWhenHidden: true }
 	}));
@@ -36,6 +38,11 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	context.subscriptions.push(disposable);
+}
+
+async function initializeSecrets(context: vscode.ExtensionContext) {
+	await migrateSecretsToSecretStorage(context);
+	registerSecretCommands(context);
 }
 
 function createSigridStatusBarItem() {

@@ -3,7 +3,7 @@
   "displayName": "Sigrid",
   "description": "View and manage Sigrid findings in VS Code.",
   "icon": "media/sigrid-logo-128.png",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "publisher": "softwareimprovementgroup",
   "engines": {
     "vscode": "^1.108.0"
@@ -55,6 +55,18 @@
       {
         "command": "sigrid-vscode.showFindings",
         "title": "Sigrid: Show Findings"
+      },
+      {
+        "command": "sigrid-vscode.setApiKey",
+        "title": "Sigrid: Set API Key"
+      },
+      {
+        "command": "sigrid-vscode.setJiraToken",
+        "title": "Sigrid: Set JIRA Personal Access Token"
+      },
+      {
+        "command": "sigrid-vscode.setAzureDevOpsToken",
+        "title": "Sigrid: Set Azure DevOps Personal Access Token"
       }
     ],
     "configuration": [
@@ -62,12 +74,6 @@
         "id": "sigrid",
         "title": "Sigrid",
         "properties": {
-          "sigrid-vscode.apiKey": {
-            "type": "string",
-            "default": "",
-            "description": "Your Sigrid API Key.",
-            "order": 0
-          },
           "sigrid-vscode.portfolioName": {
             "type": "string",
             "default": "",
@@ -96,7 +102,7 @@
           "sigrid-vscode.sigridUrl": {
             "type": "string",
             "default": "https://sigrid-says.com",
-            "description": "The URL of your Sigrid instance. Only change this if you are using a self-hosted version of Sigrid.",
+            "markdownDescription": "The URL of your Sigrid instance. Only change this if you are using a self-hosted version of Sigrid.\n\n[**Set Sigrid API Key**](command:sigrid-vscode.setApiKey)",
             "order": 4
           }
         }
@@ -128,7 +134,7 @@
           "sigrid-vscode.jiraBaseUrl": {
             "type": "string",
             "default": "",
-            "description": "Your JIRA base URL (e.g. https://jira.example.com).",
+            "markdownDescription": "Your JIRA base URL (e.g. https://jira.example.com).\n\n[**Set JIRA Personal Access Token**](command:sigrid-vscode.setJiraToken)",
             "order": 0
           },
           "sigrid-vscode.jiraUser": {
@@ -136,12 +142,6 @@
             "default": "",
             "description": "Your JIRA username or email address.",
             "order": 1
-          },
-          "sigrid-vscode.jiraToken": {
-            "type": "string",
-            "default": "",
-            "description": "Your JIRA personal access token.",
-            "order": 2
           },
           "sigrid-vscode.jiraSpaceKey": {
             "type": "string",
@@ -158,14 +158,8 @@
           "sigrid-vscode.azureDevOpsOrganizationUrl": {
             "type": "string",
             "default": "",
-            "description": "Your Azure DevOps organization URL (e.g. https://dev.azure.com/myorg or https://myorg.visualstudio.com).",
+            "markdownDescription": "Your Azure DevOps organization URL (e.g. https://dev.azure.com/myorg or https://myorg.visualstudio.com).\n\n[**Set Azure DevOps Personal Access Token**](command:sigrid-vscode.setAzureDevOpsToken)",
             "order": 0
-          },
-          "sigrid-vscode.azureDevOpsPersonalAccessToken": {
-            "type": "string",
-            "default": "",
-            "markdownDescription": "Your Azure DevOps personal access token. [How to create a PAT](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate).",
-            "order": 1
           },
           "sigrid-vscode.azureDevOpsProjectName": {
             "type": "string",
@@ -205,7 +199,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/vscode": "^1.108.0",
-    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.9.2",
     "adm-zip": "^0.6.1",

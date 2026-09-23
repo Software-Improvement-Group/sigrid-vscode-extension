@@ -73,7 +73,7 @@ function setupMcpConfigFile(contents: unknown) {
 
 async function executeCommand(payload: FixFindingsPayload) {
     const command = new FixFindingsWithAiCommand();
-    await command.execute(new VsCodeCommandData({} as any, {} as any, payload));
+    await command.execute(new VsCodeCommandData({} as any, {} as any, payload, {} as any));
 }
 
 suite('FixFindingsWithAiCommand', () => {

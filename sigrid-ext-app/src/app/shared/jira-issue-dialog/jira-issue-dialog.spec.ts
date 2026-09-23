@@ -69,7 +69,7 @@ describe('JiraIssueDialog', () => {
       sigridUrl: 'https://sigrid.example.com',
       jiraBaseUrl: 'https://jira.example.com',
       jiraUser: 'user@example.com',
-      jiraToken: 'token',
+      hasJiraToken: true,
       jiraProjectKey: 'SIG',
     });
 
@@ -143,7 +143,7 @@ describe('JiraIssueDialog', () => {
       sigridUrl: '',
       jiraBaseUrl: 'https://jira.example.com',
       jiraUser: 'user@example.com',
-      jiraToken: 'token',
+      hasJiraToken: true,
       jiraProjectKey: 'SIG',
     });
     selectionService.getAll.mockReturnValue([

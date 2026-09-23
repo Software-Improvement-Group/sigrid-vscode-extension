@@ -65,7 +65,7 @@ describe('AzureDevOpsWorkItemDialog', () => {
       subsystem: '',
       sigridUrl: 'https://sigrid.example.com',
       azureDevOpsOrganizationUrl: 'https://dev.azure.com/myorg',
-      azureDevOpsPersonalAccessToken: 'token',
+      hasAzureDevOpsToken: true,
       azureDevOpsProjectName: 'MyProject',
     });
 
@@ -86,7 +86,7 @@ describe('AzureDevOpsWorkItemDialog', () => {
 
   it('should create the dialog and request work item types', () => {
     expect(component).toBeTruthy();
-    expect(workItemTypesService.requestIfNeeded).toHaveBeenCalledWith('https://dev.azure.com/myorg', 'MyProject', 'token');
+    expect(workItemTypesService.requestIfNeeded).toHaveBeenCalledWith('https://dev.azure.com/myorg', 'MyProject', true);
   });
 
   it('does not create a work item when the form is invalid', () => {
@@ -154,7 +154,7 @@ describe('AzureDevOpsWorkItemDialog', () => {
       subsystem: '',
       sigridUrl: '',
       azureDevOpsOrganizationUrl: 'https://dev.azure.com/myorg',
-      azureDevOpsPersonalAccessToken: 'token',
+      hasAzureDevOpsToken: true,
       azureDevOpsProjectName: 'MyProject',
     });
     workItemTypesService.types.set(['Task']);

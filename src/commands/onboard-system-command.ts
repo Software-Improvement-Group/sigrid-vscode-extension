@@ -1,9 +1,11 @@
-import { window, workspace } from "vscode";
+import { SecretStorage, window, workspace } from "vscode";
 import { VsCodeCommand } from "./vscode-command";
 import { VsCodeCommandData } from "./vscode-command-data";
 import { getSigridConfiguration } from "../utilities/configuration";
 import { buildBearerAuthHeader, buildCiUploadUrl, buildLicensesUrl } from "../utilities/sigrid-ci-api";
 import { createWorkspaceZip } from "../utilities/zip-workspace";
+import { SECRET_KEYS } from "../utilities/secrets";
+import { getSecret } from "../utilities/scoped-secrets";
 
 const VALID_CAPABILITIES = ['MAINTAINABILITY', 'SECURITY', 'OPEN_SOURCE_HEALTH'];
 
@@ -23,7 +25,7 @@ interface OnboardingRequest {
 export class OnboardSystemCommand implements VsCodeCommand<void> {
     async execute(data: VsCodeCommandData<void>) {
         try {
-            await this.onboard();
+            await this.onboard(data.secrets);
             data.webview.postMessage({ command: 'onboardSystemResult', data: { success: true } });
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
@@ -33,14 +35,15 @@ export class OnboardSystemCommand implements VsCodeCommand<void> {
         }
     }
 
-    private async onboard(): Promise<void> {
+    private async onboard(secrets: SecretStorage): Promise<void> {
         const config = getSigridConfiguration();
         const workspaceRoot = workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (!workspaceRoot) {
             throw new Error('No workspace folder is open.');
         }
 
-        const authHeader = buildBearerAuthHeader(config.apiKey);
+        const apiKey = await getSecret(secrets, SECRET_KEYS.apiKey) ?? '';
+        const authHeader = buildBearerAuthHeader(apiKey);
         const licensesUrl = buildLicensesUrl(config.sigridUrl, config.customer);
         const capabilities = await this.fetchCapabilities(licensesUrl, authHeader);
 

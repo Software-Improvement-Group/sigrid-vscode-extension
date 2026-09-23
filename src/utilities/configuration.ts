@@ -1,20 +1,34 @@
-import { workspace } from "vscode";
+import { SecretStorage, workspace } from "vscode";
 import { EXTENSION_ID } from "../extension.config";
+import { SECRET_KEYS } from "./secrets";
+import { getSecret } from "./scoped-secrets";
 
 export function getSigridConfiguration() {
     const config = workspace.getConfiguration(EXTENSION_ID);
     return {
-        apiKey: config.get<string>('apiKey', ''),
         customer: config.get<string>('portfolioName', '') || config.get<string>('customer', ''),
         system: config.get<string>('system', ''),
         subsystem: config.get<string>('subsystem', ''),
         sigridUrl: config.get<string>('sigridUrl', 'https://sigrid-says.com'),
         jiraBaseUrl: config.get<string>('jiraBaseUrl', ''),
         jiraUser: config.get<string>('jiraUser', ''),
-        jiraToken: config.get<string>('jiraToken', ''),
         jiraProjectKey: config.get<string>('jiraSpaceKey', ''),
         azureDevOpsOrganizationUrl: config.get<string>('azureDevOpsOrganizationUrl', ''),
-        azureDevOpsPersonalAccessToken: config.get<string>('azureDevOpsPersonalAccessToken', ''),
         azureDevOpsProjectName: config.get<string>('azureDevOpsProjectName', ''),
+    };
+}
+
+export async function getSigridWebviewConfiguration(secrets: SecretStorage) {
+    const [apiKey, jiraToken, azureDevOpsToken] = await Promise.all([
+        getSecret(secrets, SECRET_KEYS.apiKey),
+        getSecret(secrets, SECRET_KEYS.jiraToken),
+        getSecret(secrets, SECRET_KEYS.azureDevOpsPersonalAccessToken),
+    ]);
+
+    return {
+        ...getSigridConfiguration(),
+        apiKey: apiKey ?? '',
+        hasJiraToken: !!jiraToken,
+        hasAzureDevOpsToken: !!azureDevOpsToken,
     };
 }

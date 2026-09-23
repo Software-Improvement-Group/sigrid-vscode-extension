@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, OnDestroy, OnInit} from '@angular/core';
 import {Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {SigridConfiguration} from './services/sigrid-configuration';
-import {WebviewMessage} from './models/webview-message';
+import {isWebviewMessage, WebviewMessage} from './models/webview-message';
 import {VsCommandRegistry} from './commands/vs-command-registry';
 import {SelectButton} from './shared/select-button/select-button';
 import {SigridData} from './services/sigrid-data';
@@ -87,8 +87,10 @@ export class App implements OnInit, OnDestroy {
   }
 
   onMessageReceived(message: MessageEvent<WebviewMessage>) {
-    let command = message.data.command ?? '';
-    this.commandRegistry.execute(command, message.data.data);
+    if (message.origin !== window.origin || !isWebviewMessage(message.data)) {
+      return;
+    }
+    this.commandRegistry.execute(message.data.command, message.data.data);
   }
 
   protected onFileFilterChange(mode: FileFilterMode) {
