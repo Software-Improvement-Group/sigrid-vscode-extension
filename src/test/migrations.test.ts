@@ -3,13 +3,14 @@ import * as vscode from 'vscode';
 import { migrateCustomerToPortfolioName, migrateSecretsToSecretStorage } from '../utilities/migrations';
 import { SECRET_KEYS } from '../utilities/secrets';
 import { buildScopedKey } from '../utilities/scoped-secrets';
+import { setWorkspaceFolders } from './test-helpers';
 
 const TEST_WORKSPACE_URI = 'file:///test-workspace';
 
 function mockOpenWorkspace() {
     const original = (vscode.workspace as any).workspaceFolders;
-    (vscode.workspace as any).workspaceFolders = [{ uri: vscode.Uri.parse(TEST_WORKSPACE_URI) }];
-    return () => { (vscode.workspace as any).workspaceFolders = original; };
+    setWorkspaceFolders([{ uri: vscode.Uri.parse(TEST_WORKSPACE_URI) }] as any);
+    return () => setWorkspaceFolders(original);
 }
 
 type InspectResult = {
