@@ -2,24 +2,25 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { FileOpenCommand } from '../commands/file-open-command';
 import { VsCodeCommandData } from '../commands/vscode-command-data';
+import { setActiveTextEditor, setWorkspaceFolders, setWorkspaceFs } from './test-helpers';
 
 const WORKSPACE_ROOT = '/workspace/project';
 
 function setupWorkspaceFolders(rootFsPath: string = WORKSPACE_ROOT) {
-    (vscode.workspace as any).workspaceFolders = [
+    setWorkspaceFolders([
         { uri: vscode.Uri.file(rootFsPath), name: 'project', index: 0 },
-    ];
+    ] as any);
 }
 
 function setupExistingFile(existingFsPaths: string[]) {
-    (vscode.workspace as any).fs = {
+    setWorkspaceFs({
         stat: async (uri: vscode.Uri) => {
             if (existingFsPaths.includes(uri.fsPath)) {
                 return {} as vscode.FileStat;
             }
             throw new Error('File not found');
         },
-    };
+    });
 }
 
 async function executeCommand(payload: { filePath: string; startLine?: number; endLine?: number }) {
@@ -45,12 +46,12 @@ suite('FileOpenCommand', () => {
     });
 
     teardown(() => {
-        (vscode.workspace as any).workspaceFolders = originalWorkspaceFolders;
-        (vscode.workspace as any).fs = originalFs;
+        setWorkspaceFolders(originalWorkspaceFolders);
+        setWorkspaceFs(originalFs);
         (vscode.window as any).showErrorMessage = originalShowErrorMessage;
         (vscode.workspace as any).openTextDocument = originalOpenTextDocument;
         (vscode.window as any).showTextDocument = originalShowTextDocument;
-        (vscode.window as any).activeTextEditor = originalActiveTextEditor;
+        setActiveTextEditor(originalActiveTextEditor);
     });
 
     test('opens a legitimate relative path within the workspace', async () => {
@@ -68,7 +69,7 @@ suite('FileOpenCommand', () => {
             shownDocument = true;
             return {} as vscode.TextEditor;
         };
-        (vscode.window as any).activeTextEditor = { selection: {}, revealRange: () => undefined } as any;
+        setActiveTextEditor({ selection: {}, revealRange: () => undefined } as any);
 
         await executeCommand({ filePath: 'src/foo.ts', startLine: 5 });
 
@@ -131,7 +132,7 @@ suite('FileOpenCommand', () => {
     });
 
     test('shows an error when there are no workspace folders', async () => {
-        (vscode.workspace as any).workspaceFolders = undefined;
+        setWorkspaceFolders(undefined);
 
         let errorMessage = '';
         (vscode.window as any).showErrorMessage = (message: string) => {

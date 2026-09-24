@@ -71,9 +71,13 @@ function setupMcpConfigFile(contents: unknown) {
     mcpConfigLocator.paths = () => [path];
 }
 
+function createFakeWebview() {
+    return { postMessage: (_message: any) => Promise.resolve(true) } as any;
+}
+
 async function executeCommand(payload: FixFindingsPayload) {
     const command = new FixFindingsWithAiCommand();
-    await command.execute(new VsCodeCommandData({} as any, {} as any, payload, {} as any));
+    await command.execute(new VsCodeCommandData(createFakeWebview(), {} as any, payload, {} as any));
 }
 
 suite('FixFindingsWithAiCommand', () => {
@@ -518,7 +522,7 @@ suite('buildFixPrompt', () => {
 
         assert.ok(!withMcp.includes('was not detected'));
         assert.ok(withoutMcp.includes('Sigrid MCP server and Sigrid skills were not detected'));
-        assert.ok(withoutMcp.includes('sigrid-ai-toolkit#install'));
+        assert.ok(withoutMcp.includes('docs.sigrid-says.com/integrations/integration-sigrid-mcp.html#installation'));
     });
 
     test('prepends the install notice ahead of the lead instruction', () => {

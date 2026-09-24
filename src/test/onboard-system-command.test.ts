@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { OnboardSystemCommand } from '../commands/onboard-system-command';
 import { VsCodeCommandData } from '../commands/vscode-command-data';
+import { setWorkspaceFolders } from './test-helpers';
 
 interface SigridConfig {
     customer: string;
@@ -32,9 +33,7 @@ function createSecretsStub(apiKey: string | undefined = 'api-key'): vscode.Secre
 }
 
 function setupWorkspaceFolder(workspaceRoot: string | undefined) {
-    (vscode.workspace as any).workspaceFolders = workspaceRoot
-        ? [{ uri: { fsPath: workspaceRoot } }]
-        : undefined;
+    setWorkspaceFolders(workspaceRoot ? [{ uri: { fsPath: workspaceRoot } }] as any : undefined);
 }
 
 function createFakeWebview() {
@@ -117,7 +116,7 @@ suite('OnboardSystemCommand', () => {
 
     teardown(() => {
         (vscode.workspace as any).getConfiguration = originalGetConfiguration;
-        (vscode.workspace as any).workspaceFolders = originalWorkspaceFolders;
+        setWorkspaceFolders(originalWorkspaceFolders);
         globalThis.fetch = originalFetch;
         (vscode.window as any).showErrorMessage = originalShowErrorMessage;
         fs.rmSync(workspaceRoot, { recursive: true, force: true });

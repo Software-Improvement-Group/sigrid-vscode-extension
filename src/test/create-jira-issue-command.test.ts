@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { CreateJiraIssueCommand } from '../commands/create-jira-issue-command';
 import { VsCodeCommandData } from '../commands/vscode-command-data';
+import { setConsoleError } from './test-helpers';
 
 interface JiraConfig {
     jiraBaseUrl: string;
@@ -71,7 +72,7 @@ suite('CreateJiraIssueCommand', () => {
         (vscode.workspace as any).getConfiguration = originalGetConfiguration;
         (vscode.env as any).openExternal = originalOpenExternal;
         globalThis.fetch = originalFetch;
-        console.error = originalConsoleError;
+        setConsoleError(originalConsoleError);
     });
 
     test('shows an error when JIRA settings are incomplete', async () => {
@@ -272,9 +273,9 @@ suite('CreateJiraIssueCommand', () => {
         };
 
         let loggedBody = '';
-        console.error = (..._args: any[]) => {
+        setConsoleError((..._args: any[]) => {
             loggedBody = _args.join(' ');
-        };
+        });
 
         const rawBody = '<html><body>Internal Server Error</body></html>';
         globalThis.fetch = async () => {

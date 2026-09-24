@@ -1,14 +1,15 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { buildScopedKey, getSecret, getWorkspaceId, setSecret } from '../utilities/scoped-secrets';
+import { setWorkspaceFolders } from './test-helpers';
 
 const BASE_KEY = 'sigrid-vscode.apiKey';
 const TEST_WORKSPACE_URI = 'file:///test-workspace';
 
 function mockOpenWorkspace() {
     const original = (vscode.workspace as any).workspaceFolders;
-    (vscode.workspace as any).workspaceFolders = [{ uri: vscode.Uri.parse(TEST_WORKSPACE_URI) }];
-    return () => { (vscode.workspace as any).workspaceFolders = original; };
+    setWorkspaceFolders([{ uri: vscode.Uri.parse(TEST_WORKSPACE_URI) }] as any);
+    return () => setWorkspaceFolders(original);
 }
 
 function makeFakeSecretStorage() {
@@ -27,11 +28,11 @@ suite('scoped-secrets', () => {
 
     setup(() => {
         originalWorkspaceFolders = (vscode.workspace as any).workspaceFolders;
-        (vscode.workspace as any).workspaceFolders = undefined;
+        setWorkspaceFolders(undefined);
     });
 
     teardown(() => {
-        (vscode.workspace as any).workspaceFolders = originalWorkspaceFolders;
+        setWorkspaceFolders(originalWorkspaceFolders);
     });
 
     test('getSecret falls back to the global value when no workspace is open', async () => {
