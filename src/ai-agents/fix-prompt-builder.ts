@@ -24,6 +24,7 @@ const SLASH_COMMANDS: Record<string, string> = {
 // ponytail: legacy sigrid-ai-toolkit plugin, delete once it is retired.
 const LEGACY_SLASH_COMMANDS: Record<string, string> = {
     [FindingCategory.maintainability]: '/sigrid:sigrid-improve autonomous',
+    [FindingCategory.security]: '/sigrid:resolve-security-findings',
     [FindingCategory.openSourceHealth]: '/sigrid:fix-osh-risk',
 };
 

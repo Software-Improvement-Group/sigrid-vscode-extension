@@ -498,10 +498,10 @@ suite('buildFixPrompt', () => {
         assert.ok(buildFixPrompt([OSH_FINDING], context, legacyAgent).text.startsWith('/sigrid:fix-osh-risk'));
     });
 
-    test('falls back to a plain instruction for security findings with the legacy plugin, which has no skill', () => {
+    test('uses the legacy security skill when only the legacy plugin is installed', () => {
         const prompt = buildFixPrompt([SECURITY_FINDING], context, legacyAgent).text;
 
-        assert.ok(prompt.startsWith('Fix the following Sigrid security findings.'));
+        assert.ok(prompt.startsWith('/sigrid:resolve-security-findings'));
     });
 
     test('falls back to a plain instruction for a mixed selection', () => {
