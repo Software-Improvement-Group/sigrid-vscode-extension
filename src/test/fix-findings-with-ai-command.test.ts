@@ -158,7 +158,7 @@ suite('FixFindingsWithAiCommand', () => {
         assert.strictEqual(openedUri.path, '/open');
         // The URI handler reads the prompt off the query, which is what has to survive encoding.
         const prompt = new URLSearchParams(openedUri.query).get('prompt') ?? '';
-        assert.ok(prompt.startsWith('/sigrid:sigrid-improve'));
+        assert.ok(prompt.startsWith('/axis:autofix maintainability'));
         assert.ok(prompt.includes('src/panels/sigrid-panel.ts:120-198'));
     });
 
@@ -173,7 +173,7 @@ suite('FixFindingsWithAiCommand', () => {
         assert.strictEqual(commandId, 'workbench.action.chat.open');
         assert.strictEqual(options.isPartialQuery, false, 'the prompt must be submitted, not left as a draft');
         assert.strictEqual(options.mode, 'agent');
-        assert.ok(!options.query.includes('/sigrid:'), 'Copilot does not understand Sigrid slash commands');
+        assert.ok(!options.query.includes('/axis:'), 'Copilot does not understand Sigrid slash commands');
     });
 
     test('reports an error and hands off nothing when the agent is not installed', async () => {
@@ -390,9 +390,9 @@ suite('FixFindingsWithAiCommand - Claude CLI fallback', () => {
         assert.ok(!commandLine.includes('\n'), 'a newline would submit the command early');
         // Found on PATH, so the bare name works and is more portable than an absolute path.
         assert.ok(commandLine.startsWith('claude "'), `unexpected command: ${commandLine}`);
-        assert.ok(commandLine.includes('/sigrid:sigrid-improve autonomous'));
+        assert.ok(commandLine.includes('/axis:autofix maintainability'));
         // --add-dir is variadic and would swallow the prompt if it came first.
-        assert.ok(commandLine.indexOf('--add-dir') > commandLine.indexOf('/sigrid:'), 'options must follow the prompt');
+        assert.ok(commandLine.indexOf('--add-dir') > commandLine.indexOf('/axis:'), 'options must follow the prompt');
     });
 
     test('quotes the absolute path when the CLI was not found on PATH', async () => {
@@ -415,7 +415,7 @@ suite('FixFindingsWithAiCommand - Claude CLI fallback', () => {
         assert.ok(promptFile, `no prompt file in: ${commandLine}`);
 
         const contents = readFileSync(promptFile, 'utf8');
-        assert.ok(contents.startsWith('/sigrid:sigrid-improve autonomous'));
+        assert.ok(contents.startsWith('/axis:autofix maintainability'));
         assert.ok(contents.includes('src/panels/sigrid-panel.ts:120-198'));
         assert.ok(contents.includes('\n'), 'the file carries the multi-line prompt the command line cannot');
     });
@@ -472,11 +472,12 @@ suite('buildFixPrompt', () => {
     const context = { customer: 'my-customer', system: 'my-system' };
     const slashAgent = { supportsSlashCommands: true, mcpDetected: true };
     const plainAgent = { supportsSlashCommands: false, mcpDetected: true };
+    const legacyAgent = { supportsSlashCommands: true, mcpDetected: true, legacySkills: true };
 
     test('uses the maintainability skill for a maintainability-only selection', () => {
         const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, slashAgent).text;
 
-        assert.ok(prompt.startsWith('/sigrid:sigrid-improve autonomous'));
+        assert.ok(prompt.startsWith('/axis:autofix maintainability'));
         assert.ok(prompt.includes('Customer: my-customer'));
         assert.ok(prompt.includes('System: my-system'));
     });
@@ -484,21 +485,29 @@ suite('buildFixPrompt', () => {
     test('uses the open source health skill for a dependency-only selection', () => {
         const prompt = buildFixPrompt([OSH_FINDING], context, slashAgent).text;
 
-        assert.ok(prompt.startsWith('/sigrid:fix-osh-risk'));
+        assert.ok(prompt.startsWith('/axis:autofix open-source'));
         assert.ok(prompt.includes('Locations: package.json'));
     });
 
-    test('falls back to a plain instruction for security findings, which have no skill', () => {
-        const prompt = buildFixPrompt([SECURITY_FINDING], context, slashAgent).text;
+    test('uses the security skill for a security-only selection', () => {
+        assert.ok(buildFixPrompt([SECURITY_FINDING], context, slashAgent).text.startsWith('/axis:autofix security'));
+    });
 
-        assert.ok(!prompt.includes('/sigrid:'));
+    test('uses the legacy skills when only the legacy plugin is installed', () => {
+        assert.ok(buildFixPrompt([MAINTAINABILITY_FINDING], context, legacyAgent).text.startsWith('/sigrid:sigrid-improve autonomous'));
+        assert.ok(buildFixPrompt([OSH_FINDING], context, legacyAgent).text.startsWith('/sigrid:fix-osh-risk'));
+    });
+
+    test('falls back to a plain instruction for security findings with the legacy plugin, which has no skill', () => {
+        const prompt = buildFixPrompt([SECURITY_FINDING], context, legacyAgent).text;
+
         assert.ok(prompt.startsWith('Fix the following Sigrid security findings.'));
     });
 
     test('falls back to a plain instruction for a mixed selection', () => {
         const prompt = buildFixPrompt([MAINTAINABILITY_FINDING, OSH_FINDING], context, slashAgent).text;
 
-        assert.ok(!prompt.includes('/sigrid:'));
+        assert.ok(!prompt.includes('/axis:'));
         assert.ok(prompt.includes('1. Maintainability / VERY_HIGH'));
         assert.ok(prompt.includes('2. Open Source Health / HIGH'));
     });
@@ -506,7 +515,7 @@ suite('buildFixPrompt', () => {
     test('never uses slash commands for agents that do not support them', () => {
         const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, { supportsSlashCommands: false, mcpDetected: true }).text;
 
-        assert.ok(!prompt.includes('/sigrid:'));
+        assert.ok(!prompt.includes('/axis:'));
         assert.ok(prompt.startsWith('Fix the following Sigrid maintainability findings.'));
     });
 
@@ -522,7 +531,7 @@ suite('buildFixPrompt', () => {
 
         assert.ok(!withMcp.includes('was not detected'));
         assert.ok(withoutMcp.includes('Sigrid MCP server and Sigrid skills were not detected'));
-        assert.ok(withoutMcp.includes('docs.sigrid-says.com/integrations/integration-sigrid-mcp.html#installation'));
+        assert.ok(withoutMcp.includes('docs.sigrid-says.com/axis/installation.html'));
     });
 
     test('prepends the install notice ahead of the lead instruction', () => {
@@ -534,7 +543,7 @@ suite('buildFixPrompt', () => {
     test('falls back to a plain lead instead of a skill command when the plugin is not detected', () => {
         const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, { supportsSlashCommands: true, mcpDetected: false });
 
-        assert.ok(!prompt.lead.startsWith('/sigrid:'));
+        assert.ok(!prompt.lead.startsWith('/'));
         assert.strictEqual(prompt.lead, 'Fix the following Sigrid maintainability findings.');
     });
 
@@ -549,7 +558,7 @@ suite('buildFixPrompt', () => {
     test('leaves MCP orchestration to the Sigrid skill when one drives the session', () => {
         const prompt = buildFixPrompt([MAINTAINABILITY_FINDING], context, slashAgent).text;
 
-        assert.ok(prompt.startsWith('/sigrid:'));
+        assert.ok(prompt.startsWith('/axis:'));
         assert.ok(!prompt.includes('The Sigrid MCP server is available'));
     });
 
