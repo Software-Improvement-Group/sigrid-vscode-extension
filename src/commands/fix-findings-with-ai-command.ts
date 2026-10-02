@@ -5,6 +5,7 @@ import { FixFindingsPayload } from "./fix-findings-payload";
 import { findAvailableAgent } from "../ai-agents/ai-agent-registry";
 import { AiAgentProvider } from "../ai-agents/ai-agent-provider";
 import { buildFixPrompt, FixPrompt } from "../ai-agents/fix-prompt-builder";
+import { usesLegacySigridClaudePlugin } from "../ai-agents/sigrid-mcp-detection";
 import { getSigridConfiguration } from "../utilities/configuration";
 import { trackUsage } from "../utilities/usage-statistics";
 import { openExternalUrl } from "../utilities/url-validation";
@@ -38,6 +39,7 @@ export class FixFindingsWithAiCommand implements VsCodeCommand<FixFindingsPayloa
         const prompt = buildFixPrompt(payload.findings, config, {
             supportsSlashCommands: agent.supportsSlashCommands,
             mcpDetected,
+            legacySkills: usesLegacySigridClaudePlugin(),
             resolveToolReference: toolName => agent.toolReference?.(toolName),
         });
 

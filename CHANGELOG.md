@@ -11,6 +11,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Changed
 - The Sigrid API key is no longer sent to the webview; only whether one is set. It is read from secret storage by the extension host when making requests.
+- "Fix with AI" for Claude Code now uses the Sigrid Axis plugin skills (`/axis:autofix maintainability|security|open-source`), including for security findings. Note that `/axis:autofix` commits its fixes on a local branch, and for security findings updates their status in Sigrid.
+- When only the old `sigrid-ai-toolkit` plugin is enabled, the prompt keeps using its skills (`/sigrid:sigrid-improve`, `/sigrid:resolve-security-findings`, `/sigrid:fix-osh-risk`).
+- The install hint and deep link now point to the Sigrid Axis plugin ([installation guide](https://docs.sigrid-says.com/axis/installation.html)).
 
 ### Fixed
 - Findings failed to load because the Sigrid API rejects cross-origin (CORS) requests from the webview. All Sigrid API requests are now made from the extension host, and the webview's Content-Security-Policy no longer allows connections to the Sigrid server.
