@@ -61,12 +61,24 @@
         "title": "Sigrid: Set API Key"
       },
       {
+        "command": "sigrid-vscode.clearApiKey",
+        "title": "Sigrid: Clear API Key"
+      },
+      {
         "command": "sigrid-vscode.setJiraToken",
         "title": "Sigrid: Set JIRA Personal Access Token"
       },
       {
+        "command": "sigrid-vscode.clearJiraToken",
+        "title": "Sigrid: Clear JIRA Personal Access Token"
+      },
+      {
         "command": "sigrid-vscode.setAzureDevOpsToken",
         "title": "Sigrid: Set Azure DevOps Personal Access Token"
+      },
+      {
+        "command": "sigrid-vscode.clearAzureDevOpsToken",
+        "title": "Sigrid: Clear Azure DevOps Personal Access Token"
       }
     ],
     "configuration": [

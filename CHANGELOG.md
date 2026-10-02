@@ -4,6 +4,17 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Added
+- **Sigrid: Clear API Key**, **Sigrid: Clear JIRA Personal Access Token**, and **Sigrid: Clear Azure DevOps Personal Access Token** commands to remove a stored secret, globally or for the current workspace.
+
+### Changed
+- The Sigrid API key is no longer sent to the webview; only whether one is set. It is read from secret storage by the extension host when making requests.
+
+### Fixed
+- Findings failed to load because the Sigrid API rejects cross-origin (CORS) requests from the webview. All Sigrid API requests are now made from the extension host, and the webview's Content-Security-Policy no longer allows connections to the Sigrid server.
+
 ## [1.0.4] - 2026-09-22
 
 ### Changed

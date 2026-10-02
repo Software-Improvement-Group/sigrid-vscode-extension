@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { buildScopedKey, getSecret, getWorkspaceId, setSecret } from '../utilities/scoped-secrets';
+import { buildScopedKey, deleteSecret, getSecret, getWorkspaceId, setSecret } from '../utilities/scoped-secrets';
 import { setWorkspaceFolders } from './test-helpers';
 
 const BASE_KEY = 'sigrid-vscode.apiKey';
@@ -74,5 +74,35 @@ suite('scoped-secrets', () => {
         const secrets = makeFakeSecretStorage();
 
         await assert.rejects(() => setSecret({ secrets, baseKey: BASE_KEY, value: 'value', scope: 'workspace' }));
+    });
+
+    test('deleteSecret removes only the workspace value, so getSecret falls back to the global one', async () => {
+        const restoreWorkspace = mockOpenWorkspace();
+        try {
+            const secrets = makeFakeSecretStorage();
+            await setSecret({ secrets, baseKey: BASE_KEY, value: 'global-value', scope: 'global' });
+            await setSecret({ secrets, baseKey: BASE_KEY, value: 'workspace-value', scope: 'workspace' });
+
+            await deleteSecret({ secrets, baseKey: BASE_KEY, scope: 'workspace' });
+
+            assert.strictEqual(await getSecret(secrets, BASE_KEY), 'global-value');
+        } finally {
+            restoreWorkspace();
+        }
+    });
+
+    test('deleteSecret removes the global value', async () => {
+        const secrets = makeFakeSecretStorage();
+        await setSecret({ secrets, baseKey: BASE_KEY, value: 'global-value', scope: 'global' });
+
+        await deleteSecret({ secrets, baseKey: BASE_KEY, scope: 'global' });
+
+        assert.strictEqual(await getSecret(secrets, BASE_KEY), undefined);
+    });
+
+    test('deleteSecret throws when deleting a workspace-scoped value with no workspace open', async () => {
+        const secrets = makeFakeSecretStorage();
+
+        await assert.rejects(() => deleteSecret({ secrets, baseKey: BASE_KEY, scope: 'workspace' }));
     });
 });

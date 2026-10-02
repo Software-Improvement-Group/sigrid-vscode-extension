@@ -61,7 +61,7 @@ If the configured system hasn't been onboarded to Sigrid yet, the panel will off
 
 This extension contributes the following Sigrid-related settings:
 
-Secrets (API keys and personal access tokens) can be stored either globally or per-workspace, so different projects can use different Sigrid/JIRA/Azure DevOps credentials. VS Code's Command Palette lets you choose the scope when running a "Set..." command.
+Secrets (API keys and personal access tokens) can be stored either globally or per-workspace, so different projects can use different Sigrid/JIRA/Azure DevOps credentials. VS Code's Command Palette lets you choose the scope when running a "Set..." or "Clear..." command. Use **Sigrid: Clear API Key**, **Sigrid: Clear JIRA Personal Access Token** or **Sigrid: Clear Azure DevOps Personal Access Token** to remove a stored value; if a global value is also saved, it is used once the workspace one is cleared.
 
 Your Sigrid API key is not a regular setting — run **Sigrid: Set API Key** from the Command Palette to store it in VS Code's encrypted secret storage.
 

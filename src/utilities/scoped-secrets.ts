@@ -29,17 +29,26 @@ export interface SetSecretOptions {
     scope: SecretScope;
 }
 
-export async function setSecret({ secrets, baseKey, value, scope }: SetSecretOptions): Promise<void> {
-    if (scope === 'workspace') {
-        const workspaceId = getWorkspaceId();
-        if (!workspaceId) {
-            throw new Error('Cannot store a workspace-scoped secret when no workspace is open.');
-        }
-        await secrets.store(buildScopedKey(baseKey, workspaceId), value);
-        return;
+function resolveStorageKey(baseKey: string, scope: SecretScope): string {
+    if (scope === 'global') {
+        return baseKey;
     }
 
-    await secrets.store(baseKey, value);
+    const workspaceId = getWorkspaceId();
+    if (!workspaceId) {
+        throw new Error('Cannot access a workspace-scoped secret when no workspace is open.');
+    }
+    return buildScopedKey(baseKey, workspaceId);
+}
+
+export async function setSecret({ secrets, baseKey, value, scope }: SetSecretOptions): Promise<void> {
+    await secrets.store(resolveStorageKey(baseKey, scope), value);
+}
+
+export type DeleteSecretOptions = Omit<SetSecretOptions, 'value'>;
+
+export async function deleteSecret({ secrets, baseKey, scope }: DeleteSecretOptions): Promise<void> {
+    await secrets.delete(resolveStorageKey(baseKey, scope));
 }
 
 export function getRelevantKeys(baseKey: string): string[] {

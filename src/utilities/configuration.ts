@@ -27,7 +27,7 @@ export async function getSigridWebviewConfiguration(secrets: SecretStorage) {
 
     return {
         ...getSigridConfiguration(),
-        apiKey: apiKey ?? '',
+        hasApiKey: !!apiKey,
         hasJiraToken: !!jiraToken,
         hasAzureDevOpsToken: !!azureDevOpsToken,
     };
