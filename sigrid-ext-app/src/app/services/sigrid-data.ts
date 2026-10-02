@@ -4,13 +4,12 @@ import {SecurityFinding} from '../models/security-finding';
 import {SigridApi} from './sigrid-api';
 import {SigridFinding} from '../models/sigrid-finding';
 import {SecurityFindingMapper} from '../mappers/security-finding-mapper';
-import {firstValueFrom, Observable} from 'rxjs';
 import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
 import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {FileFilterMode} from '../models/file-filter-mode';
 import {getFileName} from '../utilities/path';
-import {HttpErrorResponse} from '@angular/common/http';
+import {SigridApiError} from '../models/sigrid-api-message';
 import {SigridConfiguration} from './sigrid-configuration';
 import {filterFindingsByPath} from '../utilities/filter-findings-by-path';
 import {SystemOnboarding} from './system-onboarding';
@@ -109,7 +108,7 @@ export class SigridData {
   }
 
   private async fetchFindings<Response, Finding>(
-    httpFn: () => Observable<Response>,
+    requestFn: () => Promise<Response>,
     findingSignal: WritableSignal<SigridFinding<Finding> | null>,
     mapperFn: (response: Response, subsystem: string) => Finding,
     findingLabel: string,
@@ -123,7 +122,7 @@ export class SigridData {
     }
 
     try {
-      const data = await firstValueFrom(httpFn());
+      const data = await requestFn();
       const subsystem = this.configuration.subsystem();
 
       try {
@@ -142,7 +141,7 @@ export class SigridData {
   private toFetchErrorMessage(error: unknown, findingLabel: string) {
     const fallback = `Error occurred while fetching ${findingLabel} findings.`;
 
-    if (!(error instanceof HttpErrorResponse)) {
+    if (!(error instanceof SigridApiError)) {
       return fallback;
     }
 

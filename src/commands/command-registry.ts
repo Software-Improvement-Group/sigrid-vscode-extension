@@ -9,6 +9,7 @@ import { GetAzureDevOpsWorkItemTypesCommand } from "./get-azure-devops-work-item
 import { FixFindingsWithAiCommand } from "./fix-findings-with-ai-command";
 import { CheckSystemOnboardedCommand } from "./check-system-onboarded-command";
 import { OnboardSystemCommand } from "./onboard-system-command";
+import { SigridApiRequestCommand } from "./sigrid-api-request-command";
 import { VsCodeCommand } from "./vscode-command";
 
 export const COMMANDS: Record<string, VsCodeCommand<unknown>> = {
@@ -23,4 +24,5 @@ export const COMMANDS: Record<string, VsCodeCommand<unknown>> = {
     fixFindingsWithAi: new FixFindingsWithAiCommand(),
     checkSystemOnboarded: new CheckSystemOnboardedCommand(),
     onboardSystem: new OnboardSystemCommand(),
+    sigridApiRequest: new SigridApiRequestCommand(),
 };

@@ -6,7 +6,7 @@ import { VsCodeCommandEvent } from "../commands/vscode-command-event";
 import { COMMANDS } from "../commands/command-registry";
 import { VsCodeCommandData } from "../commands/vscode-command-data";
 import { postActiveEditorChangedMessage } from "../utilities/editor";
-import { getSigridConfiguration, getSigridWebviewConfiguration } from "../utilities/configuration";
+import { getSigridWebviewConfiguration } from "../utilities/configuration";
 import { postAiAgentsDetectedMessage } from "../utilities/ai-agents-message";
 import { invalidateAvailability } from "../ai-agents/ai-agent-registry";
 import { SECRET_KEYS } from "../utilities/secrets";
@@ -49,8 +49,7 @@ export class SigridPanel implements WebviewViewProvider {
   }
 
   private getContentSecurityPolicy(webview: Webview, nonce: string) {
-    const sigridApiHost = new URL(getSigridConfiguration().sigridUrl).origin;
-    return `default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'nonce-${nonce}'; img-src ${webview.cspSource} data: https:; font-src ${webview.cspSource}; connect-src ${webview.cspSource} ${sigridApiHost}`;
+    return `default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'nonce-${nonce}'; img-src ${webview.cspSource} data: https:; font-src ${webview.cspSource}; connect-src ${webview.cspSource}`;
   }
 
   private renderHtml({ styleUri, scriptUri, nonce, csp }: { styleUri: string; scriptUri: string; nonce: string; csp: string }) {

@@ -26,7 +26,7 @@ describe('InitializeCommand', () => {
     );
 
     const cfg: Configuration = {
-      apiKey: '<api-key>',
+      hasApiKey: true,
       customer: 'acme',
       system: 'my-system',
       subsystem: 'my-subsystem',
@@ -66,7 +66,7 @@ describe('InitializeCommand', () => {
     );
 
     const cfg: Configuration = {
-      apiKey: '<api-key>',
+      hasApiKey: true,
       customer: 'acme',
       system: 'my-system',
       subsystem: 'my-subsystem',

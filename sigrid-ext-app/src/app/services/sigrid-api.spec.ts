@@ -1,180 +1,107 @@
-import { TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import {TestBed} from '@angular/core/testing';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
-import { SigridApi } from './sigrid-api';
-import { SigridConfiguration } from './sigrid-configuration';
-import {SIGRID_API_BASE_RELATIVE_URL, SIGRID_DEFAULT_URL} from '../utilities/constants';
-import { joinUrl } from '../utilities/join-url';
-import { RefactoringCategory } from '../models/refactoring-category';
-import { RefactoringCandidatesResponse } from '../models/refactoring-candidate';
-import { OpenSourceHealthResponse } from '../models/open-source-health-dependency';
-import { SecurityFindingResponse } from '../models/security-finding';
+import {SigridApi} from './sigrid-api';
+import {SigridApiTransport} from './sigrid-api-transport';
+import {FakeSigridApiTransport} from './fake-sigrid-api-transport';
+import {RefactoringCategory} from '../models/refactoring-category';
+import {RefactoringCandidatesResponse} from '../models/refactoring-candidate';
+import {OpenSourceHealthResponse} from '../models/open-source-health-dependency';
+import {SecurityFindingResponse} from '../models/security-finding';
 
 describe('SigridApi', () => {
   let service: SigridApi;
-  let httpMock: HttpTestingController;
-
-  class SigridConfigurationStub {
-    private readonly configSig = signal<{
-      apiKey: string;
-      customer: string;
-      system: string;
-      sigridUrl?: string;
-    } | null>({
-      apiKey: 'placeholder-api-key',
-      customer: 'cust',
-      system: 'sys',
-      // sigridUrl intentionally omitted to exercise SIGRID_DEFAULT_URL fallback
-    });
-
-    getConfiguration() {
-      return this.configSig.asReadonly();
-    }
-
-    setConfiguration(config: { apiKey: string; customer: string; system: string; sigridUrl?: string }) {
-      this.configSig.set(config);
-    }
-
-    getEmptyConfiguration() {
-      return { apiKey: '', customer: '', system: '', sigridUrl: '' };
-    }
-
-    getSigridApiBaseUrl(): string {
-      const configuration = this.configSig() ?? this.getEmptyConfiguration();
-      const base = !!configuration.sigridUrl ? configuration.sigridUrl : SIGRID_DEFAULT_URL;
-      return joinUrl(base, SIGRID_API_BASE_RELATIVE_URL);
-    }
-  }
-
-  let configStub: SigridConfigurationStub;
-
-  const configuredUrl = (...paths: string[]) =>
-    joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, ...paths, 'cust', 'sys');
+  let transport: FakeSigridApiTransport;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
         SigridApi,
-        { provide: SigridConfiguration, useClass: SigridConfigurationStub },
+        {provide: SigridApiTransport, useClass: FakeSigridApiTransport},
       ],
     });
 
     service = TestBed.inject(SigridApi);
-    httpMock = TestBed.inject(HttpTestingController);
-    configStub = TestBed.inject(SigridConfiguration) as unknown as SigridConfigurationStub;
+    transport = TestBed.inject(SigridApiTransport) as unknown as FakeSigridApiTransport;
   });
 
   afterEach(() => {
-    httpMock.verify();
+    transport.verify();
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  it('getOpenSourceHealthFindings() issues GET to the expected endpoint', () => {
-    let actual: OpenSourceHealthResponse | undefined;
+  it('getOpenSourceHealthFindings() issues GET to the expected resource', async () => {
+    const result = service.getOpenSourceHealthFindings();
 
-    service.getOpenSourceHealthFindings().subscribe((res) => (actual = res));
-
-    const req = httpMock.expectOne(configuredUrl('osh-findings'));
+    const req = transport.expectOne(['osh-findings']);
     expect(req.request.method).toBe('GET');
 
     const payload: OpenSourceHealthResponse = {
       bomFormat: 'CycloneDX',
       specVersion: '1.5',
       version: 1,
-      metadata: { timestamp: '2026-01-01T00:00:00Z', properties: [] },
+      metadata: {timestamp: '2026-01-01T00:00:00Z', properties: []},
       components: [],
       vulnerabilities: [],
     };
     req.flush(payload);
 
-    expect(actual).toEqual(payload);
+    expect(await result).toEqual(payload);
   });
 
-  it('getSecurityFindings() issues GET to the expected endpoint', () => {
-    let actual: SecurityFindingResponse[] | undefined;
+  it('getSecurityFindings() issues GET to the expected resource', async () => {
+    const result = service.getSecurityFindings();
 
-    service.getSecurityFindings().subscribe((res) => (actual = res));
-
-    const req = httpMock.expectOne(configuredUrl('security-findings'));
+    const req = transport.expectOne(['security-findings']);
     expect(req.request.method).toBe('GET');
 
     const payload: SecurityFindingResponse[] = [];
     req.flush(payload);
 
-    expect(actual).toEqual(payload);
+    expect(await result).toEqual(payload);
   });
 
-  it('getRefactoringCandidates(category) issues GET to the expected endpoint', () => {
-    let actual: RefactoringCandidatesResponse | undefined;
+  it('getRefactoringCandidates(category) issues GET to the expected resource', async () => {
+    const result = service.getRefactoringCandidates(RefactoringCategory.Duplication);
 
-    service.getRefactoringCandidates(RefactoringCategory.Duplication).subscribe((res) => (actual = res));
-
-    const req = httpMock.expectOne(
-      joinUrl(
-        SIGRID_DEFAULT_URL,
-        SIGRID_API_BASE_RELATIVE_URL,
-        'refactoring-candidates',
-        'cust',
-        'sys',
-        RefactoringCategory.Duplication
-      )
-    );
+    const req = transport.expectOne(['refactoring-candidates', RefactoringCategory.Duplication]);
     expect(req.request.method).toBe('GET');
 
-    const payload: RefactoringCandidatesResponse = { refactoringCandidates: [] };
+    const payload: RefactoringCandidatesResponse = {refactoringCandidates: []};
     req.flush(payload);
 
-    expect(actual).toEqual(payload);
+    expect(await result).toEqual(payload);
   });
 
-  it('getAllRefactoringCandidates() requests each category and returns a record keyed by category', () => {
+  it('getAllRefactoringCandidates() requests each category and returns a record keyed by category', async () => {
     const categories = Object.values(RefactoringCategory);
+    const result = service.getAllRefactoringCandidates();
 
-    let actual: Record<string, RefactoringCandidatesResponse> | undefined;
-    service.getAllRefactoringCandidates().subscribe((res) => (actual = res));
-
-    // Expect one request per category and flush distinct payloads
     for (const category of categories) {
-      const req = httpMock.expectOne(
-        joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, 'refactoring-candidates', 'cust', 'sys', category)
-      );
+      const req = transport.expectOne(['refactoring-candidates', category]);
       expect(req.request.method).toBe('GET');
-
       req.flush({
-        refactoringCandidates: [
-          {
-            id: `id-${category}`,
-            severity: 'high',
-            weight: 1,
-            status: 'WILL_FIX',
-            technology: 'ts',
-            snapshotDate: '2026-01-01',
-          } as any,
-        ],
+        refactoringCandidates: [{id: `id-${category}`} as any],
       } satisfies RefactoringCandidatesResponse);
     }
 
-    expect(actual).toBeTruthy();
+    const actual = await result;
     for (const category of categories) {
-      expect(actual![category]).toBeTruthy();
-      expect(actual![category].refactoringCandidates[0].id).toBe(`id-${category}`);
+      expect(actual[category].refactoringCandidates[0].id).toBe(`id-${category}`);
     }
   });
 
-  it('uses empty configuration when SigridConfiguration has no configuration set', () => {
-    configStub.setConfiguration({ apiKey: '', customer: '', system: '', sigridUrl: '' });
+  it('editFinding() issues PATCH with the request body', async () => {
+    const result = service.editFinding('finding-1', {status: 'ACCEPTED', remark: 'ok'});
 
-    service.getSecurityFindings().subscribe();
+    const req = transport.expectOne(['findings', 'finding-1']);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({status: 'ACCEPTED', remark: 'ok'});
+    req.flush(undefined, {status: 204});
 
-    const req = httpMock.expectOne(joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, 'security-findings', '', ''));
-    expect(req.request.method).toBe('GET');
-    req.flush([] as SecurityFindingResponse[]);
+    await expect(result).resolves.toBeUndefined();
   });
 });

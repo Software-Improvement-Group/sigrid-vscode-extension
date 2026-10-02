@@ -7,7 +7,7 @@ import type {SystemOnboarding} from '../services/system-onboarding';
 
 describe('ConfigurationChangedCommand', () => {
   const createPayload = (): Configuration => ({
-    apiKey: '<api-key>',
+    hasApiKey: true,
     customer: 'acme',
     system: 'my-system',
     subsystem: 'my-subsystem',

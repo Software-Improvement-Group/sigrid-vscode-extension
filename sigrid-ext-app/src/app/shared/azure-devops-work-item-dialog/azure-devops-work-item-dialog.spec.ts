@@ -59,7 +59,7 @@ describe('AzureDevOpsWorkItemDialog', () => {
     ]);
 
     sigridConfiguration.getConfigurationOrEmpty.mockReturnValue({
-      apiKey: 'api-key',
+      hasApiKey: true,
       customer: 'customer',
       system: 'system',
       subsystem: '',
@@ -148,7 +148,7 @@ describe('AzureDevOpsWorkItemDialog', () => {
 
   it('uses the default Sigrid URL when the configured Sigrid URL is empty', () => {
     sigridConfiguration.getConfigurationOrEmpty.mockReturnValue({
-      apiKey: 'api-key',
+      hasApiKey: true,
       customer: 'customer',
       system: 'system',
       subsystem: '',

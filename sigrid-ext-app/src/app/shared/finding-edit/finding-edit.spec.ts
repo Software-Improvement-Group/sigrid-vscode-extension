@@ -1,6 +1,5 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
-import {Subject, throwError} from 'rxjs';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 
 import {FindingEdit} from './finding-edit';
@@ -129,41 +128,34 @@ describe('FindingEdit', () => {
     expect(saveButton.disabled).toBe(false);
   });
 
-  it('does not call the API when the form is invalid', () => {
+  it('does not call the API when the form is invalid', async () => {
     createComponentWithFinding(createSecurityFinding());
 
     component['findingEditForm'].controls.status.setValue('');
     expect(component['findingEditForm'].valid).toBe(false);
 
-    component['onSave']();
+    await component['onSave']();
 
     expect(editFinding).not.toHaveBeenCalled();
     expect(close).not.toHaveBeenCalled();
     expect(showMessage).not.toHaveBeenCalled();
   });
 
-  it('calls the API with the edited values and closes the dialog on success', () => {
-    const success$ = new Subject<void>();
-    editFinding.mockReturnValue(success$.asObservable());
+  it('calls the API with the edited values and closes the dialog on success', async () => {
+    editFinding.mockResolvedValue(undefined);
 
     createComponentWithFinding(createSecurityFinding());
 
     component['findingEditForm'].controls.status.setValue(FindingStatus.Fixed);
     component['findingEditForm'].controls.remark.setValue('Done');
 
-    component['onSave']();
+    await component['onSave']();
 
     expect(editFinding).toHaveBeenCalledTimes(1);
     expect(editFinding).toHaveBeenCalledWith('security-1', {
       status: FindingStatus.Fixed,
       remark: 'Done',
     });
-    expect(close).not.toHaveBeenCalled();
-    expect(showMessage).not.toHaveBeenCalled();
-
-    success$.next();
-    success$.complete();
-
     expect(close).toHaveBeenCalledTimes(1);
     expect(close).toHaveBeenCalledWith({
       id: 'security-1',
@@ -173,26 +165,20 @@ describe('FindingEdit', () => {
     expect(showMessage).not.toHaveBeenCalled();
   });
 
-  it('passes undefined remark to the API when the remark control value is null', () => {
-    const success$ = new Subject<void>();
-    editFinding.mockReturnValue(success$.asObservable());
+  it('passes undefined remark to the API when the remark control value is null', async () => {
+    editFinding.mockResolvedValue(undefined);
 
     createComponentWithFinding(createSecurityFinding());
 
     component['findingEditForm'].controls.status.setValue(FindingStatus.Accepted);
     component['findingEditForm'].controls.remark.setValue(null);
 
-    component['onSave']();
+    await component['onSave']();
 
     expect(editFinding).toHaveBeenCalledWith('security-1', {
       status: FindingStatus.Accepted,
       remark: undefined,
     });
-    expect(showMessage).not.toHaveBeenCalled();
-
-    success$.next();
-    success$.complete();
-
     expect(close).toHaveBeenCalledWith({
       id: 'security-1',
       status: FindingStatus.Accepted,
@@ -201,17 +187,17 @@ describe('FindingEdit', () => {
     expect(showMessage).not.toHaveBeenCalled();
   });
 
-  it('logs an error, shows an error message, and does not close the dialog when saving fails', () => {
+  it('logs an error, shows an error message, and does not close the dialog when saving fails', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const error = new Error('save failed');
-    editFinding.mockReturnValue(throwError(() => error));
+    editFinding.mockRejectedValue(error);
 
     createComponentWithFinding(createSecurityFinding());
 
     component['findingEditForm'].controls.status.setValue(FindingStatus.Fixed);
     component['findingEditForm'].controls.remark.setValue('Needs retry');
 
-    component['onSave']();
+    await component['onSave']();
 
     expect(editFinding).toHaveBeenCalledTimes(1);
     expect(close).not.toHaveBeenCalled();

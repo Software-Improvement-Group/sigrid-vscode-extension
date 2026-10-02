@@ -1,58 +1,39 @@
-import {computed, inject, Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {SigridConfiguration} from './sigrid-configuration';
-
-import {joinUrl} from '../utilities/join-url';
+import {inject, Injectable} from '@angular/core';
+import {SigridApiTransport} from './sigrid-api-transport';
 import {OpenSourceHealthResponse} from '../models/open-source-health-dependency';
 import {SecurityFindingResponse} from '../models/security-finding';
 import {RefactoringCategory} from '../models/refactoring-category';
 import {RefactoringCandidatesResponse} from '../models/refactoring-candidate';
-import {forkJoin, map} from 'rxjs';
 import {FindingRequest} from '../models/finding-request';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SigridApi {
-  private http = inject(HttpClient);
-  private sigridConfiguration = inject(SigridConfiguration);
-
-  private configuration = computed(() => {
-    return this.sigridConfiguration.getConfiguration()() ?? this.sigridConfiguration.getEmptyConfiguration();
-  });
+  private transport = inject(SigridApiTransport);
 
   getOpenSourceHealthFindings() {
-    const configuration = this.configuration();
-    return this.http.get<OpenSourceHealthResponse>(joinUrl(this.sigridConfiguration.getSigridApiBaseUrl(), 'osh-findings', configuration.customer, configuration.system));
+    return this.transport.request<OpenSourceHealthResponse>({method: 'GET', path: ['osh-findings']});
   }
 
   getSecurityFindings() {
-    const configuration = this.configuration();
-    return this.http.get<SecurityFindingResponse[]>(joinUrl(this.sigridConfiguration.getSigridApiBaseUrl(), 'security-findings', configuration.customer, configuration.system));
+    return this.transport.request<SecurityFindingResponse[]>({method: 'GET', path: ['security-findings']});
   }
 
   getRefactoringCandidates(category: RefactoringCategory) {
-    const configuration = this.configuration();
-    return this.http.get<RefactoringCandidatesResponse>(joinUrl(this.sigridConfiguration.getSigridApiBaseUrl(), 'refactoring-candidates', configuration.customer, configuration.system, category));
+    return this.transport.request<RefactoringCandidatesResponse>({method: 'GET', path: ['refactoring-candidates', category]});
   }
 
-  getAllRefactoringCandidates() {
+  async getAllRefactoringCandidates() {
     const categories = Object.values(RefactoringCategory);
+    const responses = await Promise.all(categories.map((category) => this.getRefactoringCandidates(category)));
 
-    return forkJoin(
-      categories.map((category) => this.getRefactoringCandidates(category))
-    ).pipe(
-      map((responses) =>
-        Object.fromEntries(
-          categories.map((category, i) => [category, responses[i]])
-        ) as Record<string, RefactoringCandidatesResponse>
-      )
-    );
+    return Object.fromEntries(
+      categories.map((category, i) => [category, responses[i]])
+    ) as Record<string, RefactoringCandidatesResponse>;
   }
 
   editFinding(findingId: string, request: FindingRequest) {
-    const configuration = this.configuration();
-    return this.http.patch<void>(joinUrl(this.sigridConfiguration.getSigridApiBaseUrl(), 'findings',
-      configuration.customer, configuration.system, findingId), request);
+    return this.transport.request<void>({method: 'PATCH', path: ['findings', findingId], body: request});
   }
 }

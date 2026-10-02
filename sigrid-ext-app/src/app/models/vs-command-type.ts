@@ -10,4 +10,5 @@ export enum VsCommandType {
   FixFindingsWithAi = 'fixFindingsWithAi',
   CheckSystemOnboarded = 'checkSystemOnboarded',
   OnboardSystem = 'onboardSystem',
+  SigridApiRequest = 'sigridApiRequest',
 }

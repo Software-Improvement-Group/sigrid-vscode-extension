@@ -1,7 +1,5 @@
 import {TestBed} from '@angular/core/testing';
 import {signal} from '@angular/core';
-import {provideHttpClient} from '@angular/common/http';
-import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
 import {SigridData} from './sigrid-data';
@@ -9,8 +7,9 @@ import {SigridApi} from './sigrid-api';
 import {SigridConfiguration} from './sigrid-configuration';
 import {SystemOnboarding} from './system-onboarding';
 
-import {SIGRID_API_BASE_RELATIVE_URL, SIGRID_DEFAULT_URL} from '../utilities/constants';
-import {joinUrl} from '../utilities/join-url';
+import {SIGRID_DEFAULT_URL} from '../utilities/constants';
+import {SigridApiTransport} from './sigrid-api-transport';
+import {FakeSigridApiTransport} from './fake-sigrid-api-transport';
 import {RefactoringCategory} from '../models/refactoring-category';
 
 import {SecurityFindingMapper} from '../mappers/security-finding-mapper';
@@ -24,17 +23,17 @@ import {FileFilterMode} from '../models/file-filter-mode';
 
 describe('SigridData', () => {
   let service: SigridData;
-  let httpMock: HttpTestingController;
+  let httpMock: FakeSigridApiTransport;
 
   class SigridConfigurationStub {
     private readonly configSig = signal<{
-      apiKey: string;
+      hasApiKey: boolean;
       customer: string;
       system: string;
       sigridUrl?: string;
       subsystem: string;
     } | null>({
-      apiKey: 'placeholder-api-key',
+      hasApiKey: true,
       customer: 'cust',
       system: 'sys',
       subsystem: ''
@@ -51,18 +50,12 @@ describe('SigridData', () => {
       return this.configSig.asReadonly();
     }
 
-    setConfiguration(config: { apiKey: string; customer: string; system: string; subsystem: string, sigridUrl?: string }) {
+    setConfiguration(config: { hasApiKey: boolean; customer: string; system: string; subsystem: string, sigridUrl?: string }) {
       this.configSig.set(config);
     }
 
     getEmptyConfiguration() {
-      return { apiKey: '', customer: '', system: '', sigridUrl: SIGRID_DEFAULT_URL };
-    }
-
-    getSigridApiBaseUrl(): string {
-      const configuration = this.configSig() ?? this.getEmptyConfiguration();
-      const base = !!configuration.sigridUrl ? configuration.sigridUrl : SIGRID_DEFAULT_URL;
-      return joinUrl(base, SIGRID_API_BASE_RELATIVE_URL);
+      return { hasApiKey: false, customer: '', system: '', sigridUrl: SIGRID_DEFAULT_URL };
     }
   }
 
@@ -70,19 +63,16 @@ describe('SigridData', () => {
     readonly status = signal<'onboarded'>('onboarded').asReadonly();
   }
 
-  const findingEndpoint = (...paths: string[]) =>
-    joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, ...paths, 'cust', 'sys');
+  const findingEndpoint = (name: string) => [name];
 
-  const refactoringEndpoint = (category: RefactoringCategory) =>
-    joinUrl(SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL, 'refactoring-candidates', 'cust', 'sys', category);
+  const refactoringEndpoint = (category: RefactoringCategory) => ['refactoring-candidates', category];
 
   beforeEach(() => {
     vi.restoreAllMocks();
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
+        { provide: SigridApiTransport, useClass: FakeSigridApiTransport },
         SigridApi,
         SigridData,
         { provide: SigridConfiguration, useClass: SigridConfigurationStub },
@@ -91,7 +81,7 @@ describe('SigridData', () => {
     });
 
     service = TestBed.inject(SigridData);
-    httpMock = TestBed.inject(HttpTestingController);
+    httpMock = TestBed.inject(SigridApiTransport) as unknown as FakeSigridApiTransport;
   });
 
   afterEach(() => {
@@ -390,7 +380,7 @@ describe('SigridData', () => {
     const p = service.loadSecurityFindings();
 
     const req = httpMock.expectOne(findingEndpoint('security-findings'));
-    req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+    req.flush('Server error', { status: 500 });
     await p;
 
     const finding = service.securityFindings()!;

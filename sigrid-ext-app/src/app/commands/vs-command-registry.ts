@@ -17,6 +17,8 @@ import {FixFindingsWithAiResultCommand} from './fix-findings-with-ai-result-comm
 import {SystemOnboarding} from '../services/system-onboarding';
 import {SystemOnboardStatusCommand} from './system-onboard-status-command';
 import {OnboardSystemResultCommand} from './onboard-system-result-command';
+import {SigridApiTransport} from '../services/sigrid-api-transport';
+import {SigridApiResponseCommand} from './sigrid-api-response-command';
 
 @Injectable({
   providedIn: 'root'
@@ -30,6 +32,7 @@ export class VsCommandRegistry {
   private aiAgents = inject(AiAgents);
   private fixWithAi = inject(FixWithAi);
   private systemOnboarding = inject(SystemOnboarding);
+  private sigridApiTransport = inject(SigridApiTransport);
 
   private commands: Record<string, VsCommandHandler<unknown>> = {
     initialize: new InitializeCommand(this.sigridConfig, this.usageStatistics, this.systemOnboarding),
@@ -41,6 +44,7 @@ export class VsCommandRegistry {
     fixFindingsWithAiResult: new FixFindingsWithAiResultCommand(this.fixWithAi),
     systemOnboardStatus: new SystemOnboardStatusCommand(this.systemOnboarding),
     onboardSystemResult: new OnboardSystemResultCommand(this.systemOnboarding),
+    sigridApiResponse: new SigridApiResponseCommand(this.sigridApiTransport),
   };
 
   execute(command: string, payload: unknown) {

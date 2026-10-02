@@ -46,32 +46,27 @@ export class FindingEdit implements OnInit {
     // this.findingEditForm.controls.remark.setValue(finding.remark)
   }
 
-  protected onSave() {
+  protected async onSave() {
     if (!this.findingEditForm.valid) {
       return;
     }
 
     const finding = this.finding();
-    this.sigridApi.editFinding(finding.id, {
-      status: this.findingEditForm.controls.status.value ?? '',
-      /*
-       todo: Reset remark to undefined to keep the remark if not specified.
-       Remove this reset once the API returns the remark field and it will be loaded in the form.
-      */
-      remark: this.findingEditForm.controls.remark.value ?? undefined
-    }).subscribe({
-      next: () => {
-        this.dialogRef.close({
-          id: finding.id,
-          status: this.findingEditForm.controls.status.value ?? '',
-          remark: this.findingEditForm.controls.remark.value
-        });
-      },
-      error: (error) => {
-        console.error('Error updating finding:', error);
-        this.vscode.showMessage('Error occurred while updating finding.', VsMessageSeverity.Error);
-      }
-    });
+    const {status, remark} = this.findingEditForm.controls;
+    try {
+      await this.sigridApi.editFinding(finding.id, {
+        status: status.value ?? '',
+        /*
+         todo: Reset remark to undefined to keep the remark if not specified.
+         Remove this reset once the API returns the remark field and it will be loaded in the form.
+        */
+        remark: remark.value ?? undefined
+      });
+      this.dialogRef.close({id: finding.id, status: status.value ?? '', remark: remark.value});
+    } catch (error) {
+      console.error('Error updating finding:', error);
+      this.vscode.showMessage('Error occurred while updating finding.', VsMessageSeverity.Error);
+    }
   }
 
   protected close() {

@@ -8,6 +8,7 @@ import {UsageData} from '../models/usage-data';
 import {CreateJiraIssuePayload} from '../models/create-jira-issue-payload';
 import {CreateAzureDevOpsWorkItemPayload} from '../models/create-azure-devops-work-item-payload';
 import {FixFindingsPayload} from '../models/fix-findings-payload';
+import {SigridApiRequestData} from '../models/sigrid-api-message';
 
 @Injectable({
   providedIn: 'root',
@@ -65,5 +66,9 @@ export class VsCode {
 
   onboardSystem() {
     this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.OnboardSystem));
+  }
+
+  sigridApiRequest(request: SigridApiRequestData) {
+    this.vsCodeApi?.postMessage(new VsCommand(VsCommandType.SigridApiRequest, request));
   }
 }

@@ -55,7 +55,7 @@ describe('VsCommandRegistry', () => {
 
     const registry = TestBed.inject(VsCommandRegistry);
 
-    const payload = {apiKey: '<api-key>', customer: 'acme', system: 'sys'} as any;
+    const payload = {hasApiKey: true, customer: 'acme', system: 'sys'} as any;
     registry.execute('initialize', payload);
 
     expect(initExecuteSpy).toHaveBeenCalledTimes(1);

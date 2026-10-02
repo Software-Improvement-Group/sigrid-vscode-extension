@@ -62,7 +62,7 @@ describe('JiraIssueDialog', () => {
     ]);
 
     sigridConfiguration.getConfigurationOrEmpty.mockReturnValue({
-      apiKey: 'api-key',
+      hasApiKey: true,
       customer: 'customer',
       system: 'system',
       subsystem: '',
@@ -136,7 +136,7 @@ describe('JiraIssueDialog', () => {
 
   it('uses the default Sigrid URL when the configured Sigrid URL is empty', () => {
     sigridConfiguration.getConfigurationOrEmpty.mockReturnValue({
-      apiKey: 'api-key',
+      hasApiKey: true,
       customer: 'customer',
       system: 'system',
       subsystem: '',

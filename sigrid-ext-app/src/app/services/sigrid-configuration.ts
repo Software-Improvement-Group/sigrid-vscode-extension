@@ -1,7 +1,6 @@
 import {computed, Injectable, signal} from '@angular/core';
 import {Configuration} from '../models/configuration';
-import {SIGRID_API_BASE_RELATIVE_URL, SIGRID_DEFAULT_URL} from '../utilities/constants';
-import {joinUrl} from '../utilities/join-url';
+import {SIGRID_DEFAULT_URL} from '../utilities/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +10,7 @@ export class SigridConfiguration {
 
   readonly isConfigurationValid = computed(() => {
     const config = this.config();
-    return config !== null && !!config.apiKey && !!config.customer && !!config.system;
+    return config !== null && config.hasApiKey && !!config.customer && !!config.system;
   });
 
   readonly isJiraConfigured = computed(() => {
@@ -22,11 +21,6 @@ export class SigridConfiguration {
   readonly isAzureDevOpsConfigured = computed(() => {
     const config = this.config();
     return config !== null && !!config.azureDevOpsOrganizationUrl && config.hasAzureDevOpsToken && !!config.azureDevOpsProjectName;
-  });
-
-  private readonly sigridApiBaseUrl = computed(() => {
-    const configuration = this.getConfigurationOrEmpty();
-    return joinUrl(!!configuration.sigridUrl ? configuration.sigridUrl : SIGRID_DEFAULT_URL, SIGRID_API_BASE_RELATIVE_URL);
   });
 
   readonly subsystem = computed(() => {
@@ -48,7 +42,7 @@ export class SigridConfiguration {
 
   getEmptyConfiguration(): Configuration {
     return {
-      apiKey: '',
+      hasApiKey: false,
       customer: '',
       system: '',
       subsystem: '',
@@ -61,9 +55,5 @@ export class SigridConfiguration {
       hasAzureDevOpsToken: false,
       azureDevOpsProjectName: '',
     };
-  }
-
-  getSigridApiBaseUrl() {
-    return this.sigridApiBaseUrl();
   }
 }

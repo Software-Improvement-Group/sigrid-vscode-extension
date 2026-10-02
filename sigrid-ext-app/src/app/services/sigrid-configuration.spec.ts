@@ -7,7 +7,7 @@ describe('SigridConfiguration', () => {
   let service: SigridConfiguration;
 
   const validBaseConfiguration: Configuration = {
-    apiKey: 'k',
+    hasApiKey: true,
     customer: 'c',
     system: 's',
     subsystem: '',
@@ -52,7 +52,7 @@ describe('SigridConfiguration', () => {
     const empty = service.getEmptyConfiguration();
 
     expect(empty).toEqual({
-      apiKey: '',
+      hasApiKey: false,
       customer: '',
       system: '',
       subsystem: '',
@@ -69,7 +69,7 @@ describe('SigridConfiguration', () => {
 
   it('setConfiguration updates getConfiguration() signal value', () => {
     const config: Configuration = {
-      apiKey: 'placeholder-api-key',
+      hasApiKey: true,
       customer: 'customer-1',
       system: 'system-1',
       subsystem: 'subsystem-1',
@@ -97,8 +97,8 @@ describe('SigridConfiguration', () => {
     expect(service.subsystem()).toBe('trimmed-subsystem');
   });
 
-  it('isConfigurationValid becomes true only when apiKey, customer, and system are all non-empty', () => {
-    service.setConfiguration({ ...validBaseConfiguration, apiKey: '' });
+  it('isConfigurationValid becomes true only when hasApiKey, customer, and system are all non-empty', () => {
+    service.setConfiguration({ ...validBaseConfiguration, hasApiKey: false });
     expect(service.isConfigurationValid()).toBe(false);
 
     service.setConfiguration({ ...validBaseConfiguration, customer: '' });

@@ -4,7 +4,7 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [Unreleased]
+## [1.0.5] - 2026-10-02
 
 ### Added
 - **Sigrid: Clear API Key**, **Sigrid: Clear JIRA Personal Access Token**, and **Sigrid: Clear Azure DevOps Personal Access Token** commands to remove a stored secret, globally or for the current workspace.

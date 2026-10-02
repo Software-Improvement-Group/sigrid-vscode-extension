@@ -1,5 +1,5 @@
 export interface Configuration {
-  apiKey: string;
+  hasApiKey: boolean;
   customer: string;
   system: string;
   subsystem: string;
