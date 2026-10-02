@@ -17,7 +17,8 @@ import { mcpConfigLocator } from "./mcp-config-paths";
  */
 
 const SIGRID = 'sigrid';
-const SIGRID_CLAUDE_PLUGIN = 'sigrid@sigrid-ai-toolkit';
+/** The pre-Axis plugin, which still ships `/sigrid:...` skills instead of `/axis:...`. */
+const LEGACY_SIGRID_CLAUDE_PLUGIN = 'sigrid@sigrid-ai-toolkit';
 
 /** Matches "sigrid" as a whole word, so names like `sigridtest` or `mysigridwrapper` don't match. */
 const SIGRID_WORD = /\bsigrid\b/i;
@@ -137,17 +138,29 @@ function mcpServerIdentities(config: unknown): unknown[] {
 }
 
 /**
- * Checks whether the Sigrid Claude Code plugin (which provides the Sigrid MCP server and the
- * `/sigrid:...` skills) is enabled, by reading the documented plugin layout under `~/.claude`.
+ * Checks whether a Sigrid Claude Code plugin (which provides the Sigrid MCP server and the Sigrid
+ * skills) is enabled, by reading the documented plugin layout under `~/.claude`.
  */
 export function hasSigridClaudePlugin(): boolean {
-    const settings = readJsonFile<{ enabledPlugins?: Record<string, boolean> }>(join(homedir(), '.claude', 'settings.json'));
-    if (settings?.enabledPlugins?.[SIGRID_CLAUDE_PLUGIN]) {
+    if (enabledSigridClaudePlugins().length > 0) {
         return true;
     }
 
     const installed = readJsonFile<Record<string, unknown>>(join(homedir(), '.claude', 'plugins', 'installed_plugins.json'));
     return installed !== undefined && SIGRID_WORD.test(JSON.stringify(installed));
+}
+
+/** True when only the legacy plugin is enabled, so its skill names must be used. */
+export function usesLegacySigridClaudePlugin(): boolean {
+    const enabled = enabledSigridClaudePlugins();
+    return enabled.length === 1 && enabled[0] === LEGACY_SIGRID_CLAUDE_PLUGIN;
+}
+
+function enabledSigridClaudePlugins(): string[] {
+    const settings = readJsonFile<{ enabledPlugins?: Record<string, unknown> }>(join(homedir(), '.claude', 'settings.json'));
+    return Object.entries(settings?.enabledPlugins ?? {})
+        .filter(([name, enabled]) => enabled === true && SIGRID_WORD.test(name))
+        .map(([name]) => name);
 }
 
 /** Whether a VS Code extension with the given id is installed, regardless of activation state. */

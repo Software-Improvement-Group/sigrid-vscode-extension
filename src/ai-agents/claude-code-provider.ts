@@ -17,7 +17,7 @@ const TERMINAL_NAME = 'Sigrid: Fix with Claude';
 
 /** Deep link that installs the Sigrid plugin (and with it the Sigrid MCP server) in Claude Code. */
 export const CLAUDE_CODE_INSTALL_SIGRID_PLUGIN_URI =
-    'vscode://anthropic.claude-code/install-plugin?plugin=sigrid&marketplace=Software-Improvement-Group/sigrid-ai-toolkit';
+    'vscode://anthropic.claude-code/install-plugin?plugin=axis&marketplace=Software-Improvement-Group/agent-integrations';
 
 /** Swappable seam for tests, and a cache: locating the CLI touches the file system. */
 export const claudeCliLocator = {
@@ -52,7 +52,7 @@ export class ClaudeCodeProvider implements AiAgentProvider {
 
     getMcpInstallHint() {
         return {
-            message: 'The Sigrid MCP server was not detected. Installing the Sigrid plugin lets your agent query Sigrid directly.',
+            message: 'The Sigrid MCP server was not detected. Installing the Sigrid Axis plugin lets your agent query Sigrid directly.',
             action: 'Install Sigrid Plugin',
             uri: CLAUDE_CODE_INSTALL_SIGRID_PLUGIN_URI,
         };

@@ -4,6 +4,13 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+
+### Changed
+- "Fix with AI" for Claude Code now uses the Sigrid Axis plugin skills (`/axis:autofix maintainability|security|open-source`), including for security findings. Note that `/axis:autofix` commits its fixes on a local branch, and for security findings updates their status in Sigrid.
+- When only the old `sigrid-ai-toolkit` plugin is enabled, the prompt keeps using its skills (`/sigrid:sigrid-improve`, `/sigrid:resolve-security-findings`, `/sigrid:fix-osh-risk`).
+- The install hint and deep link now point to the Sigrid Axis plugin ([installation guide](https://docs.sigrid-says.com/axis/installation.html)).
+
 ## [1.0.4] - 2026-09-22
 
 ### Changed

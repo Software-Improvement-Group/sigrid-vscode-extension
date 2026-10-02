@@ -16,7 +16,15 @@ export const FindingCategory = {
 } as const;
 
 const SLASH_COMMANDS: Record<string, string> = {
+    [FindingCategory.maintainability]: '/axis:autofix maintainability',
+    [FindingCategory.security]: '/axis:autofix security',
+    [FindingCategory.openSourceHealth]: '/axis:autofix open-source',
+};
+
+// ponytail: legacy sigrid-ai-toolkit plugin, delete once it is retired.
+const LEGACY_SLASH_COMMANDS: Record<string, string> = {
     [FindingCategory.maintainability]: '/sigrid:sigrid-improve autonomous',
+    [FindingCategory.security]: '/sigrid:resolve-security-findings',
     [FindingCategory.openSourceHealth]: '/sigrid:fix-osh-risk',
 };
 
@@ -28,7 +36,7 @@ const PLAIN_INSTRUCTIONS: Record<string, string> = {
 
 const MIXED_INSTRUCTION = 'Fix the following Sigrid findings.';
 
-const SIGRID_PLUGIN_INSTALL_URL = 'https://docs.sigrid-says.com/integrations/integration-sigrid-mcp.html#installation';
+const SIGRID_PLUGIN_INSTALL_URL = 'https://docs.sigrid-says.com/axis/installation.html';
 
 const MCP_HINT = 'Note: the Sigrid MCP server and Sigrid skills were not detected in this environment. ' +
     `For the best experience, install the Sigrid plugin: ${SIGRID_PLUGIN_INSTALL_URL}. ` +
@@ -49,6 +57,8 @@ const GUARDRAILS_TOOL = SIGRID_TOOL_NAMES.guardrailsQualityCheck;
 export interface FixPromptOptions {
     supportsSlashCommands: boolean;
     mcpDetected: boolean;
+    /** Only the pre-Axis Sigrid plugin is installed, which names its skills differently. */
+    legacySkills?: boolean;
     /** Renders a tool name the way the agent links tools (`#name`), or undefined if it cannot. */
     resolveToolReference?: (toolName: string) => string | undefined;
 }
@@ -66,8 +76,7 @@ export interface FixPrompt {
 }
 
 export function buildFixPrompt(findings: FixFinding[], context: FixPromptContext, options: FixPromptOptions): FixPrompt {
-    const canUseSkill = options.supportsSlashCommands && options.mcpDetected;
-    const lead = buildLeadInstruction(findings, canUseSkill);
+    const lead = buildLeadInstruction(findings, slashCommandsFor(options));
     const sections = [lead, buildContextLine(context), buildFindingList(findings)];
 
     if (!options.mcpDetected) {
@@ -115,22 +124,21 @@ function buildMcpInstruction(tools: string[], resolveToolReference?: (toolName: 
     return lines.join('\n');
 }
 
-/**
- * Prefers a Sigrid skill when the agent supports slash commands and every finding belongs to a
- * category that has one. Security has no dedicated skill, so it always gets a plain instruction.
- */
-function buildLeadInstruction(findings: FixFinding[], supportsSlashCommands: boolean): string {
+/** The skills the agent can invoke: none without slash command support or a detected Sigrid plugin. */
+function slashCommandsFor(options: FixPromptOptions): Record<string, string> {
+    if (!options.supportsSlashCommands || !options.mcpDetected) {
+        return {};
+    }
+    return options.legacySkills ? LEGACY_SLASH_COMMANDS : SLASH_COMMANDS;
+}
+
+/** Prefers a Sigrid skill when every finding belongs to a category that has one. */
+function buildLeadInstruction(findings: FixFinding[], slashCommands: Record<string, string>): string {
     const category = getSingleCategory(findings);
     if (category === undefined) {
         return MIXED_INSTRUCTION;
     }
-
-    const slashCommand = SLASH_COMMANDS[category];
-    if (supportsSlashCommands && slashCommand) {
-        return slashCommand;
-    }
-
-    return PLAIN_INSTRUCTIONS[category] ?? MIXED_INSTRUCTION;
+    return slashCommands[category] ?? PLAIN_INSTRUCTIONS[category] ?? MIXED_INSTRUCTION;
 }
 
 /** The category shared by all findings, or undefined for an empty or mixed selection. */
