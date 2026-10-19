@@ -14,6 +14,7 @@ import {RefactoringCategory} from '../models/refactoring-category';
 
 import {SecurityFindingMapper} from '../mappers/security-finding-mapper';
 import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
+import {ArchitectureFindingMapper} from '../mappers/architecture-finding-mapper';
 import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
 
 import {SecurityFindingResponse} from '../models/security-finding';
@@ -404,7 +405,7 @@ describe('SigridData', () => {
     expect(finding.error).toBe('Error occurred while mapping response to security findings.');
   });
 
-  it('loadAllFindings() calls all three loaders with forceRefresh=true', async () => {
+  it('loadAllFindings() calls all four loaders with forceRefresh=true', async () => {
     const loadRefactoringSpy = vi
       .spyOn(service, 'loadRefactoringCandidates')
       .mockImplementation(() => Promise.resolve());
@@ -417,6 +418,10 @@ describe('SigridData', () => {
       .spyOn(service, 'loadOpenSourceHealthFindings')
       .mockImplementation(() => Promise.resolve());
 
+    const loadArchitectureSpy = vi
+      .spyOn(service, 'loadArchitectureFindings')
+      .mockImplementation(() => Promise.resolve());
+
     await service.loadAllFindings();
 
     expect(loadRefactoringSpy).toHaveBeenCalledTimes(1);
@@ -427,6 +432,9 @@ describe('SigridData', () => {
 
     expect(loadOshSpy).toHaveBeenCalledTimes(1);
     expect(loadOshSpy).toHaveBeenCalledWith(true);
+
+    expect(loadArchitectureSpy).toHaveBeenCalledTimes(1);
+    expect(loadArchitectureSpy).toHaveBeenCalledWith(true);
   });
 
   it('loadAllFindings() toggles isRefreshing true while running, then false when finished (even if loaders are async)', async () => {
@@ -443,6 +451,7 @@ describe('SigridData', () => {
     vi.spyOn(service, 'loadOpenSourceHealthFindings').mockImplementation(
       () => new Promise<void>((resolve) => { resolveOsh = resolve; }),
     );
+    vi.spyOn(service, 'loadArchitectureFindings').mockResolvedValue();
 
     expect(service.isRefreshing()).toBe(false);
 
@@ -468,6 +477,7 @@ describe('SigridData', () => {
     vi.spyOn(service, 'loadRefactoringCandidates').mockResolvedValue();
     vi.spyOn(service, 'loadSecurityFindings').mockRejectedValue(new Error('boom'));
     vi.spyOn(service, 'loadOpenSourceHealthFindings').mockResolvedValue();
+    vi.spyOn(service, 'loadArchitectureFindings').mockResolvedValue();
 
     expect(service.isRefreshing()).toBe(false);
 
@@ -476,10 +486,11 @@ describe('SigridData', () => {
     expect(service.isRefreshing()).toBe(false);
   });
 
-  it('loadAllFindings() triggers HTTP fetches for refactoring, security, and open source health findings', async () => {
+  it('loadAllFindings() triggers HTTP fetches for refactoring, security, open source health, and architecture findings', async () => {
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue([] as any);
     vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue([] as any);
     vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue([] as any);
+    vi.spyOn(ArchitectureFindingMapper, 'map').mockReturnValue([] as any);
 
     expect(service.isRefreshing()).toBe(false);
 
@@ -496,6 +507,8 @@ describe('SigridData', () => {
       components: [],
       vulnerabilities: [],
     } satisfies OpenSourceHealthResponse);
+
+    httpMock.expectOne(['architecture-quality', 'raw']).flush({systemElements: [], dependencies: []});
 
     // Refactoring candidates fetch once per category
     const categories = Object.values(RefactoringCategory);

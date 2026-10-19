@@ -13,12 +13,14 @@ export const FindingCategory = {
     maintainability: 'Maintainability',
     security: 'Security',
     openSourceHealth: 'Open Source Health',
+    architecture: 'Architecture',
 } as const;
 
 const SLASH_COMMANDS: Record<string, string> = {
     [FindingCategory.maintainability]: '/axis:autofix maintainability',
     [FindingCategory.security]: '/axis:autofix security',
     [FindingCategory.openSourceHealth]: '/axis:autofix open-source',
+    [FindingCategory.architecture]: '/axis:autofix architecture',
 };
 
 // ponytail: legacy sigrid-ai-toolkit plugin, delete once it is retired.
@@ -26,12 +28,14 @@ const LEGACY_SLASH_COMMANDS: Record<string, string> = {
     [FindingCategory.maintainability]: '/sigrid:sigrid-improve autonomous',
     [FindingCategory.security]: '/sigrid:resolve-security-findings',
     [FindingCategory.openSourceHealth]: '/sigrid:fix-osh-risk',
+    [FindingCategory.architecture]: '/sigrid:architecture-improve',
 };
 
 const PLAIN_INSTRUCTIONS: Record<string, string> = {
     [FindingCategory.maintainability]: 'Fix the following Sigrid maintainability findings.',
     [FindingCategory.security]: 'Fix the following Sigrid security findings.',
     [FindingCategory.openSourceHealth]: 'Remediate the following Sigrid open source health risks.',
+    [FindingCategory.architecture]: 'Fix the following Sigrid architecture findings.',
 };
 
 const MIXED_INSTRUCTION = 'Fix the following Sigrid findings.';
@@ -50,6 +54,7 @@ const MCP_TOOLS: Record<string, string[]> = {
     [FindingCategory.maintainability]: [SIGRID_TOOL_NAMES.maintainabilityGetFindings, SIGRID_TOOL_NAMES.guardrailsQualityCheck],
     [FindingCategory.security]: [SIGRID_TOOL_NAMES.securityGetFindings, SIGRID_TOOL_NAMES.guardrailsQualityCheck],
     [FindingCategory.openSourceHealth]: [SIGRID_TOOL_NAMES.opensourcehealthGetRisks, SIGRID_TOOL_NAMES.opensourcehealthGetVulnerabilities],
+    [FindingCategory.architecture]: [SIGRID_TOOL_NAMES.architectureGetInternal, SIGRID_TOOL_NAMES.architectureGetWorstDirectories],
 };
 
 const GUARDRAILS_TOOL = SIGRID_TOOL_NAMES.guardrailsQualityCheck;

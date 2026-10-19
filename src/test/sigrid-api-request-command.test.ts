@@ -92,6 +92,19 @@ suite('SigridApiRequestCommand', () => {
         assert.strictEqual(messages[0].data.status, 401);
     });
 
+    test('requests the raw architecture graph for the configured customer and system', async () => {
+        let calledUrl = '';
+        globalThis.fetch = async (url: any) => {
+            calledUrl = String(url);
+            return fakeResponse(200, '{}');
+        };
+        const { webview } = createFakeWebview();
+
+        await execute({ requestId: 'r7', method: 'GET', path: ['architecture-quality', 'raw'] }, webview);
+
+        assert.ok(calledUrl.endsWith('/rest/analysis-results/api/v1/architecture-quality/acme/my%20system/raw'), calledUrl);
+    });
+
     test('reports status 0 when the request fails', async () => {
         globalThis.fetch = async () => { throw new Error('network down'); };
         const { webview, messages } = createFakeWebview();

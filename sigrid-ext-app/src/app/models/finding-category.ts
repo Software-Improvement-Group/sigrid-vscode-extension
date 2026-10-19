@@ -3,4 +3,5 @@ export const FindingCategory = {
   maintainability: 'Maintainability',
   security: 'Security',
   openSourceHealth: 'Open Source Health',
+  architecture: 'Architecture',
 } as const;

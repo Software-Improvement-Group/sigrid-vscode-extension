@@ -6,6 +6,8 @@ import {SigridFinding} from '../models/sigrid-finding';
 import {SecurityFindingMapper} from '../mappers/security-finding-mapper';
 import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
 import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
+import {ArchitectureFinding} from '../models/architecture-finding';
+import {ArchitectureFindingMapper} from '../mappers/architecture-finding-mapper';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {FileFilterMode} from '../models/file-filter-mode';
 import {getFileName} from '../utilities/path';
@@ -21,6 +23,7 @@ export class SigridData {
   private readonly _refactoringCandidates = signal<SigridFinding<RefactoringCandidate[]> | null>(null);
   private readonly _openSourceHealthFindings = signal<SigridFinding<OpenSourceHealthDependency[]> | null>(null);
   private readonly _securityFindings = signal<SigridFinding<SecurityFinding[]> | null>(null);
+  private readonly _architectureFindings = signal<SigridFinding<ArchitectureFinding[]> | null>(null);
   private readonly _fileFilter = signal<FileFilterMode>(FileFilterMode.All);
   private readonly _activeFilePath = signal<string | null | undefined>(undefined);
   private readonly _isRefreshing = signal(false);
@@ -47,6 +50,12 @@ export class SigridData {
       : filterFindingsByPath(this._openSourceHealthFindings(), this._activeFilePath() ?? '') as SigridFinding<OpenSourceHealthDependency[]>;
   })
 
+  private filteredArchitectureFindings = computed(() => {
+    return this._fileFilter() === FileFilterMode.All
+      ? this._architectureFindings()
+      : filterFindingsByPath(this._architectureFindings(), this._activeFilePath() ?? '') as SigridFinding<ArchitectureFinding[]>;
+  });
+
   get refactoringCandidates() {
     return this.filteredRefactoringCandidates;
   }
@@ -57,6 +66,10 @@ export class SigridData {
 
   get openSourceHealthFindings() {
     return this.filteredOpenSourceHealthFindings;
+  }
+
+  get architectureFindings() {
+    return this.filteredArchitectureFindings;
   }
 
   get isRefreshing() {
@@ -93,6 +106,16 @@ export class SigridData {
     );
   }
 
+  loadArchitectureFindings(forceRefresh?: boolean): Promise<void> {
+    return this.fetchFindings(
+      () => this.sigridApi.getArchitectureGraph(),
+      this._architectureFindings,
+      ArchitectureFindingMapper.map,
+      'architecture',
+      forceRefresh,
+    );
+  }
+
   async loadAllFindings(): Promise<void> {
     this._isRefreshing.set(true);
     try {
@@ -101,6 +124,7 @@ export class SigridData {
           this.loadRefactoringCandidates(true),
           this.loadSecurityFindings(true),
           this.loadOpenSourceHealthFindings(true),
+          this.loadArchitectureFindings(true),
         ]);
     } finally {
       this._isRefreshing.set(false);
