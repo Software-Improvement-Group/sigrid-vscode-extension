@@ -75,6 +75,12 @@ describe('ArchitectureFindingMapper', () => {
     expect(finding.filePath).toBe('src/a.ts');
   });
 
+  it('links every finding to the given href', () => {
+    const [finding] = ArchitectureFindingMapper.map(graph({qualifications: ['CYCLIC']}), '', 'https://example.invalid/explorer');
+
+    expect(finding.href).toBe('https://example.invalid/explorer');
+  });
+
   it('sorts by severity, highest first', () => {
     const findings = ArchitectureFindingMapper.map(graph(
       {id: 'cyclic', qualifications: ['CYCLIC']},

@@ -42,6 +42,7 @@
                                     (onClick)="onFixWithAi(finding)"
                 />
               }
+              <sigrid-external-link [href]="finding.href" [disabled]="!finding.href" tooltip="Open architecture explorer in Sigrid" />
             </div>
           </td>
         </tr>

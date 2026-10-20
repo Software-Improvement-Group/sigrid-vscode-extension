@@ -6,6 +6,7 @@ import {SeverityIcon} from '../shared/severity-icon/severity-icon';
 import {FindingNavigator} from '../shared/finding-navigator';
 import {SelectedFinding} from '../models/selected-finding';
 import {FindingCategory} from '../models/finding-category';
+import {ExternalLink} from '../shared/external-link/external-link';
 import {IconButton} from '../shared/icon-button/icon-button';
 import {TooltipDirective} from 'ngx-smart-tooltip';
 import {RiskSeverity, riskSeverityStringValues} from '../models/risk-severity';
@@ -16,6 +17,7 @@ import {FilterableHeader} from '../shared/filterable-header/filterable-header';
   imports: [
     SeverityIcon,
     FindingNavigator,
+    ExternalLink,
     IconButton,
     TooltipDirective,
     FilterableHeader

@@ -39,6 +39,12 @@ export interface DependencyLink {
   target: ArchitectureElementResponse;
 }
 
+/** What a finding is mapped for: the configured subsystem and where "open in Sigrid" should lead. */
+export interface MappingContext {
+  subsystem: string;
+  href: string;
+}
+
 export interface QualificationRule {
   severity: RiskSeverity;
   describe: (source: string, target: string) => string;
@@ -52,6 +58,7 @@ export class ArchitectureFinding implements FindingLocation {
   targetComponent: string = '';
   filePath: string = '';
   displayFilePath: string = '';
+  href: string = '';
   line: number = 0;
   fileLocations: FileLocation[] = [];
 }

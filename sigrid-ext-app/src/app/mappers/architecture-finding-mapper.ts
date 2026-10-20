@@ -5,6 +5,7 @@ import {
   ArchitectureGraphResponse,
   DependencyLink,
   GraphIndex,
+  MappingContext,
   QualificationRule
 } from '../models/architecture-finding';
 import {RiskSeverity} from '../models/risk-severity';
@@ -29,16 +30,17 @@ const CALL_DEPENDENCY_TYPES = ['CODE_CALL', 'DATA_ACCESS', 'INTERFACE_CALL'];
  * files that Sigrid qualified as undesirable or cyclic, expressed on the level of their components.
  */
 export class ArchitectureFindingMapper {
-  static map(response: ArchitectureGraphResponse, subsystem: string): ArchitectureFinding[] {
+  static map(response: ArchitectureGraphResponse, subsystem: string, href: string = ''): ArchitectureFinding[] {
     if (!Array.isArray(response?.systemElements) || !Array.isArray(response?.dependencies)) {
       return [];
     }
 
     const index = ArchitectureFindingMapper.buildIndex(response.systemElements, response.dependencies);
+    const context = {subsystem, href};
 
     return response.dependencies
       .filter(dependency => CALL_DEPENDENCY_TYPES.includes(dependency.type))
-      .map(dependency => ArchitectureFindingMapper.createFinding(dependency, index, subsystem))
+      .map(dependency => ArchitectureFindingMapper.createFinding(dependency, index, context))
       .filter((finding): finding is ArchitectureFinding => !!finding)
       .filter(finding => !subsystem || finding.sourceComponent === subsystem)
       .sort(ArchitectureFindingMapper.compare);
@@ -62,11 +64,11 @@ export class ArchitectureFindingMapper {
       .map(dependency => [dependency.targetElementId, dependency.sourceElementId]));
   }
 
-  private static createFinding(dependency: ArchitectureDependencyResponse, index: GraphIndex, subsystem: string) {
+  private static createFinding(dependency: ArchitectureDependencyResponse, index: GraphIndex, context: MappingContext) {
     const rule = ArchitectureFindingMapper.findRule(dependency);
     const link = ArchitectureFindingMapper.resolveLink(dependency, index);
 
-    return rule && link ? ArchitectureFindingMapper.buildFinding(dependency, rule, link, subsystem) : undefined;
+    return rule && link ? ArchitectureFindingMapper.buildFinding(dependency, rule, link, context) : undefined;
   }
 
   private static resolveLink(dependency: ArchitectureDependencyResponse, index: GraphIndex): DependencyLink | undefined {
@@ -87,7 +89,7 @@ export class ArchitectureFindingMapper {
     dependency: ArchitectureDependencyResponse,
     rule: QualificationRule,
     link: DependencyLink,
-    subsystem: string,
+    context: MappingContext,
   ): ArchitectureFinding {
     const sourceName = ArchitectureFindingMapper.displayName(link.source);
     const targetName = ArchitectureFindingMapper.displayName(link.target);
@@ -97,7 +99,8 @@ export class ArchitectureFindingMapper {
     finding.description = rule.describe(sourceName, targetName);
     finding.sourceComponent = sourceName;
     finding.targetComponent = targetName;
-    ArchitectureFindingMapper.assignLocation(finding, link.sourceFile, dependency, subsystem);
+    finding.href = context.href;
+    ArchitectureFindingMapper.assignLocation(finding, link.sourceFile, dependency, context.subsystem);
 
     return finding;
   }

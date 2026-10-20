@@ -55,6 +55,10 @@ describe('SigridData', () => {
       this.configSig.set(config);
     }
 
+    getConfigurationOrEmpty() {
+      return { ...this.getEmptyConfiguration(), ...this.configSig() };
+    }
+
     getEmptyConfiguration() {
       return { hasApiKey: false, customer: '', system: '', sigridUrl: SIGRID_DEFAULT_URL };
     }
@@ -403,6 +407,27 @@ describe('SigridData', () => {
     const finding = service.securityFindings()!;
     expect(finding.data).toBeUndefined();
     expect(finding.error).toBe('Error occurred while mapping response to security findings.');
+  });
+
+  it('loadArchitectureFindings() links findings to the architecture explorer of the configured system', async () => {
+    const p = service.loadArchitectureFindings();
+    httpMock.expectOne(['architecture-quality', 'raw']).flush({
+      systemElements: [
+        {id: 'ca', type: 'CODE_COMPONENT', shortName: 'a'},
+        {id: 'cb', type: 'CODE_COMPONENT', shortName: 'b'},
+        {id: 'fa', type: 'FILE', name: 'a/a.ts'},
+        {id: 'fb', type: 'FILE', name: 'b/b.ts'},
+      ],
+      dependencies: [
+        {type: 'CONTAINS', sourceElementId: 'ca', targetElementId: 'fa'},
+        {type: 'CONTAINS', sourceElementId: 'cb', targetElementId: 'fb'},
+        {id: 'd1', type: 'CODE_CALL', sourceElementId: 'fa', targetElementId: 'fb', qualifications: ['CYCLIC']},
+      ],
+    });
+    await p;
+
+    expect(service.architectureFindings()!.data![0].href)
+      .toBe(`${SIGRID_DEFAULT_URL}/cust/sys/-/architecture-quality/explorer`);
   });
 
   it('loadAllFindings() calls all four loaders with forceRefresh=true', async () => {

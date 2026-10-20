@@ -7,6 +7,7 @@ import {SecurityFindingMapper} from '../mappers/security-finding-mapper';
 import {OpenSourceHealthMapper} from '../mappers/open-source-health-mapper';
 import {RefactoringCandidateMapper} from '../mappers/refactoring-candidate-mapper';
 import {ArchitectureFinding} from '../models/architecture-finding';
+import {buildArchitectureExplorerUrl} from '../utilities/architecture-explorer-url';
 import {ArchitectureFindingMapper} from '../mappers/architecture-finding-mapper';
 import {RefactoringCandidate} from '../models/refactoring-candidate';
 import {FileFilterMode} from '../models/file-filter-mode';
@@ -110,7 +111,7 @@ export class SigridData {
     return this.fetchFindings(
       () => this.sigridApi.getArchitectureGraph(),
       this._architectureFindings,
-      ArchitectureFindingMapper.map,
+      (response, subsystem) => ArchitectureFindingMapper.map(response, subsystem, this.architectureExplorerUrl()),
       'architecture',
       forceRefresh,
     );
@@ -129,6 +130,10 @@ export class SigridData {
     } finally {
       this._isRefreshing.set(false);
     }
+  }
+
+  private architectureExplorerUrl(): string {
+    return buildArchitectureExplorerUrl(this.configuration.getConfigurationOrEmpty());
   }
 
   private async fetchFindings<Response, Finding>(
