@@ -28,6 +28,8 @@ export class SigridData {
   private readonly _fileFilter = signal<FileFilterMode>(FileFilterMode.All);
   private readonly _activeFilePath = signal<string | null | undefined>(undefined);
   private readonly _isRefreshing = signal(false);
+  /** The architecture graph is large, so it is only part of a refresh once the architecture tab asked for it. */
+  private architectureRequested = false;
   private readonly sigridApi = inject(SigridApi);
   private readonly configuration = inject(SigridConfiguration);
   private readonly systemOnboarding = inject(SystemOnboarding);
@@ -108,6 +110,7 @@ export class SigridData {
   }
 
   loadArchitectureFindings(forceRefresh?: boolean): Promise<void> {
+    this.architectureRequested = true;
     return this.fetchFindings(
       () => this.sigridApi.getArchitectureGraph(),
       this._architectureFindings,
@@ -120,16 +123,22 @@ export class SigridData {
   async loadAllFindings(): Promise<void> {
     this._isRefreshing.set(true);
     try {
-      await Promise
-        .all([
-          this.loadRefactoringCandidates(true),
-          this.loadSecurityFindings(true),
-          this.loadOpenSourceHealthFindings(true),
-          this.loadArchitectureFindings(true),
-        ]);
+      await Promise.all(this.startRefreshLoaders());
     } finally {
       this._isRefreshing.set(false);
     }
+  }
+
+  private startRefreshLoaders(): Promise<void>[] {
+    const loaders = [
+      this.loadRefactoringCandidates(true),
+      this.loadSecurityFindings(true),
+      this.loadOpenSourceHealthFindings(true),
+    ];
+    if (this.architectureRequested) {
+      loaders.push(this.loadArchitectureFindings(true));
+    }
+    return loaders;
   }
 
   private architectureExplorerUrl(): string {
