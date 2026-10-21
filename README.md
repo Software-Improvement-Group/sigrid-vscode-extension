@@ -11,6 +11,7 @@ A Visual Studio Code extension that brings Sigrid findings directly into your ed
 - **View Sigrid findings in VS Code** without leaving your editor
 - **Search and filter findings** directly within the Sigrid dashboard
 - **Interactive dashboard** with filtering, navigation, and table controls
+- **Architecture findings** — undesirable and cyclic dependencies between files, shown in their own tab
 - **Deep link** from findings to the Sigrid web UI
 - **Configurable Sigrid instance URL** (supports self-hosted deployments)
 - **Create Jira issues** from selected findings (when JIRA settings are configured)

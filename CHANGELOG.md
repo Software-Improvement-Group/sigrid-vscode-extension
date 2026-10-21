@@ -4,6 +4,13 @@ All notable changes to the "sigrid-vscode" extension will be documented in this 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [1.0.6] - 2026-10-21
+
+### Added
+- **Architecture** tab listing undesirable and cyclic dependencies between files, reported per component with filtering, search, and navigation to the source file and line. Findings are derived from the system's raw architecture graph.
+- "Open in Sigrid" link on architecture findings, opening the system's architecture explorer in Sigrid.
+- "Fix with AI" now supports architecture findings, with matching skills and MCP tools in the generated prompt.
+
 ## [1.0.5] - 2026-10-02
 
 ### Added
