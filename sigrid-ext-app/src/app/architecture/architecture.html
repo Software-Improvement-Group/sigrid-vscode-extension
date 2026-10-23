@@ -1,0 +1,52 @@
+@if (dataState() === DataState.Error) {
+  <div class="error">{{ errorMessage() }}</div>
+} @else {
+  <table class="findings-table">
+    <thead>
+      <tr>
+        <th class="checkbox-column">
+          @if (selectionService.selectedCount() > 0) {
+            <sigrid-icon-button
+              iconClass="codicon codicon-close-all deselect-all"
+              ngxTooltip="Deselect All"
+              tooltipClass="sigrid-tooltip"
+              [tooltipArrow]="false"
+              tooltipPosition="bottom"
+              (onClick)="selectionService.clear()"/>
+          }
+        </th>
+        <th class="risk-column"><sigrid-filterable-header label="Risk" [centerLabel]="true" [options]="riskOptions()" [selected]="riskFilter()" (selectionChange)="onRiskFilterChange($event)" /></th>
+        <th>Finding</th>
+        <th>File</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (finding of filteredFindings(); track finding.id) {
+        <tr sigridFindingNavigator [locations]="finding.fileLocations" tabindex="-1"
+            [class.selected]="finding.id === selectedId" (click)="setSelectedId(finding.id)">
+          <td class="checkbox-column" (click)="$event.stopPropagation()" (dblclick)="$event.stopPropagation()">
+            <input type="checkbox" [checked]="selectionService.isSelected(finding.id)" (change)="toggleSelection(finding)" />
+          </td>
+          <td class="risk-column"><sigrid-severity-icon [severity]="finding.severity" /></td>
+          <td>{{ finding.description }}</td>
+          <td [title]="finding.filePath">{{ finding.displayFilePath }}@if (finding.line) {:{{ finding.line }}}</td>
+          <td>
+            <div class="action-buttons">
+              @if (canFixWithAi()) {
+                <sigrid-icon-button iconClass="codicon codicon-sparkle"
+                                    ngxTooltip="Fix with AI"
+                                    tooltipClass="sigrid-tooltip"
+                                    [tooltipArrow]="false"
+                                    tooltipPosition="bottom"
+                                    (onClick)="onFixWithAi(finding)"
+                />
+              }
+              <sigrid-external-link [href]="finding.href" [disabled]="!finding.href" tooltip="Open architecture explorer in Sigrid" />
+            </div>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

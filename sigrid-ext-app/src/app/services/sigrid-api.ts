@@ -4,6 +4,7 @@ import {OpenSourceHealthResponse} from '../models/open-source-health-dependency'
 import {SecurityFindingResponse} from '../models/security-finding';
 import {RefactoringCategory} from '../models/refactoring-category';
 import {RefactoringCandidatesResponse} from '../models/refactoring-candidate';
+import {ArchitectureGraphResponse} from '../models/architecture-finding';
 import {FindingRequest} from '../models/finding-request';
 
 @Injectable({
@@ -18,6 +19,10 @@ export class SigridApi {
 
   getSecurityFindings() {
     return this.transport.request<SecurityFindingResponse[]>({method: 'GET', path: ['security-findings']});
+  }
+
+  getArchitectureGraph() {
+    return this.transport.request<ArchitectureGraphResponse>({method: 'GET', path: ['architecture-quality', 'raw']});
   }
 
   getRefactoringCandidates(category: RefactoringCategory) {

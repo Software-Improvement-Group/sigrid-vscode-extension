@@ -54,6 +54,10 @@ describe('SigridData', () => {
       this.configSig.set(config);
     }
 
+    getConfigurationOrEmpty() {
+      return { ...this.getEmptyConfiguration(), ...this.configSig() };
+    }
+
     getEmptyConfiguration() {
       return { hasApiKey: false, customer: '', system: '', sigridUrl: SIGRID_DEFAULT_URL };
     }
@@ -404,7 +408,34 @@ describe('SigridData', () => {
     expect(finding.error).toBe('Error occurred while mapping response to security findings.');
   });
 
-  it('loadAllFindings() calls all three loaders with forceRefresh=true', async () => {
+  it('loadArchitectureFindings() links findings to the architecture explorer of the configured system', async () => {
+    const p = service.loadArchitectureFindings();
+    httpMock.expectOne(['architecture-quality', 'raw']).flush({
+      systemElements: [
+        {id: 'ca', type: 'CODE_COMPONENT', shortName: 'a'},
+        {id: 'cb', type: 'CODE_COMPONENT', shortName: 'b'},
+        {id: 'fa', type: 'FILE', name: 'a/a.ts'},
+        {id: 'fb', type: 'FILE', name: 'b/b.ts'},
+      ],
+      dependencies: [
+        {type: 'CONTAINS', sourceElementId: 'ca', targetElementId: 'fa'},
+        {type: 'CONTAINS', sourceElementId: 'cb', targetElementId: 'fb'},
+        {id: 'd1', type: 'CODE_CALL', sourceElementId: 'fa', targetElementId: 'fb', qualifications: ['CYCLIC']},
+      ],
+    });
+    await p;
+
+    expect(service.architectureFindings()!.data![0].href)
+      .toBe(`${SIGRID_DEFAULT_URL}/cust/sys/-/architecture-quality/explorer`);
+  });
+
+  async function requestArchitectureFindings() {
+    const request = service.loadArchitectureFindings();
+    httpMock.expectOne(['architecture-quality', 'raw']).flush({systemElements: [], dependencies: []});
+    await request;
+  }
+
+  it('loadAllFindings() calls the refactoring, security and open source health loaders with forceRefresh=true, but not architecture', async () => {
     const loadRefactoringSpy = vi
       .spyOn(service, 'loadRefactoringCandidates')
       .mockImplementation(() => Promise.resolve());
@@ -417,6 +448,10 @@ describe('SigridData', () => {
       .spyOn(service, 'loadOpenSourceHealthFindings')
       .mockImplementation(() => Promise.resolve());
 
+    const loadArchitectureSpy = vi
+      .spyOn(service, 'loadArchitectureFindings')
+      .mockImplementation(() => Promise.resolve());
+
     await service.loadAllFindings();
 
     expect(loadRefactoringSpy).toHaveBeenCalledTimes(1);
@@ -427,6 +462,21 @@ describe('SigridData', () => {
 
     expect(loadOshSpy).toHaveBeenCalledTimes(1);
     expect(loadOshSpy).toHaveBeenCalledWith(true);
+
+    expect(loadArchitectureSpy).not.toHaveBeenCalled();
+  });
+
+  it('loadAllFindings() also refreshes architecture findings once they have been requested', async () => {
+    await requestArchitectureFindings();
+    const loadArchitectureSpy = vi.spyOn(service, 'loadArchitectureFindings').mockResolvedValue();
+    vi.spyOn(service, 'loadRefactoringCandidates').mockResolvedValue();
+    vi.spyOn(service, 'loadSecurityFindings').mockResolvedValue();
+    vi.spyOn(service, 'loadOpenSourceHealthFindings').mockResolvedValue();
+
+    await service.loadAllFindings();
+
+    expect(loadArchitectureSpy).toHaveBeenCalledTimes(1);
+    expect(loadArchitectureSpy).toHaveBeenCalledWith(true);
   });
 
   it('loadAllFindings() toggles isRefreshing true while running, then false when finished (even if loaders are async)', async () => {
@@ -443,7 +493,6 @@ describe('SigridData', () => {
     vi.spyOn(service, 'loadOpenSourceHealthFindings').mockImplementation(
       () => new Promise<void>((resolve) => { resolveOsh = resolve; }),
     );
-
     expect(service.isRefreshing()).toBe(false);
 
     const p = service.loadAllFindings();
@@ -468,7 +517,6 @@ describe('SigridData', () => {
     vi.spyOn(service, 'loadRefactoringCandidates').mockResolvedValue();
     vi.spyOn(service, 'loadSecurityFindings').mockRejectedValue(new Error('boom'));
     vi.spyOn(service, 'loadOpenSourceHealthFindings').mockResolvedValue();
-
     expect(service.isRefreshing()).toBe(false);
 
     await expect(service.loadAllFindings()).rejects.toThrow('boom');
@@ -476,7 +524,7 @@ describe('SigridData', () => {
     expect(service.isRefreshing()).toBe(false);
   });
 
-  it('loadAllFindings() triggers HTTP fetches for refactoring, security, and open source health findings', async () => {
+  it('loadAllFindings() triggers HTTP fetches for refactoring, security and open source health findings, but not architecture', async () => {
     vi.spyOn(SecurityFindingMapper, 'map').mockReturnValue([] as any);
     vi.spyOn(OpenSourceHealthMapper, 'map').mockReturnValue([] as any);
     vi.spyOn(RefactoringCandidateMapper, 'map').mockReturnValue([] as any);
@@ -507,5 +555,16 @@ describe('SigridData', () => {
 
     await p;
     expect(service.isRefreshing()).toBe(false);
+  });
+
+  it('loadAllFindings() fetches the architecture graph again once the architecture tab requested it', async () => {
+    await requestArchitectureFindings();
+    vi.spyOn(service, 'loadRefactoringCandidates').mockResolvedValue();
+    vi.spyOn(service, 'loadSecurityFindings').mockResolvedValue();
+    vi.spyOn(service, 'loadOpenSourceHealthFindings').mockResolvedValue();
+
+    const p = service.loadAllFindings();
+    httpMock.expectOne(['architecture-quality', 'raw']).flush({systemElements: [], dependencies: []});
+    await p;
   });
 });

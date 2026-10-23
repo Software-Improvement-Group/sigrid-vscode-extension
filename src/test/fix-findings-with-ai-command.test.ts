@@ -504,6 +504,13 @@ suite('buildFixPrompt', () => {
         assert.ok(prompt.startsWith('/sigrid:resolve-security-findings'));
     });
 
+    test('uses the architecture skill for architecture findings', () => {
+        const finding = { ...OSH_FINDING, category: 'Architecture' };
+
+        assert.ok(buildFixPrompt([finding], context, slashAgent).text.startsWith('/axis:autofix architecture'));
+        assert.ok(buildFixPrompt([finding], context, legacyAgent).text.startsWith('/sigrid:architecture-improve'));
+    });
+
     test('falls back to a plain instruction for a mixed selection', () => {
         const prompt = buildFixPrompt([MAINTAINABILITY_FINDING, OSH_FINDING], context, slashAgent).text;
 

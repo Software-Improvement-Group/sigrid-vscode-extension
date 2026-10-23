@@ -21,7 +21,7 @@ export interface SigridApiResponse {
     body?: unknown;
 }
 
-const ALLOWED_RESOURCES = ['osh-findings', 'security-findings', 'refactoring-candidates', 'findings'];
+const ALLOWED_RESOURCES = ['osh-findings', 'security-findings', 'refactoring-candidates', 'findings', 'architecture-quality'];
 const ALLOWED_METHODS: SigridApiMethod[] = ['GET', 'PATCH'];
 
 export async function callSigridApi(request: SigridApiRequest, secrets: SecretStorage): Promise<SigridApiResponse> {

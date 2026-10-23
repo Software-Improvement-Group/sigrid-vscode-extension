@@ -33,6 +33,16 @@ describe('SigridApi', () => {
     expect(service).toBeTruthy();
   });
 
+  it('getArchitectureGraph() issues GET to the raw architecture graph', async () => {
+    const result = service.getArchitectureGraph();
+
+    const req = transport.expectOne(['architecture-quality', 'raw']);
+    expect(req.request.method).toBe('GET');
+
+    req.flush({systemElements: [], dependencies: []});
+    expect(await result).toEqual({systemElements: [], dependencies: []});
+  });
+
   it('getOpenSourceHealthFindings() issues GET to the expected resource', async () => {
     const result = service.getOpenSourceHealthFindings();
 
